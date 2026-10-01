@@ -1,387 +1,452 @@
-
 <?php
-session_start();
-require_once 'config/koneksi.php';
+require_once __DIR__ . '/config/koneksi.php';
 
-if (!isset($_SESSION['id']) || $_SESSION['role'] !== 'admin') {
-    header('Location: login.php');
+
+/* =========================
+   HAPUS DATA
+========================= */
+if (isset($_GET['hapus'])) {
+
+    $id = (int) $_GET['hapus'];
+
+    $cek = mysqli_query(
+        $koneksi,
+        "SELECT user_id FROM t_guru WHERE id = $id"
+    );
+
+    $guru = mysqli_fetch_assoc($cek);
+
+    if ($guru) {
+
+        $user_id = (int) $guru['user_id'];
+
+        mysqli_query(
+            $koneksi,
+            "DELETE FROM t_guru WHERE id = $id"
+        );
+
+        mysqli_query(
+            $koneksi,
+            "DELETE FROM t_user WHERE id = $user_id"
+        );
+    }
+
+    header("Location: guru.php");
     exit;
 }
 
-function aman($nilai) {
-    return htmlspecialchars((string)($nilai ?? ''), ENT_QUOTES, 'UTF-8');
-}
 
-$pesan = '';
+/* =========================
+   TAMBAH DATA
+========================= */
+if (isset($_POST['tambah'])) {
 
-if (($_GET['pesan'] ?? '') === 'sukses') {
-    $pesan = 'Data guru berhasil disimpan.';
-} elseif (($_GET['pesan'] ?? '') === 'hapus') {
-    $pesan = 'Data guru berhasil dihapus.';
-}
-
-// HAPUS DATA GURU
-if ($_SERVER['REQUEST_METHOD'] === 'POST'
-    && ($_POST['aksi'] ?? '') === 'hapus') {
-
-    $id = (int)($_POST['id'] ?? 0);
-
-    $stmt = $koneksi->prepare("DELETE FROM t_guru WHERE id = ?");
-    $stmt->bind_param('i', $id);
-
-    if ($stmt->execute()) {
-        $stmt->close();
-        header('Location: guru.php?pesan=hapus');
-        exit;
-    }
-
-    $pesan = 'Data gagal dihapus. Data mungkin sedang digunakan.';
-    $stmt->close();
-}
-
-// PENCARIAN DATA GURU
-$cari = trim($_GET['cari'] ?? '');
-
-if ($cari !== '') {
-    $kata = "%{$cari}%";
-
-    $stmt = $koneksi->prepare(
-        "SELECT * FROM t_guru
-         WHERE nama LIKE ? OR nip LIKE ? OR email LIKE ?
-         ORDER BY id DESC"
+    $nip = mysqli_real_escape_string(
+        $koneksi,
+        $_POST['nip']
     );
 
-    $stmt->bind_param('sss', $kata, $kata, $kata);
-    $stmt->execute();
-    $dataGuru = $stmt->get_result();
-} else {
-    $dataGuru = $koneksi->query(
-        "SELECT * FROM t_guru ORDER BY id DESC"
+    $nama = mysqli_real_escape_string(
+        $koneksi,
+        $_POST['nama']
     );
+
+    $email = mysqli_real_escape_string(
+        $koneksi,
+        $_POST['email']
+    );
+
+    $status_aktif = (int) $_POST['status_aktif'];
+
+
+    $password = password_hash(
+        '12345678',
+        PASSWORD_DEFAULT
+    );
+
+
+    mysqli_query($koneksi, "
+        INSERT INTO t_user
+        (name, email, password, remember_token, role)
+        VALUES
+        ('$nama', '$email', '$password', '', 'guru')
+    ");
+
+
+    $user_id = mysqli_insert_id($koneksi);
+
+
+    mysqli_query($koneksi, "
+        INSERT INTO t_guru
+        (nip, nama, email, status_aktif, user_id)
+        VALUES
+        ('$nip', '$nama', '$email', '$status_aktif', '$user_id')
+    ");
+
+
+    header("Location: guru.php");
+    exit;
 }
 
-// TOTAL GURU
-$hasilJumlah = $koneksi->query(
-    "SELECT COUNT(*) AS total FROM t_guru"
-);
 
-$jumlahGuru = $hasilJumlah
-    ? (int)$hasilJumlah->fetch_assoc()['total']
-    : 0;
+/* =========================
+   TAMPILAN TAMBAH
+========================= */
+if (isset($_GET['tambah'])) {
 ?>
 
 <!DOCTYPE html>
 <html lang="id">
+
 <head>
+
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1">
+
+    <meta
+        name="viewport"
+        content="width=device-width, initial-scale=1.0"
+    >
+
+    <title>Tambah Data Guru</title>
+
+    <link
+        href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css"
+        rel="stylesheet"
+    >
+
+</head>
+
+
+<body class="bg-light">
+
+
+<div class="container py-5">
+
+
+    <div class="mb-4">
+
+        <h1 class="fw-bold mb-1">
+            Tambah Data Guru
+        </h1>
+
+        <p class="text-secondary mb-2">
+            Masukkan informasi guru baru.
+        </p>
+
+        <a
+            href="guru.php"
+            class="btn btn-secondary btn-sm"
+        >
+            Kembali ke Data Guru
+        </a>
+
+    </div>
+
+
+    <div class="card border-0 shadow-sm">
+
+        <div class="card-body p-4">
+
+            <form method="POST">
+
+                <div class="row g-3">
+
+
+                    <div class="col-md-6">
+
+                        <label class="form-label">
+                            NIP
+                        </label>
+
+                        <input
+                            type="text"
+                            name="nip"
+                            class="form-control"
+                            required
+                        >
+
+                    </div>
+
+
+                    <div class="col-md-6">
+
+                        <label class="form-label">
+                            Nama Guru
+                        </label>
+
+                        <input
+                            type="text"
+                            name="nama"
+                            class="form-control"
+                            required
+                        >
+
+                    </div>
+
+
+                    <div class="col-md-6">
+
+                        <label class="form-label">
+                            Email
+                        </label>
+
+                        <input
+                            type="email"
+                            name="email"
+                            class="form-control"
+                            required
+                        >
+
+                    </div>
+
+
+                    <div class="col-md-6">
+
+                        <label class="form-label">
+                            Status Aktif
+                        </label>
+
+                        <select
+                            name="status_aktif"
+                            class="form-select"
+                            required
+                        >
+
+                            <option value="1">
+                                Aktif
+                            </option>
+
+                            <option value="0">
+                                Tidak Aktif
+                            </option>
+
+                        </select>
+
+                    </div>
+
+                </div>
+
+
+                <div class="mt-4">
+
+                    <a
+                        href="guru.php"
+                        class="btn btn-secondary"
+                    >
+                        Batal
+                    </a>
+
+                    <button
+                        type="submit"
+                        name="tambah"
+                        class="btn btn-primary"
+                    >
+                        Tambah Data
+                    </button>
+
+                </div>
+
+            </form>
+
+        </div>
+
+    </div>
+
+</div>
+
+
+</body>
+
+</html>
+
+<?php
+exit;
+}
+
+
+/* =========================
+   DATA GURU
+========================= */
+
+$data = mysqli_query($koneksi, "
+    SELECT *
+    FROM t_guru
+    ORDER BY id ASC
+");
+
+?>
+
+<!DOCTYPE html>
+<html lang="id">
+
+<head>
+
+    <meta charset="UTF-8">
+
+    <meta
+        name="viewport"
+        content="width=device-width, initial-scale=1.0"
+    >
 
     <title>Data Guru</title>
 
-    <!-- Bootstrap 5 -->
-    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css"
-          rel="stylesheet">
+    <link
+        href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css"
+        rel="stylesheet"
+    >
 
-    <style>
-        body {
-            background: #f5f5f5;
-            font-family: Arial, sans-serif;
-            color: #212529;
-        }
-
-        .halaman {
-            padding: 25px;
-            min-height: 100vh;
-        }
-
-        .judul-halaman {
-            font-size: 26px;
-            font-weight: 700;
-            margin-bottom: 4px;
-        }
-
-        .deskripsi {
-            color: #6c757d;
-            margin-bottom: 0;
-        }
-
-        .kartu {
-            background: #ffffff;
-            padding: 22px;
-            border-radius: 8px;
-            box-shadow: 0 2px 8px rgba(0, 0, 0, .06);
-        }
-
-        /* Warna tombol utama cokelat */
-        .btn {
-            border-radius: 4px;
-        }
-
-        .btn-primary,
-        .btn-cokelat {
-            background: #604431;
-            border-color: #604431;
-            color: #ffffff;
-        }
-
-        .btn-primary:hover,
-        .btn-primary:focus,
-        .btn-cokelat:hover,
-        .btn-cokelat:focus {
-            background: #493424;
-            border-color: #493424;
-            color: #ffffff;
-        }
-
-        .btn-secondary {
-            background: #6c757d;
-            border-color: #6c757d;
-            color: #ffffff;
-        }
-
-        .btn-warning {
-            background: #e5d9c8;
-            border-color: #e5d9c8;
-            color: #493424;
-        }
-
-        .btn-warning:hover {
-            background: #d6c5ae;
-            border-color: #d6c5ae;
-            color: #493424;
-        }
-
-        .btn-danger {
-            background: #dc3545;
-            border-color: #dc3545;
-            color: #ffffff;
-        }
-
-        /* Badge total guru: cokelat, bukan biru */
-        .badge-total {
-            background: #604431;
-            color: #ffffff;
-            font-size: 13px;
-            padding: 8px 12px;
-            border-radius: 4px;
-        }
-
-        /* Kotak pencarian */
-        .form-control {
-            border-radius: 5px;
-        }
-
-        .form-control:focus,
-        .form-select:focus {
-            border-color: #b5a18f;
-            box-shadow: 0 0 0 .15rem rgba(91, 66, 47, .15);
-        }
-
-        /* Tabel */
-        .table {
-            margin-bottom: 0;
-        }
-
-        .table th {
-            background: #6b4b36;
-            color: #ffffff;
-            white-space: nowrap;
-        }
-
-        .table td {
-            vertical-align: middle;
-        }
-
-        .table tbody tr:hover td {
-            background: #f0e7dd;
-        }
-
-        /* Tampilan HP */
-        @media (max-width: 768px) {
-            .halaman {
-                padding: 15px;
-            }
-
-            .kartu {
-                padding: 12px;
-            }
-
-            .judul-halaman {
-                font-size: 23px;
-            }
-        }
-    </style>
 </head>
 
-<body>
 
-<div class="container-fluid halaman">
+<body class="bg-light">
 
-    <!-- JUDUL HALAMAN -->
-    <div class="d-flex justify-content-between align-items-center
-                flex-wrap gap-2 mb-4">
+
+<div class="container py-5">
+
+
+    <!-- HEADER -->
+
+    <div class="d-flex justify-content-between align-items-center mb-4">
 
         <div>
-            <h3 class="judul-halaman">Data Guru</h3>
-            <p class="deskripsi">Kelola data guru sekolah</p>
-        </div>
 
-        <div class="d-flex flex-wrap align-items-center gap-2">
+            <h1 class="fw-bold mb-1">
+                Data Guru
+            </h1>
 
-            <span class="badge badge-total">
-                Total: <?= $jumlahGuru ?> guru ditemukan
-            </span>
+            <p class="text-secondary mb-2">
+                Daftar data guru
+            </p>
 
-            <a href="dashboard.php"
-               class="btn btn-secondary"
-               onclick="if (window.parent !== window) {
-                   window.parent.location.href='dashboard.php';
-                   return false;
-               }">
-                ← Kembali ke Dashboard
+            <a
+                href="dashboard.php"
+                class="btn btn-secondary btn-sm"
+            >
+                Kembali ke Dashboard
             </a>
 
         </div>
-    </div>
 
-    <!-- PESAN -->
-    <?php if ($pesan !== ''): ?>
-        <div class="alert alert-info">
-            <?= aman($pesan) ?>
-        </div>
-    <?php endif; ?>
 
-    <!-- TOMBOL TAMBAH GURU DIPISAH DARI TABEL -->
-    <div class="mb-3">
-        <a href="tambah_guru.php" class="btn btn-primary">
+        <a
+            href="guru.php?tambah=1"
+            class="btn btn-primary"
+        >
             + Tambah Guru
         </a>
+
     </div>
 
-    <!-- KARTU TABEL GURU -->
-    <div class="kartu">
 
-        <!-- PENCARIAN -->
-        <form method="GET"
-              action="guru.php"
-              class="d-flex justify-content-end flex-wrap gap-2 mb-3">
+    <!-- TABEL -->
 
-            <input type="text"
-                   name="cari"
-                   class="form-control"
-                   style="max-width: 280px;"
-                   placeholder="Cari nama, NIP, atau email..."
-                   value="<?= aman($cari) ?>">
+    <div class="card border-0 shadow-sm">
 
-            <button type="submit" class="btn btn-primary">
-                Cari
-            </button>
+        <div class="card-body p-3">
 
-            <a href="guru.php" class="btn btn-outline-secondary">
-                Reset
-            </a>
+            <div class="table-responsive">
 
-        </form>
+                <table class="table table-hover align-middle mb-0">
 
-        <!-- TABEL -->
-        <div class="table-responsive">
-
-            <table class="table table-bordered table-hover">
-
-                <thead>
-                    <tr>
-                        <th>No.</th>
-                        <th>NIP</th>
-                        <th>Nama Guru</th>
-                        <th>Email</th>
-                        <th>Status</th>
-                        <th>Aksi</th>
-                    </tr>
-                </thead>
-
-                <tbody>
-
-                <?php if ($dataGuru && $dataGuru->num_rows > 0): ?>
-
-                    <?php $no = 1; ?>
-
-                    <?php while ($g = $dataGuru->fetch_assoc()): ?>
+                    <thead class="table-primary">
 
                         <tr>
-                            <td><?= $no++ ?></td>
 
-                            <td><?= aman($g['nip']) ?></td>
+                            <th>No</th>
+                            <th>NIP</th>
+                            <th>Nama Guru</th>
+                            <th>Email</th>
+                            <th>Status</th>
+                            <th>Aksi</th>
 
-                            <td><?= aman($g['nama']) ?></td>
+                        </tr>
 
-                            <td><?= aman($g['email']) ?></td>
+                    </thead>
+
+
+                    <tbody>
+
+                    <?php
+
+                    $no = 1;
+
+                    while ($row = mysqli_fetch_assoc($data)):
+
+                    ?>
+
+                        <tr>
 
                             <td>
-                                <?php if ($g['status_aktif'] === 'aktif'): ?>
+                                <?= $no++; ?>
+                            </td>
+
+
+                            <td>
+                                <?= htmlspecialchars($row['nip']); ?>
+                            </td>
+
+
+                            <td>
+                                <strong>
+                                    <?= htmlspecialchars($row['nama']); ?>
+                                </strong>
+                            </td>
+
+
+                            <td>
+                                <?= htmlspecialchars($row['email']); ?>
+                            </td>
+
+
+                            <td>
+
+                                <?php if ($row['status_aktif'] == 1): ?>
+
                                     <span class="badge bg-success">
                                         Aktif
                                     </span>
+
                                 <?php else: ?>
+
                                     <span class="badge bg-secondary">
-                                        Nonaktif
+                                        Tidak Aktif
                                     </span>
+
                                 <?php endif; ?>
+
                             </td>
+
 
                             <td>
-                                <div class="d-flex gap-1">
 
-                                    <!-- EDIT -->
-                                    <a href="tambah_guru.php?id=<?= (int)$g['id'] ?>"
-                                       class="btn btn-warning btn-sm">
-                                        Edit
-                                    </a>
+                                <a
+                                    href="guru.php?hapus=<?= $row['id']; ?>"
+                                    class="btn btn-danger btn-sm"
+                                    onclick="return confirm('Yakin ingin menghapus data guru ini?')"
+                                >
+                                    Hapus
+                                </a>
 
-                                    <!-- HAPUS -->
-                                    <form method="POST"
-                                          action="guru.php"
-                                          onsubmit="return confirm('Yakin ingin menghapus data guru ini?')">
-
-                                        <input type="hidden"
-                                               name="aksi"
-                                               value="hapus">
-
-                                        <input type="hidden"
-                                               name="id"
-                                               value="<?= (int)$g['id'] ?>">
-
-                                        <button type="submit"
-                                                class="btn btn-danger btn-sm">
-                                            Hapus
-                                        </button>
-
-                                    </form>
-
-                                </div>
                             </td>
+
                         </tr>
 
                     <?php endwhile; ?>
 
-                <?php else: ?>
+                    </tbody>
 
-                    <tr>
-                        <td colspan="6"
-                            class="text-center text-secondary py-4">
-                            Data guru belum tersedia.
-                        </td>
-                    </tr>
+                </table>
 
-                <?php endif; ?>
-
-                </tbody>
-            </table>
+            </div>
 
         </div>
+
     </div>
+
+
 </div>
 
-<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
 
 </body>
+
 </html>

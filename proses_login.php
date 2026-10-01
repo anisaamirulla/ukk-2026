@@ -6,7 +6,14 @@ include "config/koneksi.php";
 $email = $_POST['email'];
 $password = $_POST['password'];
 
-$query = mysqli_query($koneksi, "SELECT * FROM t_user WHERE email='$email' AND password='$password'");
+$query = mysqli_query(
+    $koneksi,
+    "SELECT * FROM t_user WHERE email='$email' AND password='$password'"
+);
+
+if (!$query) {
+    die("Error database: " . mysqli_error($koneksi));
+}
 
 $data = mysqli_fetch_assoc($query);
 
@@ -21,7 +28,8 @@ if ($data) {
 
 } else {
 
-    echo "Email atau password salah";
+    header("Location: login.php?error=1");
+    exit;
 
 }
 
