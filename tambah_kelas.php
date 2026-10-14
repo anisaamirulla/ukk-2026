@@ -1,197 +1,124 @@
+
 <?php
+session_start();
+include "config/koneksi.php";
 
-error_reporting(E_ALL);
-ini_set('display_errors', 1);
-
-require_once __DIR__ . '/config/koneksi.php';
-
-if (isset($_POST['simpan'])) {
-
-    $nama = mysqli_real_escape_string(
-        $koneksi,
-        $_POST['nama']
-    );
-
-    $tingkat = mysqli_real_escape_string(
-        $koneksi,
-        $_POST['tingkat']
-    );
-
-    $jurusan = mysqli_real_escape_string(
-        $koneksi,
-        $_POST['jurusan']
-    );
-
-    $query = mysqli_query(
-        $koneksi,
-        "INSERT INTO t_kelas
-        (nama, tingkat, jurusan, status_aktif)
-        VALUES
-        ('$nama', '$tingkat', '$jurusan', 1)"
-    );
-
-    if ($query) {
-
-        header("Location: kelas.php");
-        exit;
-
-    } else {
-
-        $error = mysqli_error($koneksi);
-
-    }
-
+if (!isset($_SESSION['id'])) {
+    header("Location: login.php");
+    exit;
 }
 
+if (!isset($_SESSION['role']) || $_SESSION['role'] != 'admin') {
+    echo "Anda tidak memiliki akses";
+    exit;
+}
+
+$pesan = "";
+
+if (isset($_POST['simpan'])) {
+    $nama_kelas = mysqli_real_escape_string($koneksi, trim($_POST['nama_kelas']));
+    $tingkat = mysqli_real_escape_string($koneksi, trim($_POST['tingkat']));
+    $jurusan = mysqli_real_escape_string($koneksi, trim($_POST['jurusan']));
+
+    $query = mysqli_query($koneksi, "
+        INSERT INTO t_kelas (nama_kelas, tingkat, jurusan)
+        VALUES ('$nama_kelas', '$tingkat', '$jurusan')
+    ");
+
+    if ($query) {
+        header("Location: kelas.php");
+        exit;
+    } else {
+        $pesan = "Data kelas gagal disimpan. Periksa nama kolom pada tabel t_kelas.";
+    }
+}
 ?>
 
 <!DOCTYPE html>
 <html lang="id">
-
 <head>
-
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1">
-
     <title>Tambah Kelas</title>
-
-    <link
-        href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css"
-        rel="stylesheet"
-    >
-
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet">
 </head>
+<body>
 
-<body class="bg-light">
+<div class="container-fluid">
+    <div class="row min-vh-100">
 
-<div class="container py-5">
+        <!-- SIDEBAR -->
+        <div class="col-md-2 bg-dark text-white p-3">
+            <h4 class="mb-4">Admin UKK</h4>
 
-    <div class="card shadow-sm border-0">
+            <div class="nav nav-pills flex-column gap-2">
+                <a href="dashboard.php" class="nav-link text-white">Dashboard</a>
+                <a href="siswa.php" class="nav-link text-white">Data Siswa</a>
+                <a href="guru.php" class="nav-link text-white">Data Guru</a>
+                <a href="kelas.php" class="nav-link active bg-primary text-white">Data Kelas</a>
+                <a href="tahun_ajaran.php" class="nav-link text-white">Tahun Ajaran</a>
+                <a href="penempatan_siswa.php" class="nav-link text-white">Penempatan Siswa</a>
+                <a href="wali_kelas.php" class="nav-link text-white">Wali Kelas</a>
+                <a href="kategori_pelanggaran.php" class="nav-link text-white">Kategori Pelanggaran</a>
+                <a href="jenis_pelanggaran.php" class="nav-link text-white">Jenis Pelanggaran</a>
+                <a href="cetak_export.php" class="nav-link text-white">Cetak / Export</a>
+                <a href="logout.php" class="nav-link text-danger">Logout</a>
+            </div>
+        </div>
 
-        <div class="card-body p-4">
+        <!-- FORM TAMBAH KELAS -->
+        <div class="col-md-10 p-4 bg-light">
 
-            <h2 class="fw-bold mb-1">
-                Tambah Kelas
-            </h2>
+            <h2 class="fw-bold mb-1">Tambah Data Kelas</h2>
+            <p class="text-secondary mb-4">Silakan isi formulir data kelas.</p>
 
-            <p class="text-muted mb-4">
-                Tambahkan data kelas baru
-            </p>
-
-
-            <?php if (isset($error)): ?>
-
+            <?php if ($pesan != "") { ?>
                 <div class="alert alert-danger">
-                    <?= htmlspecialchars($error) ?>
+                    <?= htmlspecialchars($pesan); ?>
                 </div>
+            <?php } ?>
 
-            <?php endif; ?>
+            <div class="bg-white p-4 rounded">
+                <form method="POST" action="">
 
+                    <div class="mb-3">
+                        <label for="nama_kelas" class="form-label">Nama Kelas</label>
+                        <input type="text" name="nama_kelas" id="nama_kelas"
+                               class="form-control" required>
+                    </div>
 
-            <form method="POST">
+                    <div class="mb-3">
+                        <label for="tingkat" class="form-label">Tingkat</label>
+                        <select name="tingkat" id="tingkat" class="form-select" required>
+                            <option value="">-- Pilih Tingkat --</option>
+                            <option value="X">X</option>
+                            <option value="XI">XI</option>
+                            <option value="XII">XII</option>
+                        </select>
+                    </div>
 
+                    <div class="mb-4">
+                        <label for="jurusan" class="form-label">Jurusan</label>
+                        <input type="text" name="jurusan" id="jurusan"
+                               class="form-control" required>
+                    </div>
 
-                <!-- NAMA KELAS -->
+                    <button type="submit" name="simpan" class="btn btn-primary">
+                        Simpan
+                    </button>
 
-                <div class="mb-3">
-
-                    <label class="form-label">
-                        Nama Kelas
-                    </label>
-
-                    <input
-                        type="text"
-                        name="nama"
-                        class="form-control"
-                        placeholder="Contoh: X RPL 4"
-                        required
-                    >
-
-                </div>
-
-
-                <!-- TINGKAT -->
-
-                <div class="mb-3">
-
-                    <label class="form-label">
-                        Tingkat
-                    </label>
-
-                    <select
-                        name="tingkat"
-                        class="form-select"
-                        required
-                    >
-
-                        <option value="">
-                            -- Pilih Tingkat --
-                        </option>
-
-                        <option value="X">
-                            X
-                        </option>
-
-                        <option value="XI">
-                            XI
-                        </option>
-
-                        <option value="XII">
-                            XII
-                        </option>
-
-                    </select>
-
-                </div>
-
-
-                <!-- JURUSAN -->
-
-                <div class="mb-4">
-
-                    <label class="form-label">
-                        Jurusan
-                    </label>
-
-                    <input
-                        type="text"
-                        name="jurusan"
-                        class="form-control"
-                        placeholder="Contoh: Rekayasa Perangkat Lunak"
-                        required
-                    >
-
-                </div>
-
-
-                <!-- TOMBOL -->
-
-                <div class="d-flex gap-2">
-
-                    <a
-                        href="kelas.php"
-                        class="btn btn-secondary"
-                    >
+                    <a href="kelas.php" class="btn btn-secondary">
                         Kembali
                     </a>
 
-                    <button
-                        type="submit"
-                        name="simpan"
-                        class="btn btn-primary"
-                    >
-                        Simpan Kelas
-                    </button>
-
-                </div>
-
-            </form>
+                </form>
+            </div>
 
         </div>
-
     </div>
-
 </div>
 
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
 </body>
 </html>
+```

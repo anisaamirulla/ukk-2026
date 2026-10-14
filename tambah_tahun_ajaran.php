@@ -1,74 +1,81 @@
+
 <?php
-require_once __DIR__ . '/config/koneksi.php';
+session_start();
 
-$edit = isset($_GET['edit']) ? (int) $_GET['edit'] : 0;
-
-$row = [
-    'nama' => '',
-    'tanggal_mulai' => '',
-    'tanggal_selesai' => '',
-    'status_aktif' => 1
-];
-
-if ($edit > 0) {
-
-    $query = mysqli_query(
-        $koneksi,
-        "SELECT * FROM t_tahun_ajaran WHERE id = $edit"
-    );
-
-    if ($query && mysqli_num_rows($query) > 0) {
-        $row = mysqli_fetch_assoc($query);
-    }
+if (!isset($_SESSION['id'])) {
+    header("Location: login.php");
+    exit;
 }
 
-if ($_SERVER['REQUEST_METHOD'] === 'POST') {
-
-    $id = (int) ($_POST['id'] ?? 0);
-
-    $nama = mysqli_real_escape_string(
-        $koneksi,
-        $_POST['nama'] ?? ''
-    );
-
-    $tanggal_mulai = mysqli_real_escape_string(
-        $koneksi,
-        $_POST['tanggal_mulai'] ?? ''
-    );
-
-    $tanggal_selesai = mysqli_real_escape_string(
-        $koneksi,
-        $_POST['tanggal_selesai'] ?? ''
-    );
-
-    $status_aktif = (int) ($_POST['status_aktif'] ?? 0);
-
-    if ($id > 0) {
-
-        mysqli_query(
-            $koneksi,
-            "UPDATE t_tahun_ajaran SET
-                nama = '$nama',
-                tanggal_mulai = '$tanggal_mulai',
-                tanggal_selesai = '$tanggal_selesai',
-                status_aktif = $status_aktif,
-                updated_at = CURRENT_TIMESTAMP
-             WHERE id = $id"
-        );
-
-    } else {
-
-        mysqli_query(
-            $koneksi,
-            "INSERT INTO t_tahun_ajaran
-                (nama, tanggal_mulai, tanggal_selesai, status_aktif)
-             VALUES
-                ('$nama', '$tanggal_mulai', '$tanggal_selesai', $status_aktif)"
-        );
-    }
-
-    header("Location: tahun_ajaran.php");
+if (!isset($_SESSION['role']) || $_SESSION['role'] != 'admin') {
+    echo "Anda tidak memiliki akses";
     exit;
+}
+
+require_once __DIR__ . "/config/koneksi.php";
+
+$pesan = "";
+
+if ($_SERVER['REQUEST_METHOD'] === 'POST') {
+    $nama = trim($_POST['nama'] ?? '');
+    $tanggal_mulai = $_POST['tanggal_mulai'] ?? '';
+    $tanggal_selesai = $_POST['tanggal_selesai'] ?? '';
+    $status_aktif = isset($_POST['status_aktif']) ? 1 : 0;
+
+    if ($nama === '' || $tanggal_mulai === '' || $tanggal_selesai === '') {
+        $pesan = "Semua data wajib diisi.";
+    } elseif ($tanggal_selesai < $tanggal_mulai) {
+        $pesan = "Tanggal selesai tidak boleh sebelum tanggal mulai.";
+    } else {
+        mysqli_begin_transaction($koneksi);
+
+        try {
+            // Jika tahun ajaran ini aktif, nonaktifkan tahun ajaran lainnya.
+            if ($status_aktif === 1) {
+                $nonaktifkan = mysqli_query(
+                    $koneksi,
+                    "UPDATE t_tahun_ajaran SET status_aktif = 0"
+                );
+
+                if (!$nonaktifkan) {
+                    throw new Exception(mysqli_error($koneksi));
+                }
+            }
+
+            $stmt = mysqli_prepare(
+                $koneksi,
+                "INSERT INTO t_tahun_ajaran
+                (nama, tanggal_mulai, tanggal_selesai, status_aktif)
+                VALUES (?, ?, ?, ?)"
+            );
+
+            if (!$stmt) {
+                throw new Exception(mysqli_error($koneksi));
+            }
+
+            mysqli_stmt_bind_param(
+                $stmt,
+                "sssi",
+                $nama,
+                $tanggal_mulai,
+                $tanggal_selesai,
+                $status_aktif
+            );
+
+            if (!mysqli_stmt_execute($stmt)) {
+                throw new Exception(mysqli_stmt_error($stmt));
+            }
+
+            mysqli_stmt_close($stmt);
+            mysqli_commit($koneksi);
+
+            header("Location: tahun_ajaran.php?pesan=berhasil");
+            exit;
+        } catch (Exception $e) {
+            mysqli_rollback($koneksi);
+            $pesan = "Gagal menyimpan data tahun ajaran.";
+        }
+    }
 }
 ?>
 
@@ -76,153 +83,171 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
 <html lang="id">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-
-    <title>
-        <?= $edit > 0 ? 'Edit Tahun Ajaran' : 'Tambah Tahun Ajaran' ?>
-    </title>
-
-    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>Tambah Tahun Ajaran</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css"
+          rel="stylesheet">
 </head>
 
 <body class="bg-light">
 
-<div class="container py-4">
+<div class="container-fluid">
+    <div class="row">
 
-    <div class="mb-4">
-        <h1 class="h3 mb-1">
-            <?= $edit > 0 ? 'Edit Tahun Ajaran' : 'Tambah Data Tahun Ajaran' ?>
-        </h1>
+        <!-- SIDEBAR -->
+        <div class="col-md-3 col-lg-2 bg-dark min-vh-100 p-3">
+            <h4 class="text-white mb-4">Admin UKK</h4>
 
-        <p class="text-secondary mb-0">
-            <?= $edit > 0
-                ? 'Perbarui informasi tahun ajaran.'
-                : 'Masukkan informasi tahun ajaran baru.'
-            ?>
-        </p>
-    </div>
+            <ul class="nav flex-column gap-1">
+                <li class="nav-item">
+                    <a href="dashboard.php" class="nav-link text-white rounded">
+                        Dashboard
+                    </a>
+                </li>
+                <li class="nav-item">
+                    <a href="siswa.php" class="nav-link text-white rounded">
+                        Data Siswa
+                    </a>
+                </li>
+                <li class="nav-item">
+                    <a href="guru.php" class="nav-link text-white rounded">
+                        Data Guru
+                    </a>
+                </li>
+                <li class="nav-item">
+                    <a href="kelas.php" class="nav-link text-white rounded">
+                        Data Kelas
+                    </a>
+                </li>
+                <li class="nav-item">
+                    <a href="tahun_ajaran.php"
+                       class="nav-link active bg-primary text-white rounded">
+                        Tahun Ajaran
+                    </a>
+                </li>
+                <li class="nav-item">
+                    <a href="penempatan_siswa.php" class="nav-link text-white rounded">
+                        Penempatan Siswa
+                    </a>
+                </li>
+                <li class="nav-item">
+                    <a href="wali_kelas.php" class="nav-link text-white rounded">
+                        Wali Kelas
+                    </a>
+                </li>
+                <li class="nav-item">
+                    <a href="kategori_pelanggaran.php" class="nav-link text-white rounded">
+                        Kategori Pelanggaran
+                    </a>
+                </li>
+                <li class="nav-item">
+                    <a href="jenis_pelanggaran.php" class="nav-link text-white rounded">
+                        Jenis Pelanggaran
+                    </a>
+                </li>
+                <li class="nav-item">
+                    <a href="cetak_export.php" class="nav-link text-white rounded">
+                        Cetak / Export
+                    </a>
+                </li>
+                <li class="nav-item">
+                    <a href="logout.php" class="nav-link text-danger rounded">
+                        Logout
+                    </a>
+                </li>
+            </ul>
+        </div>
 
-    <div class="card shadow-sm">
-        <div class="card-body">
+        <!-- KONTEN -->
+        <div class="col-md-9 col-lg-10 p-4">
 
-            <form method="post">
+            <div class="mb-4">
+                <h2 class="fw-bold mb-1">Tambah Tahun Ajaran</h2>
+                <p class="text-secondary mb-2">
+                    Form tambah data tahun ajaran
+                </p>
+                <a href="tahun_ajaran.php" class="btn btn-secondary btn-sm">
+                    Kembali
+                </a>
+            </div>
 
-                <input
-                    type="hidden"
-                    name="id"
-                    value="<?= $edit ?>"
-                >
+            <?php if ($pesan !== '') { ?>
+                <div class="alert alert-danger">
+                    <?= htmlspecialchars($pesan); ?>
+                </div>
+            <?php } ?>
 
-                <div class="row g-3">
+            <div class="card border-0 shadow-sm">
+                <div class="card-body">
 
-                    <div class="col-md-6">
+                    <form method="POST">
 
-                        <label class="form-label">
-                            Nama Tahun Ajaran
-                        </label>
+                        <div class="mb-3">
+                            <label for="nama" class="form-label">
+                                Nama Tahun Ajaran
+                            </label>
+                            <input type="text"
+                                   name="nama"
+                                   id="nama"
+                                   class="form-control"
+                                   placeholder="Contoh: 2026/2027"
+                                   value="<?= htmlspecialchars($_POST['nama'] ?? ''); ?>"
+                                   required>
+                        </div>
 
-                        <input
-                            type="text"
-                            name="nama"
-                            class="form-control"
-                            placeholder="Contoh: Tahun Ajaran 2026/2027"
-                            value="<?= htmlspecialchars($row['nama']) ?>"
-                            required
-                        >
+                        <div class="mb-3">
+                            <label for="tanggal_mulai" class="form-label">
+                                Tanggal Mulai
+                            </label>
+                            <input type="date"
+                                   name="tanggal_mulai"
+                                   id="tanggal_mulai"
+                                   class="form-control"
+                                   value="<?= htmlspecialchars($_POST['tanggal_mulai'] ?? ''); ?>"
+                                   required>
+                        </div>
 
-                    </div>
+                        <div class="mb-3">
+                            <label for="tanggal_selesai" class="form-label">
+                                Tanggal Selesai
+                            </label>
+                            <input type="date"
+                                   name="tanggal_selesai"
+                                   id="tanggal_selesai"
+                                   class="form-control"
+                                   value="<?= htmlspecialchars($_POST['tanggal_selesai'] ?? ''); ?>"
+                                   required>
+                        </div>
 
-                    <div class="col-md-6">
+                        <div class="form-check mb-4">
+                            <input type="checkbox"
+                                   name="status_aktif"
+                                   id="status_aktif"
+                                   class="form-check-input"
+                                   value="1"
+                                   <?= isset($_POST['status_aktif']) ? 'checked' : ''; ?>>
+                            <label for="status_aktif" class="form-check-label">
+                                Jadikan tahun ajaran aktif
+                            </label>
+                        </div>
 
-                        <label class="form-label">
-                            Status Aktif
-                        </label>
+                        <button type="submit" class="btn btn-primary">
+                            Simpan
+                        </button>
 
-                        <select
-                            name="status_aktif"
-                            class="form-select"
-                            required
-                        >
+                        <a href="tahun_ajaran.php" class="btn btn-secondary">
+                            Batal
+                        </a>
 
-                            <option value="1"
-                                <?= $row['status_aktif'] == 1 ? 'selected' : '' ?>>
-                                Aktif
-                            </option>
-
-                            <option value="0"
-                                <?= $row['status_aktif'] == 0 ? 'selected' : '' ?>>
-                                Tidak Aktif
-                            </option>
-
-                        </select>
-
-                    </div>
-
-                    <div class="col-md-6">
-
-                        <label class="form-label">
-                            Tanggal Mulai
-                        </label>
-
-                        <input
-                            type="date"
-                            name="tanggal_mulai"
-                            class="form-control"
-                            value="<?= htmlspecialchars($row['tanggal_mulai']) ?>"
-                            required
-                        >
-
-                    </div>
-
-                    <div class="col-md-6">
-
-                        <label class="form-label">
-                            Tanggal Selesai
-                        </label>
-
-                        <input
-                            type="date"
-                            name="tanggal_selesai"
-                            class="form-control"
-                            value="<?= htmlspecialchars($row['tanggal_selesai']) ?>"
-                            required
-                        >
-
-                    </div>
+                    </form>
 
                 </div>
-
-                <div class="d-flex gap-2 mt-4">
-
-                    <a
-                        href="dashboard.php"
-                        class="btn btn-secondary"
-                    >
-                        Kembali ke Dashboard
-                    </a>
-
-                    <a
-                        href="tahun_ajaran.php"
-                        class="btn btn-outline-secondary"
-                    >
-                        Batal
-                    </a>
-
-                    <button
-                        type="submit"
-                        class="btn btn-primary"
-                    >
-                        <?= $edit > 0 ? 'Simpan Perubahan' : 'Tambah Data' ?>
-                    </button>
-
-                </div>
-
-            </form>
+            </div>
 
         </div>
     </div>
-
 </div>
 
 </body>
 </html>
+```

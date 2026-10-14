@@ -1,407 +1,219 @@
+
 <?php
-require_once __DIR__ . '/config/koneksi.php';
+session_start();
 
-/* =========================
-   HAPUS DATA
-========================= */
-if (isset($_GET['hapus'])) {
-    $id = (int) $_GET['hapus'];
-
-    mysqli_query($koneksi, "DELETE FROM t_kelas WHERE id = $id");
-
-    header("Location: kelas.php");
+if (!isset($_SESSION['id'])) {
+    header("Location: login.php");
     exit;
 }
 
-
-/* =========================
-   TAMBAH DATA
-========================= */
-if (isset($_POST['tambah'])) {
-
-    $nama = mysqli_real_escape_string($koneksi, $_POST['nama']);
-    $tingkat = mysqli_real_escape_string($koneksi, $_POST['tingkat']);
-    $jurusan = mysqli_real_escape_string($koneksi, $_POST['jurusan']);
-    $status_aktif = (int) $_POST['status_aktif'];
-
-    mysqli_query($koneksi, "
-        INSERT INTO t_kelas
-        (nama, tingkat, jurusan, status_aktif)
-        VALUES
-        ('$nama', '$tingkat', '$jurusan', '$status_aktif')
-    ");
-
-    header("Location: kelas.php");
+if (!isset($_SESSION['role']) || $_SESSION['role'] != 'admin') {
+    echo "Anda tidak memiliki akses";
     exit;
 }
 
+require_once __DIR__ . "/config/koneksi.php";
 
-/* =========================
-   TAMPILAN TAMBAH
-========================= */
-if (isset($_GET['tambah'])) {
+$query = mysqli_query($koneksi, "SELECT * FROM t_kelas ORDER BY id ASC");
+
+if (!$query) {
+    die("Gagal mengambil data kelas: " . mysqli_error($koneksi));
+}
 ?>
-
 <!DOCTYPE html>
 <html lang="id">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-
-    <title>Tambah Data Kelas</title>
-
-    <link
-        href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css"
-        rel="stylesheet"
-    >
-</head>
-
-<body class="bg-light">
-
-<div class="container py-5">
-
-    <div class="mb-4">
-
-        <h1 class="fw-bold mb-1">
-            Tambah Data Kelas
-        </h1>
-
-        <p class="text-secondary mb-3">
-            Masukkan informasi kelas baru.
-        </p>
-
-        <a href="kelas.php" class="btn btn-secondary btn-sm">
-            Kembali ke Data Kelas
-        </a>
-
-    </div>
-
-
-    <div class="card border-0 shadow-sm">
-
-        <div class="card-body p-4">
-
-            <form method="POST">
-
-                <div class="row g-3">
-
-                    <div class="col-md-6">
-
-                        <label class="form-label">
-                            Nama Kelas
-                        </label>
-
-                        <input
-                            type="text"
-                            name="nama"
-                            class="form-control"
-                            placeholder="Contoh: X RPL 1"
-                            required
-                        >
-
-                    </div>
-
-
-                    <div class="col-md-6">
-
-                        <label class="form-label">
-                            Tingkat
-                        </label>
-
-                        <select
-                            name="tingkat"
-                            class="form-select"
-                            required
-                        >
-
-                            <option value="">
-                                Pilih Tingkat
-                            </option>
-
-                            <option value="X">
-                                X
-                            </option>
-
-                            <option value="XI">
-                                XI
-                            </option>
-
-                            <option value="XII">
-                                XII
-                            </option>
-
-                        </select>
-
-                    </div>
-
-
-                    <div class="col-md-6">
-
-                        <label class="form-label">
-                            Jurusan
-                        </label>
-
-                        <input
-                            type="text"
-                            name="jurusan"
-                            class="form-control"
-                            placeholder="Contoh: Rekayasa Perangkat Lunak"
-                            required
-                        >
-
-                    </div>
-
-
-                    <div class="col-md-6">
-
-                        <label class="form-label">
-                            Status Aktif
-                        </label>
-
-                        <select
-                            name="status_aktif"
-                            class="form-select"
-                            required
-                        >
-
-                            <option value="1">
-                                Aktif
-                            </option>
-
-                            <option value="0">
-                                Tidak Aktif
-                            </option>
-
-                        </select>
-
-                    </div>
-
-                </div>
-
-
-                <div class="mt-4">
-
-                    <a
-                        href="kelas.php"
-                        class="btn btn-secondary"
-                    >
-                        Batal
-                    </a>
-
-                    <button
-                        type="submit"
-                        name="tambah"
-                        class="btn btn-primary"
-                    >
-                        Tambah Data
-                    </button>
-
-                </div>
-
-            </form>
-
-        </div>
-
-    </div>
-
-</div>
-
-</body>
-</html>
-
-<?php
-exit;
-}
-
-
-/* =========================
-   DATA KELAS
-========================= */
-
-$data = mysqli_query($koneksi, "
-    SELECT *
-    FROM t_kelas
-    ORDER BY id ASC
-");
-
-?>
-
-<!DOCTYPE html>
-<html lang="id">
-
-<head>
-
-    <meta charset="UTF-8">
-
-    <meta
-        name="viewport"
-        content="width=device-width, initial-scale=1.0"
-    >
-
+    <meta name="viewport" content="width=device-width, initial-scale=1">
     <title>Data Kelas</title>
-
-    <link
-        href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css"
-        rel="stylesheet"
-    >
-
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet">
 </head>
-
-
 <body class="bg-light">
 
+<div class="container-fluid">
+    <div class="row">
 
-<div class="container py-5">
+        <!-- SIDEBAR -->
+        <div class="col-md-3 col-lg-2 bg-dark min-vh-100 p-3">
+            <h4 class="text-white mb-4">Admin UKK</h4>
 
+            <ul class="nav flex-column gap-1">
+                <li class="nav-item">
+                    <a href="dashboard.php" class="nav-link text-white rounded">
+                        Dashboard
+                    </a>
+                </li>
 
-    <!-- HEADER -->
+                <li class="nav-item">
+                    <a href="siswa.php" class="nav-link text-white rounded">
+                        Data Siswa
+                    </a>
+                </li>
 
-    <div class="d-flex justify-content-between align-items-center mb-4">
+                <li class="nav-item">
+                    <a href="guru.php" class="nav-link text-white rounded">
+                        Data Guru
+                    </a>
+                </li>
 
-        <div>
+                <li class="nav-item">
+                    <a href="kelas.php" class="nav-link active bg-primary text-white rounded">
+                        Data Kelas
+                    </a>
+                </li>
 
-            <h1 class="fw-bold mb-1">
-                Data Kelas
-            </h1>
+                <li class="nav-item">
+                    <a href="tahun_ajaran.php" class="nav-link text-white rounded">
+                        Tahun Ajaran
+                    </a>
+                </li>
 
-            <p class="text-secondary mb-2">
-                Daftar data kelas
-            </p>
+                <li class="nav-item">
+                    <a href="penempatan_siswa.php" class="nav-link text-white rounded">
+                        Penempatan Siswa
+                    </a>
+                </li>
 
-            <a
-                href="dashboard.php"
-                class="btn btn-secondary btn-sm"
-            >
-                Kembali ke Dashboard
-            </a>
+                <li class="nav-item">
+                    <a href="wali_kelas.php" class="nav-link text-white rounded">
+                        Wali Kelas
+                    </a>
+                </li>
 
+                <li class="nav-item">
+                    <a href="kategori_pelanggaran.php" class="nav-link text-white rounded">
+                        Kategori Pelanggaran
+                    </a>
+                </li>
+
+                <li class="nav-item">
+                    <a href="jenis_pelanggaran.php" class="nav-link text-white rounded">
+                        Jenis Pelanggaran
+                    </a>
+                </li>
+
+                <li class="nav-item">
+                    <a href="cetak_export.php" class="nav-link text-white rounded">
+                        Cetak / Export
+                    </a>
+                </li>
+
+                <li class="nav-item">
+                    <a href="logout.php" class="nav-link text-danger rounded">
+                        Logout
+                    </a>
+                </li>
+            </ul>
         </div>
 
+        <!-- KONTEN -->
+        <div class="col-md-9 col-lg-10 p-4">
 
-        <a
-            href="kelas.php?tambah=1"
-            class="btn btn-primary"
-        >
-            + Tambah Kelas
-        </a>
+            <div class="d-flex justify-content-between align-items-center mb-4">
+                <div>
+                    <h2 class="fw-bold mb-1">Data Kelas</h2>
+                    <p class="text-secondary mb-2">Daftar data kelas</p>
+                    <a href="dashboard.php" class="btn btn-secondary btn-sm">
+                        Kembali ke Dashboard
+                    </a>
+                </div>
 
-    </div>
+                <a href="tambah_kelas.php" class="btn btn-primary">
+                    + Tambah Kelas
+                </a>
+            </div>
 
+            <?php if (isset($_GET['pesan']) && $_GET['pesan'] == 'berhasil') { ?>
+                <div class="alert alert-success">
+                    Data kelas berhasil ditambahkan.
+                </div>
+            <?php } ?>
 
-    <!-- TABEL -->
+            <!-- TABEL KELAS -->
+            <div class="card border-0 shadow-sm">
+                <div class="card-body">
+                    <div class="table-responsive">
 
-    <div class="card border-0 shadow-sm">
+                        <table class="table align-middle">
+                            <thead>
+                                <tr class="table-primary">
+                                    <th>No</th>
+                                    <th>Nama Kelas</th>
+                                    <th>Tingkat</th>
+                                    <th>Jurusan</th>
+                                    <th>Status</th>
+                                    <th>Aksi</th>
+                                </tr>
+                            </thead>
 
-        <div class="card-body p-3">
+                            <tbody>
+                                <?php
+                                $no = 1;
 
-            <div class="table-responsive">
+                                while ($kelas = mysqli_fetch_assoc($query)) {
+                                ?>
+                                    <tr>
+                                        <td><?= $no++; ?></td>
 
-                <table class="table table-hover align-middle mb-0">
+                                        <td>
+                                            <strong>
+                                                <?= htmlspecialchars($kelas['nama']); ?>
+                                            </strong>
+                                        </td>
 
-                    <thead class="table-primary">
+                                        <td>
+                                            <?= htmlspecialchars($kelas['tingkat']); ?>
+                                        </td>
 
-                        <tr>
+                                        <td>
+                                            <?= htmlspecialchars($kelas['jurusan']); ?>
+                                        </td>
 
-                            <th>No</th>
+                                        <td>
+                                            <?php if ((int)$kelas['status_aktif'] === 1) { ?>
+                                                <span class="badge bg-success">Aktif</span>
+                                            <?php } else { ?>
+                                                <span class="badge bg-secondary">Tidak Aktif</span>
+                                            <?php } ?>
+                                        </td>
 
-                            <th>Nama Kelas</th>
+                                        <td>
+                                            <a
+                                                href="edit_kelas.php?id=<?= (int)$kelas['id']; ?>"
+                                                class="btn btn-warning btn-sm"
+                                            >
+                                                Edit
+                                            </a>
 
-                            <th>Tingkat</th>
+                                            <a
+                                                href="hapus_kelas.php?id=<?= (int)$kelas['id']; ?>"
+                                                class="btn btn-danger btn-sm"
+                                                onclick="return confirm('Yakin ingin menghapus data kelas ini?')"
+                                            >
+                                                Hapus
+                                            </a>
+                                        </td>
+                                    </tr>
+                                <?php } ?>
 
-                            <th>Jurusan</th>
+                                <?php if (mysqli_num_rows($query) === 0) { ?>
+                                    <tr>
+                                        <td colspan="6" class="text-center">
+                                            Belum ada data kelas.
+                                        </td>
+                                    </tr>
+                                <?php } ?>
+                            </tbody>
+                        </table>
 
-                            <th>Status</th>
-
-                            <th>Aksi</th>
-
-                        </tr>
-
-                    </thead>
-
-
-                    <tbody>
-
-                    <?php
-
-                    $no = 1;
-
-                    while ($row = mysqli_fetch_assoc($data)):
-
-                    ?>
-
-                        <tr>
-
-                            <td>
-                                <?= $no++; ?>
-                            </td>
-
-
-                            <td>
-                                <strong>
-                                    <?= htmlspecialchars($row['nama']); ?>
-                                </strong>
-                            </td>
-
-
-                            <td>
-                                <?= htmlspecialchars($row['tingkat']); ?>
-                            </td>
-
-
-                            <td>
-                                <?= htmlspecialchars($row['jurusan']); ?>
-                            </td>
-
-
-                            <td>
-
-                                <?php if ($row['status_aktif'] == 1): ?>
-
-                                    <span class="badge bg-success">
-                                        Aktif
-                                    </span>
-
-                                <?php else: ?>
-
-                                    <span class="badge bg-secondary">
-                                        Tidak Aktif
-                                    </span>
-
-                                <?php endif; ?>
-
-                            </td>
-
-
-                            <td>
-
-                                <a
-                                    href="kelas.php?hapus=<?= $row['id']; ?>"
-                                    class="btn btn-danger btn-sm"
-                                    onclick="return confirm('Yakin ingin menghapus data kelas ini?')"
-                                >
-                                    Hapus
-                                </a>
-
-                            </td>
-
-                        </tr>
-
-                    <?php endwhile; ?>
-
-                    </tbody>
-
-                </table>
-
+                    </div>
+                </div>
             </div>
 
         </div>
-
     </div>
-
-
 </div>
 
-
 </body>
-
 </html>
+```

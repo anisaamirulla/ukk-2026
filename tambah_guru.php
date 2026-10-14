@@ -1,108 +1,41 @@
-
+```php
 <?php
 session_start();
-require_once 'config/koneksi.php';
+include "config/koneksi.php";
 
-if (!isset($_SESSION['id']) || $_SESSION['role'] !== 'admin') {
-    header('Location: login.php');
+if (!isset($_SESSION['id'])) {
+    header("Location: login.php");
     exit;
 }
 
-function aman($nilai) {
-    return htmlspecialchars((string)($nilai ?? ''), ENT_QUOTES, 'UTF-8');
+if (!isset($_SESSION['role']) || $_SESSION['role'] != 'admin') {
+    echo "Anda tidak memiliki akses";
+    exit;
 }
 
-$pesan = '';
-$id = (int)($_GET['id'] ?? 0);
-$edit = null;
+$pesan = "";
 
-// AMBIL DATA GURU UNTUK EDIT
-if ($id > 0) {
-    $stmt = $koneksi->prepare(
-        "SELECT * FROM t_guru WHERE id = ?"
-    );
+if (isset($_POST['simpan'])) {
+    $nip = mysqli_real_escape_string($koneksi, trim($_POST['nip']));
+    $nama = mysqli_real_escape_string($koneksi, trim($_POST['nama']));
+    $jenis_kelamin = mysqli_real_escape_string($koneksi, $_POST['jenis_kelamin']);
+    $no_telepon = mysqli_real_escape_string($koneksi, trim($_POST['no_telepon']));
+    $status_aktif = mysqli_real_escape_string($koneksi, $_POST['status_aktif']);
 
-    $stmt->bind_param('i', $id);
-    $stmt->execute();
+    $query = mysqli_query($koneksi, "
+        INSERT INTO t_guru
+        (nip, nama, jenis_kelamin, no_telepon, status_aktif)
+        VALUES
+        ('$nip', '$nama', '$jenis_kelamin', '$no_telepon', '$status_aktif')
+    ");
 
-    $hasil = $stmt->get_result();
-    $edit = $hasil->fetch_assoc();
-    $stmt->close();
-
-    if (!$edit) {
-        header('Location: guru.php');
+    if ($query) {
+        header("Location: guru.php");
         exit;
-    }
-}
-
-// PROSES TAMBAH DAN EDIT
-if ($_SERVER['REQUEST_METHOD'] === 'POST') {
-    $id = (int)($_POST['id'] ?? 0);
-    $nip = trim($_POST['nip'] ?? '');
-    $nama = trim($_POST['nama'] ?? '');
-    $email = trim($_POST['email'] ?? '');
-    $status = $_POST['status_aktif'] ?? 'aktif';
-
-    if ($nama === '') {
-        $pesan = 'Nama guru wajib diisi.';
-    } elseif ($email !== '' &&
-              !filter_var($email, FILTER_VALIDATE_EMAIL)) {
-        $pesan = 'Format email tidak valid.';
-    } elseif (!in_array($status, ['aktif', 'nonaktif'], true)) {
-        $pesan = 'Status tidak valid.';
     } else {
-        if ($id > 0) {
-            $stmt = $koneksi->prepare(
-                "UPDATE t_guru
-                 SET nip = ?, nama = ?, email = ?, status_aktif = ?
-                 WHERE id = ?"
-            );
-
-            $stmt->bind_param(
-                'ssssi',
-                $nip,
-                $nama,
-                $email,
-                $status,
-                $id
-            );
-        } else {
-            $stmt = $koneksi->prepare(
-                "INSERT INTO t_guru
-                    (nip, nama, email, status_aktif)
-                 VALUES (?, ?, ?, ?)"
-            );
-
-            $stmt->bind_param(
-                'ssss',
-                $nip,
-                $nama,
-                $email,
-                $status
-            );
-        }
-
-        if ($stmt->execute()) {
-            $stmt->close();
-            header('Location: guru.php?pesan=sukses');
-            exit;
-        } else {
-            $pesan = 'Gagal menyimpan data guru: ' . $stmt->error;
-            $stmt->close();
-        }
+        $pesan = "Data guru gagal disimpan.";
     }
-
-    // PERTAHANKAN ISIAN JIKA TERJADI ERROR
-    $edit = [
-        'id' => $id,
-        'nip' => $nip,
-        'nama' => $nama,
-        'email' => $email,
-        'status_aktif' => $status
-    ];
 }
-
-$isEdit = (int)($edit['id'] ?? 0) > 0;
 ?>
 
 <!DOCTYPE html>
@@ -110,197 +43,101 @@ $isEdit = (int)($edit['id'] ?? 0) > 0;
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1">
-
-    <title><?= $isEdit ? 'Edit Data Guru' : 'Tambah Data Guru' ?></title>
-
-    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css"
-          rel="stylesheet">
-
-    <style>
-        body {
-            background: #f5f5f5;
-            font-family: Arial, sans-serif;
-            color: #212529;
-        }
-
-        .halaman {
-            padding: 25px;
-            min-height: 100vh;
-        }
-
-        .judul-halaman {
-            font-size: 26px;
-            font-weight: 700;
-            margin-bottom: 4px;
-        }
-
-        .deskripsi {
-            color: #6c757d;
-            margin-bottom: 0;
-        }
-
-        .form-card {
-            background: #ffffff;
-            padding: 25px;
-            border-radius: 8px;
-            box-shadow: 0 2px 8px rgba(0,0,0,.06);
-        }
-
-        .form-label {
-            font-weight: 600;
-            margin-bottom: 7px;
-        }
-
-        .form-control,
-        .form-select {
-            background: #ffffff;
-            border: 1px solid #dee2e6;
-            border-radius: 5px;
-            min-height: 38px;
-        }
-
-        .form-control:focus,
-        .form-select:focus {
-            border-color: #b5a18f;
-            box-shadow: 0 0 0 .15rem rgba(91,66,47,.15);
-        }
-
-        .btn {
-            border-radius: 4px;
-            padding: 8px 14px;
-        }
-
-        .btn-primary {
-            background: #5b422f;
-            border-color: #5b422f;
-            color: #ffffff;
-        }
-
-        .btn-primary:hover {
-            background: #493424;
-            border-color: #493424;
-            color: #ffffff;
-        }
-
-        .btn-secondary {
-            background: #6c757d;
-            border-color: #6c757d;
-            color: #ffffff;
-        }
-
-        @media (max-width: 768px) {
-            .halaman {
-                padding: 15px;
-            }
-
-            .form-card {
-                padding: 18px;
-            }
-        }
-    </style>
+    <title>Tambah Guru</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet">
 </head>
-
 <body>
-<div class="container-fluid halaman">
 
-    <div class="d-flex justify-content-between align-items-center
-                flex-wrap gap-2 mb-4">
+<div class="container-fluid">
+    <div class="row min-vh-100">
 
-        <div>
-            <h3 class="judul-halaman">
-                <?= $isEdit ? 'Edit Data Guru' : 'Tambah Data Guru' ?>
-            </h3>
+      
+        <div class="col-md-2 bg-dark text-white p-3">
+            <h4 class="mb-4">Admin UKK</h4>
 
-            <p class="deskripsi">
-                <?= $isEdit
-                    ? 'Perbarui informasi guru.'
-                    : 'Masukkan informasi guru baru.' ?>
-            </p>
+            <div class="nav nav-pills flex-column gap-2">
+                <a href="dashboard.php" class="nav-link text-white">Dashboard</a>
+                <a href="siswa.php" class="nav-link text-white">Data Siswa</a>
+                <a href="guru.php" class="nav-link active bg-primary text-white">Data Guru</a>
+                <a href="kelas.php" class="nav-link text-white">Data Kelas</a>
+                <a href="tahun_ajaran.php" class="nav-link text-white">Tahun Ajaran</a>
+                <a href="penempatan_siswa.php" class="nav-link text-white">Penempatan Siswa</a>
+                <a href="wali_kelas.php" class="nav-link text-white">Wali Kelas</a>
+                <a href="kategori_pelanggaran.php" class="nav-link text-white">Kategori Pelanggaran</a>
+                <a href="jenis_pelanggaran.php" class="nav-link text-white">Jenis Pelanggaran</a>
+                <a href="cetak_export.php" class="nav-link text-white">Cetak / Export</a>
+                <a href="logout.php" class="nav-link text-danger">Logout</a>
+            </div>
         </div>
 
-        <a href="guru.php" class="btn btn-secondary">
-            ← Kembali ke Data Guru
-        </a>
-    </div>
+       
+        <div class="col-md-10 p-4 bg-light">
 
-    <?php if ($pesan !== ''): ?>
-        <div class="alert alert-danger">
-            <?= aman($pesan) ?>
+            <h2 class="fw-bold mb-1">Tambah Data Guru</h2>
+            <p class="text-secondary mb-4">Silakan isi formulir data guru.</p>
+
+            <?php if ($pesan != "") { ?>
+                <div class="alert alert-danger">
+                    <?= htmlspecialchars($pesan); ?>
+                </div>
+            <?php } ?>
+
+            <div class="bg-white p-4 rounded">
+                <form method="POST" action="">
+
+                    <div class="mb-3">
+                        <label for="nip" class="form-label">NIP</label>
+                        <input type="text" name="nip" id="nip"
+                               class="form-control" required>
+                    </div>
+
+                    <div class="mb-3">
+                        <label for="nama" class="form-label">Nama Guru</label>
+                        <input type="text" name="nama" id="nama"
+                               class="form-control" required>
+                    </div>
+
+                    <div class="mb-3">
+                        <label for="jenis_kelamin" class="form-label">Jenis Kelamin</label>
+                        <select name="jenis_kelamin" id="jenis_kelamin"
+                                class="form-select" required>
+                            <option value="">-- Pilih Jenis Kelamin --</option>
+                            <option value="L">L</option>
+                            <option value="P">P</option>
+                        </select>
+                    </div>
+
+                    <div class="mb-3">
+                        <label for="no_telepon" class="form-label">No. Telepon</label>
+                        <input type="text" name="no_telepon" id="no_telepon"
+                               class="form-control">
+                    </div>
+
+                    <div class="mb-4">
+                        <label for="status_aktif" class="form-label">Status</label>
+                        <select name="status_aktif" id="status_aktif"
+                                class="form-select" required>
+                            <option value="1">Aktif</option>
+                            <option value="0">Tidak Aktif</option>
+                        </select>
+                    </div>
+
+                    <button type="submit" name="simpan" class="btn btn-primary">
+                        Simpan
+                    </button>
+
+                    <a href="guru.php" class="btn btn-secondary">
+                        Kembali
+                    </a>
+
+                </form>
+            </div>
+
         </div>
-    <?php endif; ?>
-
-    <div class="form-card">
-
-        <form method="POST"
-              action="tambah_guru.php<?= $isEdit ? '?id=' . (int)$edit['id'] : '' ?>">
-
-            <input type="hidden"
-                   name="id"
-                   value="<?= (int)($edit['id'] ?? 0) ?>">
-
-            <div class="row g-3">
-
-                <div class="col-md-6">
-                    <label class="form-label">NIP</label>
-                    <input type="text"
-                           name="nip"
-                           class="form-control"
-                           value="<?= aman($edit['nip'] ?? '') ?>">
-                </div>
-
-                <div class="col-md-6">
-                    <label class="form-label">Nama Guru *</label>
-                    <input type="text"
-                           name="nama"
-                           class="form-control"
-                           required
-                           value="<?= aman($edit['nama'] ?? '') ?>">
-                </div>
-
-                <div class="col-md-6">
-                    <label class="form-label">Email</label>
-                    <input type="email"
-                           name="email"
-                           class="form-control"
-                           value="<?= aman($edit['email'] ?? '') ?>">
-                </div>
-
-                <div class="col-md-6">
-                    <label class="form-label">Status Aktif</label>
-                    <select name="status_aktif" class="form-select">
-                        <option value="aktif"
-                            <?= ($edit['status_aktif'] ?? 'aktif') === 'aktif'
-                                ? 'selected' : '' ?>>
-                            Aktif
-                        </option>
-
-                        <option value="nonaktif"
-                            <?= ($edit['status_aktif'] ?? '') === 'nonaktif'
-                                ? 'selected' : '' ?>>
-                            Nonaktif
-                        </option>
-                    </select>
-                </div>
-
-            </div>
-
-            <div class="d-flex justify-content-end flex-wrap gap-2 mt-4">
-
-                <a href="guru.php" class="btn btn-secondary">
-                    Batal
-                </a>
-
-                <button type="submit" class="btn btn-primary">
-                    <?= $isEdit ? 'Simpan Perubahan' : 'Tambah Data' ?>
-                </button>
-
-            </div>
-
-        </form>
     </div>
-
 </div>
 
 <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
 </body>
 </html>
+```
