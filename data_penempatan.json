@@ -37,5 +37,18 @@
         "tanggal_mulai": "2026-10-14",
         "tanggal_selesai": "2029-10-16",
         "status_aktif": 1
+    },
+    {
+        "id": 4,
+        "siswa_id": 52,
+        "nisn": "nadia",
+        "nama_siswa": "1346789",
+        "kelas_id": 40,
+        "nama_kelas": "X BDP 3",
+        "tahun_ajaran_id": 37,
+        "nama_tahun_ajaran": "Tahun Ajaran 2014\/20",
+        "tanggal_mulai": "2026-10-14",
+        "tanggal_selesai": "2028-05-17",
+        "status_aktif": 1
     }
 ]

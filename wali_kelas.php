@@ -1,4 +1,4 @@
-```php
+
 <?php
 session_start();
 
@@ -35,7 +35,6 @@ if (isset($_GET['hapus'])) {
     exit;
 }
 
-/* AMBIL DATA WALI KELAS */
 $data = mysqli_query($koneksi, "
     SELECT
         wk.id,
@@ -77,76 +76,83 @@ if (!$data) {
 <div class="container-fluid">
     <div class="row">
 
-        <!-- SIDEBAR -->
+        <!-- SIDEBAR SAMA SEPERTI DASHBOARD -->
         <div class="col-md-3 col-lg-2 bg-dark min-vh-100 p-3">
 
-            <h4 class="text-white mb-4">Admin UKK</h4>
+            <h4 class="text-white mb-4">Sistem Pelanggaran</h4>
 
-            <ul class="nav flex-column gap-1">
+            <ul class="nav nav-pills flex-column">
 
-                <li class="nav-item">
-                    <a href="dashboard.php" class="nav-link text-white rounded">
+                <li class="nav-item mb-2">
+                    <a href="dashboard.php" class="nav-link text-white">
                         Dashboard
                     </a>
                 </li>
 
-                <li class="nav-item">
-                    <a href="siswa.php" class="nav-link text-white rounded">
+                <li class="nav-item mb-2">
+                    <a href="siswa.php" class="nav-link text-white">
                         Data Siswa
                     </a>
                 </li>
 
-                <li class="nav-item">
-                    <a href="guru.php" class="nav-link text-white rounded">
+                <li class="nav-item mb-2">
+                    <a href="guru.php" class="nav-link text-white">
                         Data Guru
                     </a>
                 </li>
 
-                <li class="nav-item">
-                    <a href="kelas.php" class="nav-link text-white rounded">
-                        Data Kelas
+                <li class="nav-item mb-2">
+                    <a href="kelas.php" class="nav-link text-white">
+                        Kelas
                     </a>
                 </li>
 
-                <li class="nav-item">
-                    <a href="tahun_ajaran.php" class="nav-link text-white rounded">
+                <li class="nav-item mb-2">
+                    <a href="tahun_ajaran.php" class="nav-link text-white">
                         Tahun Ajaran
                     </a>
                 </li>
 
-                <li class="nav-item">
-                    <a href="penempatan_siswa.php" class="nav-link text-white rounded">
+                <li class="nav-item mb-2">
+                    <a href="penempatan_siswa.php" class="nav-link text-white">
                         Penempatan Siswa
                     </a>
                 </li>
 
-                <li class="nav-item">
-                    <a href="wali_kelas.php"
-                       class="nav-link active bg-primary text-white rounded">
+                <li class="nav-item mb-2">
+                    <a href="wali_kelas.php" class="nav-link active">
                         Wali Kelas
                     </a>
                 </li>
 
-                <li class="nav-item">
-                    <a href="kategori_pelanggaran.php" class="nav-link text-white rounded">
+                <li class="nav-item mb-2">
+                    <a href="kategori_pelanggaran.php" class="nav-link text-white">
                         Kategori Pelanggaran
                     </a>
                 </li>
 
-                <li class="nav-item">
-                    <a href="jenis_pelanggaran.php" class="nav-link text-white rounded">
+                <li class="nav-item mb-2">
+                    <a href="jenis_pelanggaran.php" class="nav-link text-white">
                         Jenis Pelanggaran
                     </a>
                 </li>
 
-                <li class="nav-item">
-                    <a href="cetak_export.php" class="nav-link text-white rounded">
-                        Cetak / Export
+                <li class="nav-item mb-2">
+                    <a href="laporan.php" class="nav-link text-white">
+                        Laporan
                     </a>
                 </li>
 
+                <li class="nav-item mb-2">
+                    <a href="abautme.php" class="nav-link text-white">
+                        Abaut Me
+                    </a>
+                </li>
+
+                <hr class="text-secondary">
+
                 <li class="nav-item">
-                    <a href="logout.php" class="nav-link text-danger rounded">
+                    <a href="logout.php" class="nav-link text-danger">
                         Logout
                     </a>
                 </li>
@@ -154,7 +160,7 @@ if (!$data) {
             </ul>
         </div>
 
-        <!-- KONTEN -->
+        <!-- KONTEN UTAMA -->
         <div class="col-md-9 col-lg-10 p-4">
 
             <div class="d-flex justify-content-between align-items-center mb-4">
@@ -177,20 +183,21 @@ if (!$data) {
 
             </div>
 
-            <!-- PESAN -->
+            <!-- PESAN BERHASIL -->
             <?php if (isset($_GET['pesan']) && $_GET['pesan'] === 'berhasil') { ?>
                 <div class="alert alert-success">
                     Data wali kelas berhasil disimpan.
                 </div>
             <?php } ?>
 
+            <!-- PESAN HAPUS -->
             <?php if (isset($_GET['pesan']) && $_GET['pesan'] === 'hapus') { ?>
                 <div class="alert alert-success">
                     Data wali kelas berhasil dihapus.
                 </div>
             <?php } ?>
 
-            <!-- TABEL -->
+            <!-- TABEL DATA -->
             <div class="card border-0 shadow-sm">
                 <div class="card-body">
 
@@ -213,74 +220,78 @@ if (!$data) {
                             </thead>
 
                             <tbody>
-                            <?php
-                            $no = 1;
+                                <?php
+                                $no = 1;
 
-                            if (mysqli_num_rows($data) > 0) {
-                                while ($row = mysqli_fetch_assoc($data)) {
-                            ?>
-                                <tr>
-                                    <td><?= $no++; ?></td>
+                                if (mysqli_num_rows($data) > 0) {
+                                    while ($row = mysqli_fetch_assoc($data)) {
+                                ?>
+                                    <tr>
+                                        <td><?= $no++; ?></td>
 
-                                    <td>
-                                        <?= htmlspecialchars($row['tahun_ajaran'] ?? '-'); ?>
-                                    </td>
+                                        <td>
+                                            <?= htmlspecialchars($row['tahun_ajaran'] ?? '-'); ?>
+                                        </td>
 
-                                    <td>
-                                        <?= htmlspecialchars($row['nama_kelas'] ?? '-'); ?>
-                                    </td>
+                                        <td>
+                                            <?= htmlspecialchars($row['nama_kelas'] ?? '-'); ?>
+                                        </td>
 
-                                    <td>
-                                        <?= htmlspecialchars($row['nip'] ?? '-'); ?>
-                                    </td>
+                                        <td>
+                                            <?= htmlspecialchars($row['nip'] ?? '-'); ?>
+                                        </td>
 
-                                    <td>
-                                        <strong>
-                                            <?= htmlspecialchars($row['nama_guru'] ?? '-'); ?>
-                                        </strong>
-                                    </td>
+                                        <td>
+                                            <strong>
+                                                <?= htmlspecialchars($row['nama_guru'] ?? '-'); ?>
+                                            </strong>
+                                        </td>
 
-                                    <td>
-                                        <?= htmlspecialchars($row['tanggal_mulai'] ?? '-'); ?>
-                                    </td>
+                                        <td>
+                                            <?= htmlspecialchars($row['tanggal_mulai'] ?? '-'); ?>
+                                        </td>
 
-                                    <td>
-                                        <?= htmlspecialchars($row['tanggal_selesai'] ?? '-'); ?>
-                                    </td>
+                                        <td>
+                                            <?= htmlspecialchars($row['tanggal_selesai'] ?? '-'); ?>
+                                        </td>
 
-                                    <td>
-                                        <?php if ((int)$row['status_aktif'] === 1) { ?>
-                                            <span class="badge bg-success">Aktif</span>
-                                        <?php } else { ?>
-                                            <span class="badge bg-secondary">Tidak Aktif</span>
-                                        <?php } ?>
-                                    </td>
+                                        <td>
+                                            <?php if ((int)$row['status_aktif'] === 1) { ?>
+                                                <span class="badge bg-success">
+                                                    Aktif
+                                                </span>
+                                            <?php } else { ?>
+                                                <span class="badge bg-secondary">
+                                                    Tidak Aktif
+                                                </span>
+                                            <?php } ?>
+                                        </td>
 
-                                    <td>
-                                        <a
-                                            href="tambah_wali_kelas.php?edit=<?= (int)$row['id']; ?>"
-                                            class="btn btn-warning btn-sm">
-                                            Edit
-                                        </a>
+                                        <td>
+                                            <a
+                                                href="tambah_wali_kelas.php?edit=<?= (int)$row['id']; ?>"
+                                                class="btn btn-warning btn-sm">
+                                                Edit
+                                            </a>
 
-                                        <a
-                                            href="wali_kelas.php?hapus=<?= (int)$row['id']; ?>"
-                                            class="btn btn-danger btn-sm"
-                                            onclick="return confirm('Yakin ingin menghapus data wali kelas ini?')">
-                                            Hapus
-                                        </a>
-                                    </td>
-                                </tr>
-                            <?php
-                                }
-                            } else {
-                            ?>
-                                <tr>
-                                    <td colspan="9" class="text-center">
-                                        Belum ada data wali kelas.
-                                    </td>
-                                </tr>
-                            <?php } ?>
+                                            <a
+                                                href="wali_kelas.php?hapus=<?= (int)$row['id']; ?>"
+                                                class="btn btn-danger btn-sm"
+                                                onclick="return confirm('Yakin ingin menghapus data wali kelas ini?')">
+                                                Hapus
+                                            </a>
+                                        </td>
+                                    </tr>
+                                <?php
+                                    }
+                                } else {
+                                ?>
+                                    <tr>
+                                        <td colspan="9" class="text-center">
+                                            Belum ada data wali kelas.
+                                        </td>
+                                    </tr>
+                                <?php } ?>
                             </tbody>
 
                         </table>

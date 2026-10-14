@@ -31,80 +31,108 @@ if (!$query) {
 <body class="bg-light">
 
 <div class="container-fluid">
+
     <div class="row">
 
         <!-- SIDEBAR -->
         <div class="col-md-3 col-lg-2 bg-dark min-vh-100 p-3">
-            <h4 class="text-white mb-4">Admin UKK</h4>
 
-            <ul class="nav flex-column gap-1">
-                <li class="nav-item">
-                    <a href="dashboard.php" class="nav-link text-white rounded">
+            <h4 class="text-white mb-4">
+                Sistem Pelanggaran
+            </h4>
+
+            <ul class="nav nav-pills flex-column">
+
+                <li class="nav-item mb-2">
+                    <a href="dashboard.php"
+                       class="nav-link text-white">
                         Dashboard
                     </a>
                 </li>
 
-                <li class="nav-item">
-                    <a href="siswa.php" class="nav-link text-white rounded">
+                <li class="nav-item mb-2">
+                    <a href="siswa.php"
+                       class="nav-link text-white">
                         Data Siswa
                     </a>
                 </li>
 
-                <li class="nav-item">
-                    <a href="guru.php" class="nav-link text-white rounded">
+                <li class="nav-item mb-2">
+                    <a href="guru.php"
+                       class="nav-link text-white">
                         Data Guru
                     </a>
                 </li>
 
-                <li class="nav-item">
-                    <a href="kelas.php" class="nav-link active bg-primary text-white rounded">
-                        Data Kelas
+                <li class="nav-item mb-2">
+                    <a href="kelas.php"
+                       class="nav-link active">
+                        Kelas
                     </a>
                 </li>
 
-                <li class="nav-item">
-                    <a href="tahun_ajaran.php" class="nav-link text-white rounded">
+                <li class="nav-item mb-2">
+                    <a href="tahun_ajaran.php"
+                       class="nav-link text-white">
                         Tahun Ajaran
                     </a>
                 </li>
 
-                <li class="nav-item">
-                    <a href="penempatan_siswa.php" class="nav-link text-white rounded">
+                <li class="nav-item mb-2">
+                    <a href="penempatan_siswa.php"
+                       class="nav-link text-white">
                         Penempatan Siswa
                     </a>
                 </li>
 
-                <li class="nav-item">
-                    <a href="wali_kelas.php" class="nav-link text-white rounded">
+                <li class="nav-item mb-2">
+                    <a href="wali_kelas.php"
+                       class="nav-link text-white">
                         Wali Kelas
                     </a>
                 </li>
 
-                <li class="nav-item">
-                    <a href="kategori_pelanggaran.php" class="nav-link text-white rounded">
+                <li class="nav-item mb-2">
+                    <a href="kategori_pelanggaran.php"
+                       class="nav-link text-white">
                         Kategori Pelanggaran
                     </a>
                 </li>
 
-                <li class="nav-item">
-                    <a href="jenis_pelanggaran.php" class="nav-link text-white rounded">
+                <li class="nav-item mb-2">
+                    <a href="jenis_pelanggaran.php"
+                       class="nav-link text-white">
                         Jenis Pelanggaran
                     </a>
                 </li>
 
-                <li class="nav-item">
-                    <a href="cetak_export.php" class="nav-link text-white rounded">
-                        Cetak / Export
+                <li class="nav-item mb-2">
+                    <a href="laporan.php"
+                       class="nav-link text-white">
+                        Laporan
                     </a>
                 </li>
 
+                <li class="nav-item mb-2">
+                    <a href="abautme.php"
+                       class="nav-link text-white">
+                        Abaut Me
+                    </a>
+                </li>
+
+                <hr class="text-secondary">
+
                 <li class="nav-item">
-                    <a href="logout.php" class="nav-link text-danger rounded">
+                    <a href="logout.php"
+                       class="nav-link text-danger">
                         Logout
                     </a>
                 </li>
+
             </ul>
+
         </div>
+
 
         <!-- KONTEN -->
         <div class="col-md-9 col-lg-10 p-4">

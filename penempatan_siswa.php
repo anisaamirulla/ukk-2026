@@ -1,5 +1,6 @@
 
 <?php
+
 session_start();
 
 if (!isset($_SESSION['id'])) {
@@ -7,7 +8,7 @@ if (!isset($_SESSION['id'])) {
     exit;
 }
 
-if (!isset($_SESSION['role']) || $_SESSION['role'] != 'admin') {
+if ($_SESSION['role'] != 'admin') {
     echo "Anda tidak memiliki akses";
     exit;
 }
@@ -92,11 +93,14 @@ while ($row = mysqli_fetch_assoc($query_tahun)) {
 usort($data_penempatan, function ($a, $b) {
     return (int)($b['id'] ?? 0) <=> (int)($a['id'] ?? 0);
 });
+
 ?>
 
 <!DOCTYPE html>
 <html lang="id">
+
 <head>
+
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1">
 
@@ -104,109 +108,125 @@ usort($data_penempatan, function ($a, $b) {
 
     <link
         href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css"
-        rel="stylesheet"
-    >
+        rel="stylesheet">
+
 </head>
 
 <body class="bg-light">
 
 <div class="container-fluid">
+
     <div class="row">
 
         <!-- SIDEBAR -->
         <div class="col-md-3 col-lg-2 bg-dark min-vh-100 p-3">
 
-            <h4 class="text-white mb-4">Admin UKK</h4>
+            <h4 class="text-white mb-4">
+                Sistem Pelanggaran
+            </h4>
 
-            <ul class="nav flex-column gap-1">
+            <ul class="nav nav-pills flex-column">
 
-                <li class="nav-item">
+                <li class="nav-item mb-2">
                     <a href="dashboard.php"
-                       class="nav-link text-white rounded">
+                       class="nav-link text-white">
                         Dashboard
                     </a>
                 </li>
 
-                <li class="nav-item">
+                <li class="nav-item mb-2">
                     <a href="siswa.php"
-                       class="nav-link text-white rounded">
+                       class="nav-link text-white">
                         Data Siswa
                     </a>
                 </li>
 
-                <li class="nav-item">
+                <li class="nav-item mb-2">
                     <a href="guru.php"
-                       class="nav-link text-white rounded">
+                       class="nav-link text-white">
                         Data Guru
                     </a>
                 </li>
 
-                <li class="nav-item">
+                <li class="nav-item mb-2">
                     <a href="kelas.php"
-                       class="nav-link text-white rounded">
-                        Data Kelas
+                       class="nav-link text-white">
+                        Kelas
                     </a>
                 </li>
 
-                <li class="nav-item">
+                <li class="nav-item mb-2">
                     <a href="tahun_ajaran.php"
-                       class="nav-link text-white rounded">
+                       class="nav-link text-white">
                         Tahun Ajaran
                     </a>
                 </li>
 
-                <li class="nav-item">
+                <li class="nav-item mb-2">
                     <a href="penempatan_siswa.php"
-                       class="nav-link active bg-primary text-white rounded">
+                       class="nav-link active">
                         Penempatan Siswa
                     </a>
                 </li>
 
-                <li class="nav-item">
+                <li class="nav-item mb-2">
                     <a href="wali_kelas.php"
-                       class="nav-link text-white rounded">
+                       class="nav-link text-white">
                         Wali Kelas
                     </a>
                 </li>
 
-                <li class="nav-item">
+                <li class="nav-item mb-2">
                     <a href="kategori_pelanggaran.php"
-                       class="nav-link text-white rounded">
+                       class="nav-link text-white">
                         Kategori Pelanggaran
                     </a>
                 </li>
 
-                <li class="nav-item">
+                <li class="nav-item mb-2">
                     <a href="jenis_pelanggaran.php"
-                       class="nav-link text-white rounded">
+                       class="nav-link text-white">
                         Jenis Pelanggaran
                     </a>
                 </li>
 
-                <li class="nav-item">
-                    <a href="cetak_export.php"
-                       class="nav-link text-white rounded">
-                        Cetak / Export
+                <li class="nav-item mb-2">
+                    <a href="laporan.php"
+                       class="nav-link text-white">
+                        Laporan
                     </a>
                 </li>
 
+                <li class="nav-item mb-2">
+                    <a href="abautme.php"
+                       class="nav-link text-white">
+                        Abaut Me
+                    </a>
+                </li>
+
+                <hr class="text-secondary">
+
                 <li class="nav-item">
                     <a href="logout.php"
-                       class="nav-link text-danger rounded">
+                       class="nav-link text-danger">
                         Logout
                     </a>
                 </li>
 
             </ul>
+
         </div>
 
         <!-- KONTEN -->
-        <div class="col-md-9 col-lg-10 p-4">
+        <main class="col-md-9 col-lg-10 p-4">
 
             <div class="d-flex justify-content-between align-items-center mb-4">
 
                 <div>
-                    <h2 class="fw-bold mb-1">Penempatan Siswa</h2>
+
+                    <h2 class="fw-bold mb-1">
+                        Penempatan Siswa
+                    </h2>
 
                     <p class="text-secondary mb-2">
                         Kelola penempatan siswa ke kelas
@@ -216,6 +236,7 @@ usort($data_penempatan, function ($a, $b) {
                        class="btn btn-secondary btn-sm">
                         Kembali ke Dashboard
                     </a>
+
                 </div>
 
                 <a href="tambah_penempatan_siswa.php"
@@ -273,100 +294,110 @@ usort($data_penempatan, function ($a, $b) {
 
                             <tbody>
 
-                            <?php if (count($data_penempatan) > 0) { ?>
+                                <?php if (count($data_penempatan) > 0) { ?>
 
-                                <?php $no = 1; ?>
+                                    <?php $no = 1; ?>
 
-                                <?php foreach ($data_penempatan as $row) { ?>
+                                    <?php foreach ($data_penempatan as $row) { ?>
 
-                                    <?php
-                                    $sid = (int)($row['siswa_id'] ?? 0);
-                                    $kid = (int)($row['kelas_id'] ?? 0);
-                                    $tid = (int)($row['tahun_ajaran_id'] ?? 0);
+                                        <?php
+                                        $sid = (int)($row['siswa_id'] ?? 0);
+                                        $kid = (int)($row['kelas_id'] ?? 0);
+                                        $tid = (int)($row['tahun_ajaran_id'] ?? 0);
 
-                                    $s = $siswa_map[$sid] ?? null;
-                                    ?>
+                                        $s = $siswa_map[$sid] ?? null;
+                                        ?>
+
+                                        <tr>
+
+                                            <td><?= $no++; ?></td>
+
+                                            <td>
+                                                <?= htmlspecialchars(
+                                                    $s['nisn'] ?? ($row['nisn'] ?? '-')
+                                                ); ?>
+                                            </td>
+
+                                            <td>
+                                                <strong>
+                                                    <?= htmlspecialchars(
+                                                        $s['nama'] ?? ($row['nama_siswa'] ?? '-')
+                                                    ); ?>
+                                                </strong>
+                                            </td>
+
+                                            <td>
+                                                <?= htmlspecialchars(
+                                                    $kelas_map[$kid] ?? ($row['nama_kelas'] ?? '-')
+                                                ); ?>
+                                            </td>
+
+                                            <td>
+                                                <?= htmlspecialchars(
+                                                    $tahun_map[$tid] ?? ($row['nama_tahun_ajaran'] ?? '-')
+                                                ); ?>
+                                            </td>
+
+                                            <td>
+                                                <?= htmlspecialchars(
+                                                    $row['tanggal_mulai'] ?? '-'
+                                                ); ?>
+                                            </td>
+
+                                            <td>
+                                                <?= htmlspecialchars(
+                                                    $row['tanggal_selesai'] ?? '-'
+                                                ); ?>
+                                            </td>
+
+                                            <td>
+
+                                                <?php if (($row['status_aktif'] ?? 1) == 1) { ?>
+
+                                                    <span class="badge bg-success">
+                                                        Aktif
+                                                    </span>
+
+                                                <?php } else { ?>
+
+                                                    <span class="badge bg-secondary">
+                                                        Tidak Aktif
+                                                    </span>
+
+                                                <?php } ?>
+
+                                            </td>
+
+                                            <td>
+
+                                                <a
+                                                    href="tambah_penempatan_siswa.php?edit=<?= (int)$row['id']; ?>"
+                                                    class="btn btn-warning btn-sm">
+                                                    Edit
+                                                </a>
+
+                                                <a
+                                                    href="penempatan_siswa.php?hapus=<?= (int)$row['id']; ?>"
+                                                    class="btn btn-danger btn-sm"
+                                                    onclick="return confirm('Yakin ingin menghapus data penempatan ini?')">
+                                                    Hapus
+                                                </a>
+
+                                            </td>
+
+                                        </tr>
+
+                                    <?php } ?>
+
+                                <?php } else { ?>
 
                                     <tr>
-                                        <td><?= $no++; ?></td>
-
-                                        <td>
-                                            <?= htmlspecialchars(
-                                                $s['nisn'] ?? ($row['nisn'] ?? '-')
-                                            ); ?>
-                                        </td>
-
-                                        <td>
-                                            <strong>
-                                                <?= htmlspecialchars(
-                                                    $s['nama'] ?? ($row['nama_siswa'] ?? '-')
-                                                ); ?>
-                                            </strong>
-                                        </td>
-
-                                        <td>
-                                            <?= htmlspecialchars(
-                                                $kelas_map[$kid] ?? ($row['nama_kelas'] ?? '-')
-                                            ); ?>
-                                        </td>
-
-                                        <td>
-                                            <?= htmlspecialchars(
-                                                $tahun_map[$tid] ?? ($row['nama_tahun_ajaran'] ?? '-')
-                                            ); ?>
-                                        </td>
-
-                                        <td>
-                                            <?= htmlspecialchars(
-                                                $row['tanggal_mulai'] ?? '-'
-                                            ); ?>
-                                        </td>
-
-                                        <td>
-                                            <?= htmlspecialchars(
-                                                $row['tanggal_selesai'] ?? '-'
-                                            ); ?>
-                                        </td>
-
-                                        <td>
-                                            <?php if (($row['status_aktif'] ?? 1) == 1) { ?>
-                                                <span class="badge bg-success">
-                                                    Aktif
-                                                </span>
-                                            <?php } else { ?>
-                                                <span class="badge bg-secondary">
-                                                    Tidak Aktif
-                                                </span>
-                                            <?php } ?>
-                                        </td>
-
-                                        <td>
-                                            <a
-                                                href="tambah_penempatan_siswa.php?edit=<?= (int)$row['id']; ?>"
-                                                class="btn btn-warning btn-sm">
-                                                Edit
-                                            </a>
-
-                                            <a
-                                                href="penempatan_siswa.php?hapus=<?= (int)$row['id']; ?>"
-                                                class="btn btn-danger btn-sm"
-                                                onclick="return confirm('Yakin ingin menghapus data penempatan ini?')">
-                                                Hapus
-                                            </a>
+                                        <td colspan="9" class="text-center">
+                                            Belum ada data penempatan siswa.
                                         </td>
                                     </tr>
 
                                 <?php } ?>
-
-                            <?php } else { ?>
-
-                                <tr>
-                                    <td colspan="9" class="text-center">
-                                        Belum ada data penempatan siswa.
-                                    </td>
-                                </tr>
-
-                            <?php } ?>
 
                             </tbody>
 
@@ -375,11 +406,16 @@ usort($data_penempatan, function ($a, $b) {
                     </div>
 
                 </div>
+
             </div>
 
-        </div>
+        </main>
+
     </div>
+
 </div>
 
 </body>
+
 </html>
+```

@@ -107,9 +107,16 @@ if ($_SESSION['role'] != 'admin') {
                 </li>
 
                 <li class="nav-item mb-2">
-                    <a href="cetak_export.php"
+                    <a href="laporan.php"
                        class="nav-link text-white">
                         Laporan
+                    </a>
+                </li>
+
+                <li class="nav-item mb-2">
+                    <a href="laporan.php"
+                       class="nav-link text-white">
+                        Abaut Me
                     </a>
                 </li>
 
