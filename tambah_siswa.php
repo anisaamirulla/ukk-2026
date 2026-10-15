@@ -67,7 +67,7 @@ if (isset($_POST['simpan'])) {
                 <a href="wali_kelas.php" class="nav-link text-white">Wali Kelas</a>
                 <a href="kategori_pelanggaran.php" class="nav-link text-white">Kategori Pelanggaran</a>
                 <a href="jenis_pelanggaran.php" class="nav-link text-white">Jenis Pelanggaran</a>
-                <a href="cetak_export.php" class="nav-link text-white">Cetak / Export</a>
+                <a href="laporan.php" class="nav-link text-white">Laporan</a>
                 <a href="logout.php" class="nav-link text-white">Logout</a>
             </div>
         </div>

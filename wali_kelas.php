@@ -145,7 +145,7 @@ if (!$data) {
 
                 <li class="nav-item mb-2">
                     <a href="abautme.php" class="nav-link text-white">
-                        Abaut Me
+                        About Me
                     </a>
                 </li>
 
