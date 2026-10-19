@@ -26,7 +26,11 @@ if (!$query) {
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1">
     <title>Data Tahun Ajaran</title>
+
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet">
+
+    <!-- CSS DataTables Bootstrap 5 -->
+    <link href="https://cdn.datatables.net/2.3.4/css/dataTables.bootstrap5.min.css" rel="stylesheet">
 </head>
 <body class="bg-light">
 
@@ -162,7 +166,7 @@ if (!$query) {
                 <div class="card-body">
                     <div class="table-responsive">
 
-                        <table class="table align-middle">
+                        <table id="tabelTahunAjaran" class="table align-middle">
                             <thead>
                                 <tr class="table-primary">
                                     <th>No</th>
@@ -242,6 +246,41 @@ if (!$query) {
     </div>
 </div>
 
+<!-- JavaScript -->
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
+<script src="https://code.jquery.com/jquery-3.7.1.min.js"></script>
+<script src="https://cdn.datatables.net/2.3.4/js/dataTables.min.js"></script>
+<script src="https://cdn.datatables.net/2.3.4/js/dataTables.bootstrap5.min.js"></script>
+
+<script>
+$(document).ready(function () {
+    $('#tabelTahunAjaran').DataTable({
+        pageLength: 10,
+        lengthMenu: [5, 10, 25, 50, 100],
+        language: {
+            search: "Cari:",
+            lengthMenu: "Tampilkan _MENU_ data",
+            info: "Menampilkan _START_ sampai _END_ dari _TOTAL_ data",
+            infoEmpty: "Tidak ada data tahun ajaran",
+            infoFiltered: "(disaring dari _MAX_ total data)",
+            zeroRecords: "Data tahun ajaran tidak ditemukan",
+            emptyTable: "Belum ada data tahun ajaran",
+            paginate: {
+                first: "Pertama",
+                last: "Terakhir",
+                next: "Berikutnya",
+                previous: "Sebelumnya"
+            }
+        },
+        columnDefs: [
+            {
+                targets: [0, 5],
+                orderable: false
+            }
+        ]
+    });
+});
+</script>
+
 </body>
 </html>
-```

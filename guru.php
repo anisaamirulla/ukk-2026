@@ -30,12 +30,15 @@ if (!$query) {
 
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css"
           rel="stylesheet">
+
+    <!-- DataTables CSS -->
+    <link href="https://cdn.datatables.net/2.3.4/css/dataTables.bootstrap5.min.css"
+          rel="stylesheet">
 </head>
 
 <body class="bg-light">
 
 <div class="container-fluid">
-
     <div class="row">
 
         <!-- SIDEBAR -->
@@ -48,78 +51,67 @@ if (!$query) {
             <ul class="nav nav-pills flex-column">
 
                 <li class="nav-item mb-2">
-                    <a href="dashboard.php"
-                       class="nav-link text-white">
+                    <a href="dashboard.php" class="nav-link text-white">
                         Dashboard
                     </a>
                 </li>
 
                 <li class="nav-item mb-2">
-                    <a href="siswa.php"
-                       class="nav-link text-white">
+                    <a href="siswa.php" class="nav-link text-white">
                         Data Siswa
                     </a>
                 </li>
 
                 <li class="nav-item mb-2">
-                    <a href="guru.php"
-                       class="nav-link active">
+                    <a href="guru.php" class="nav-link active">
                         Data Guru
                     </a>
                 </li>
 
                 <li class="nav-item mb-2">
-                    <a href="kelas.php"
-                       class="nav-link text-white">
+                    <a href="kelas.php" class="nav-link text-white">
                         Kelas
                     </a>
                 </li>
 
                 <li class="nav-item mb-2">
-                    <a href="tahun_ajaran.php"
-                       class="nav-link text-white">
+                    <a href="tahun_ajaran.php" class="nav-link text-white">
                         Tahun Ajaran
                     </a>
                 </li>
 
                 <li class="nav-item mb-2">
-                    <a href="penempatan_siswa.php"
-                       class="nav-link text-white">
+                    <a href="penempatan_siswa.php" class="nav-link text-white">
                         Penempatan Siswa
                     </a>
                 </li>
 
                 <li class="nav-item mb-2">
-                    <a href="wali_kelas.php"
-                       class="nav-link text-white">
+                    <a href="wali_kelas.php" class="nav-link text-white">
                         Wali Kelas
                     </a>
                 </li>
 
                 <li class="nav-item mb-2">
-                    <a href="kategori_pelanggaran.php"
-                       class="nav-link text-white">
+                    <a href="kategori_pelanggaran.php" class="nav-link text-white">
                         Kategori Pelanggaran
                     </a>
                 </li>
 
                 <li class="nav-item mb-2">
-                    <a href="jenis_pelanggaran.php"
-                       class="nav-link text-white">
+                    <a href="jenis_pelanggaran.php" class="nav-link text-white">
                         Jenis Pelanggaran
                     </a>
                 </li>
 
                 <li class="nav-item mb-2">
-                    <a href="laporan.php"
-                       class="nav-link text-white">
+                    <a href="laporan.php" class="nav-link text-white">
                         Laporan
                     </a>
                 </li>
 
                 <li class="nav-item mb-2">
-                    <a href="abautme.php"
-                       class="nav-link text-white">
+                    <a href="abautme.php" class="nav-link text-white">
                         About Me
                     </a>
                 </li>
@@ -127,16 +119,13 @@ if (!$query) {
                 <hr class="text-secondary">
 
                 <li class="nav-item">
-                    <a href="logout.php"
-                       class="nav-link text-danger">
+                    <a href="logout.php" class="nav-link text-danger">
                         Logout
                     </a>
                 </li>
 
             </ul>
-
         </div>
-
 
         <!-- KONTEN UTAMA -->
         <main class="col-md-9 col-lg-10 p-4">
@@ -161,7 +150,7 @@ if (!$query) {
                 <div class="card-body">
                     <div class="table-responsive">
 
-                        <table class="table table-hover align-middle">
+                        <table id="tabelGuru" class="table table-hover align-middle">
                             <thead class="table-primary">
                                 <tr>
                                     <th>No</th>
@@ -201,6 +190,13 @@ if (!$query) {
                                     </td>
 
                                     <td>
+                                        <!-- TOMBOL EDIT -->
+                                        <a href="edit_guru.php?id=<?= (int)$guru['id'] ?>"
+                                           class="btn btn-warning btn-sm">
+                                            Edit
+                                        </a>
+
+                                        <!-- TOMBOL HAPUS -->
                                         <a href="hapus_guru.php?id=<?= (int)$guru['id'] ?>"
                                            class="btn btn-danger btn-sm"
                                            onclick="return confirm('Yakin ingin menghapus data guru ini?')">
@@ -229,7 +225,46 @@ if (!$query) {
     </div>
 </div>
 
+<!-- Bootstrap JS -->
 <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
+
+<!-- jQuery -->
+<script src="https://code.jquery.com/jquery-3.7.1.min.js"></script>
+
+<!-- DataTables JS -->
+<script src="https://cdn.datatables.net/2.3.4/js/dataTables.min.js"></script>
+<script src="https://cdn.datatables.net/2.3.4/js/dataTables.bootstrap5.min.js"></script>
+
+<!-- Pengaturan DataTables -->
+<script>
+$(document).ready(function () {
+    $('#tabelGuru').DataTable({
+        pageLength: 10,
+        lengthMenu: [5, 10, 25, 50, 100],
+        language: {
+            search: "Cari:",
+            lengthMenu: "Tampilkan _MENU_ data",
+            info: "Menampilkan _START_ sampai _END_ dari _TOTAL_ data guru",
+            infoEmpty: "Tidak ada data guru",
+            infoFiltered: "(disaring dari _MAX_ total data)",
+            zeroRecords: "Data guru tidak ditemukan",
+            emptyTable: "Belum ada data guru",
+            paginate: {
+                first: "Pertama",
+                last: "Terakhir",
+                next: "Berikutnya",
+                previous: "Sebelumnya"
+            }
+        },
+        columnDefs: [
+            {
+                targets: [0, 5],
+                orderable: false
+            }
+        ]
+    });
+});
+</script>
+
 </body>
 </html>
-```

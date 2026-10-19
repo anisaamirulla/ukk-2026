@@ -26,7 +26,9 @@ if (!$query) {
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1">
     <title>Data Siswa</title>
+
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link href="https://cdn.datatables.net/2.3.4/css/dataTables.bootstrap5.min.css" rel="stylesheet">
 </head>
 <body class="bg-light">
 
@@ -44,78 +46,67 @@ if (!$query) {
             <ul class="nav nav-pills flex-column">
 
                 <li class="nav-item mb-2">
-                    <a href="dashboard.php"
-                       class="nav-link text-white">
+                    <a href="dashboard.php" class="nav-link text-white">
                         Dashboard
                     </a>
                 </li>
 
                 <li class="nav-item mb-2">
-                    <a href="siswa.php"
-                       class="nav-link active">
+                    <a href="siswa.php" class="nav-link active">
                         Data Siswa
                     </a>
                 </li>
 
                 <li class="nav-item mb-2">
-                    <a href="guru.php"
-                       class="nav-link text-white">
+                    <a href="guru.php" class="nav-link text-white">
                         Data Guru
                     </a>
                 </li>
 
                 <li class="nav-item mb-2">
-                    <a href="kelas.php"
-                       class="nav-link text-white">
+                    <a href="kelas.php" class="nav-link text-white">
                         Kelas
                     </a>
                 </li>
 
                 <li class="nav-item mb-2">
-                    <a href="tahun_ajaran.php"
-                       class="nav-link text-white">
+                    <a href="tahun_ajaran.php" class="nav-link text-white">
                         Tahun Ajaran
                     </a>
                 </li>
 
                 <li class="nav-item mb-2">
-                    <a href="penempatan_siswa.php"
-                       class="nav-link text-white">
+                    <a href="penempatan_siswa.php" class="nav-link text-white">
                         Penempatan Siswa
                     </a>
                 </li>
 
                 <li class="nav-item mb-2">
-                    <a href="wali_kelas.php"
-                       class="nav-link text-white">
+                    <a href="wali_kelas.php" class="nav-link text-white">
                         Wali Kelas
                     </a>
                 </li>
 
                 <li class="nav-item mb-2">
-                    <a href="kategori_pelanggaran.php"
-                       class="nav-link text-white">
+                    <a href="kategori_pelanggaran.php" class="nav-link text-white">
                         Kategori Pelanggaran
                     </a>
                 </li>
 
                 <li class="nav-item mb-2">
-                    <a href="jenis_pelanggaran.php"
-                       class="nav-link text-white">
+                    <a href="jenis_pelanggaran.php" class="nav-link text-white">
                         Jenis Pelanggaran
                     </a>
                 </li>
 
                 <li class="nav-item mb-2">
-                    <a href="laporan.php"
-                       class="nav-link text-white">
+                    <a href="laporan.php" class="nav-link text-white">
                         Laporan
                     </a>
                 </li>
 
                 <li class="nav-item mb-2">
-                    <a href="abautme.php"
-                       class="nav-link text-white">
+                    <a href="abautme.php" class="nav-link text-white">
                         About Me
                     </a>
                 </li>
@@ -123,8 +114,7 @@ if (!$query) {
                 <hr class="text-secondary">
 
                 <li class="nav-item">
-                    <a href="logout.php"
-                       class="nav-link text-danger">
+                    <a href="logout.php" class="nav-link text-danger">
                         Logout
                     </a>
                 </li>
@@ -161,7 +151,7 @@ if (!$query) {
                 <div class="card-body">
                     <div class="table-responsive">
 
-                        <table class="table align-middle">
+                        <table id="tabelSiswa" class="table align-middle">
                             <thead>
                                 <tr class="table-primary">
                                     <th>No</th>
@@ -215,13 +205,22 @@ if (!$query) {
                                         </td>
 
                                         <td>
-                                            <a
-                                                href="hapus_siswa.php?id=<?= (int)$siswa['id']; ?>"
-                                                class="btn btn-danger btn-sm"
-                                                onclick="return confirm('Yakin ingin menghapus data siswa ini?')"
-                                            >
-                                                Hapus
-                                            </a>
+                                            <div class="d-flex gap-1">
+                                                <a
+                                                    href="edit_siswa.php?id=<?= (int)$siswa['id']; ?>"
+                                                    class="btn btn-warning btn-sm"
+                                                >
+                                                    Edit
+                                                </a>
+
+                                                <a
+                                                    href="hapus_siswa.php?id=<?= (int)$siswa['id']; ?>"
+                                                    class="btn btn-danger btn-sm"
+                                                    onclick="return confirm('Yakin ingin menghapus data siswa ini?')"
+                                                >
+                                                    Hapus
+                                                </a>
+                                            </div>
                                         </td>
                                     </tr>
                                 <?php } ?>
@@ -244,6 +243,34 @@ if (!$query) {
     </div>
 </div>
 
+<script src="https://code.jquery.com/jquery-3.7.1.min.js"></script>
+<script src="https://cdn.datatables.net/2.3.4/js/dataTables.min.js"></script>
+<script src="https://cdn.datatables.net/2.3.4/js/dataTables.bootstrap5.min.js"></script>
+
+<script>
+$(document).ready(function () {
+    $('#tabelSiswa').DataTable({
+        pageLength: 10,
+        lengthMenu: [5, 10, 25, 50, 100],
+        ordering: true,
+        searching: true,
+        language: {
+            search: "Cari:",
+            lengthMenu: "Tampilkan _MENU_ data",
+            info: "Menampilkan _START_ sampai _END_ dari _TOTAL_ data",
+            infoEmpty: "Tidak ada data",
+            zeroRecords: "Data tidak ditemukan",
+            emptyTable: "Belum ada data siswa",
+            paginate: {
+                first: "Pertama",
+                last: "Terakhir",
+                next: "Berikutnya",
+                previous: "Sebelumnya"
+            }
+        }
+    });
+});
+</script>
+
 </body>
 </html>
-```

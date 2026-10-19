@@ -1,4 +1,4 @@
-
+            
 <?php
 session_start();
 
@@ -115,143 +115,267 @@ if (!$akun) {
 <body class="bg-light">
 
 <div class="container-fluid">
-    <div class="row">
+    <div class="row min-vh-100">
 
         <!-- SIDEBAR -->
-        <aside class="col-md-3 col-lg-2 bg-dark text-white min-vh-100 p-3">
-            <h4 class="mb-4">Admin UKK</h4>
+        <aside class="col-md-3 col-lg-2 bg-dark text-white p-3">
+
+            <h4 class="text-center mb-4">
+                Admin Panel
+            </h4>
 
             <div class="nav nav-pills flex-column gap-2">
-                <a href="dashboard.php" class="nav-link text-white">Dashboard</a>
-                <a href="siswa.php" class="nav-link text-white">Data Siswa</a>
-                <a href="guru.php" class="nav-link active">Data Guru</a>
-                <a href="kelas.php" class="nav-link text-white">Data Kelas</a>
-                <a href="tahun_ajaran.php" class="nav-link text-white">Tahun Ajaran</a>
-                <a href="penempatan_siswa.php" class="nav-link text-white">Penempatan Siswa</a>
-                <a href="wali_kelas.php" class="nav-link text-white">Wali Kelas</a>
-                <a href="kategori_pelanggaran.php" class="nav-link text-white">Kategori Pelanggaran</a>
-                <a href="jenis_pelanggaran.php" class="nav-link text-white">Jenis Pelanggaran</a>
-                <a href="cetak_export.php" class="nav-link text-white">Cetak / Export</a>
-                <a href="logout.php" class="nav-link text-danger">Logout</a>
+
+                <a href="dashboard.php" class="nav-link text-white">
+                    Dashboard
+                </a>
+
+                <a href="siswa.php" class="nav-link text-white">
+                    Data Siswa
+                </a>
+
+                <a href="guru.php" class="nav-link active">
+                    Data Guru
+                </a>
+
+                <a href="kelas.php" class="nav-link text-white">
+                    Data Kelas
+                </a>
+
+                <a href="tahun_ajaran.php" class="nav-link text-white">
+                    Tahun Ajaran
+                </a>
+
+                <a href="penempatan_siswa.php" class="nav-link text-white">
+                    Penempatan Siswa
+                </a>
+
+                <a href="wali_kelas.php" class="nav-link text-white">
+                    Wali Kelas
+                </a>
+
+                <a href="kategori_pelanggaran.php" class="nav-link text-white">
+                    Kategori Pelanggaran
+                </a>
+
+                <a href="jenis_pelanggaran.php" class="nav-link text-white">
+                    Jenis Pelanggaran
+                </a>
+
+                <a href="laporan.php" class="nav-link text-white">
+                    Laporan
+                </a>
+
+                <a href="abautme.php" class="nav-link text-white">
+                    About Me
+                </a>
+
+                <hr class="text-secondary">
+
+                <a href="logout.php" class="nav-link text-danger">
+                    Logout
+                </a>
+
             </div>
+
         </aside>
 
-        <!-- KONTEN -->
-        <main class="col-md-9 col-lg-10 p-4">
+        <!-- KONTEN TAMBAH GURU -->
+        <main class="col-md-9 col-lg-10 p-3 p-md-4">
 
-            <div class="mb-4">
-                <h2 class="fw-bold mb-1">Tambah Guru</h2>
-                <p class="text-secondary mb-3">Form tambah data guru</p>
+            <!-- JUDUL HALAMAN -->
+            <div class="d-flex flex-wrap justify-content-between align-items-center gap-3 mb-4">
 
-                <a href="guru.php" class="btn btn-secondary btn-sm">
-                    Kembali ke Data Guru
-                </a>
-                <a href="dashboard.php" class="btn btn-outline-secondary btn-sm">
-                    Kembali ke Dashboard
-                </a>
-            </div>
+                <div>
+                    <h2 class="fw-bold mb-1">
+                        Tambah Data Guru
+                    </h2>
 
-            <div class="card border-0 shadow-sm">
-                <div class="card-header bg-primary text-white py-3">
-                    <h5 class="mb-0">Formulir Data Guru</h5>
+                    <p class="text-secondary mb-0">
+                        Silakan isi formulir data guru dengan lengkap.
+                    </p>
                 </div>
 
-                <div class="card-body p-4">
+                <a href="guru.php" class="btn btn-outline-secondary">
+                    Kembali ke Data Guru
+                </a>
 
-                    <?php if ($pesan !== "") : ?>
-                        <div class="alert alert-danger">
-                            <?= htmlspecialchars($pesan) ?>
-                        </div>
-                    <?php endif; ?>
+            </div>
 
-                    <form method="POST" action="">
+            <!-- PESAN ERROR -->
+            <?php if ($pesan != "") { ?>
+                <div class="alert alert-danger alert-dismissible fade show"
+                     role="alert">
 
-                        <div class="mb-3">
-                            <label for="nip" class="form-label">NIP</label>
-                            <input type="text"
-                                   name="nip"
-                                   id="nip"
-                                   class="form-control"
-                                   value="<?= htmlspecialchars($nip) ?>"
-                                   required>
-                        </div>
+                    <?= htmlspecialchars($pesan); ?>
 
-                        <div class="mb-3">
-                            <label for="nama" class="form-label">Nama Guru</label>
-                            <input type="text"
-                                   name="nama"
-                                   id="nama"
-                                   class="form-control"
-                                   value="<?= htmlspecialchars($nama) ?>"
-                                   required>
-                        </div>
+                    <button type="button"
+                            class="btn-close"
+                            data-bs-dismiss="alert"
+                            aria-label="Tutup"></button>
+                </div>
+            <?php } ?>
 
-                        <div class="mb-3">
-                            <label for="email" class="form-label">Email</label>
-                            <input type="email"
-                                   name="email"
-                                   id="email"
-                                   class="form-control"
-                                   value="<?= htmlspecialchars($email) ?>"
-                                   required>
+            <!-- FORMULIR -->
+            <div class="row justify-content-center">
+                <div class="col-12 col-xl-10">
+
+                    <div class="card border-0 shadow-sm">
+
+                        <div class="card-header bg-white p-3">
+                            <h5 class="fw-bold mb-1">
+                                <span class="text-primary">Formulir Guru</span>
+                            </h5>
+
+                            <small class="text-secondary">
+                                Isi informasi guru pada kolom yang tersedia.
+                            </small>
                         </div>
 
-                        <div class="mb-3">
-                            <label for="status_aktif" class="form-label">Status</label>
-                            <select name="status_aktif"
-                                    id="status_aktif"
-                                    class="form-select"
-                                    required>
-                                <option value="1" <?= $status === "1" ? "selected" : "" ?>>
-                                    Aktif
-                                </option>
-                                <option value="0" <?= $status === "0" ? "selected" : "" ?>>
-                                    Tidak Aktif
-                                </option>
-                            </select>
+                        <div class="card-body p-3 p-md-4">
+
+                            <form method="POST" action="">
+
+                                <div class="row g-3">
+
+                                    <!-- NIP -->
+                                    <div class="col-md-6">
+                                        <label for="nip" class="form-label fw-semibold">
+                                            NIP <span class="text-danger">*</span>
+                                        </label>
+
+                                        <input type="text"
+                                               name="nip"
+                                               id="nip"
+                                               class="form-control"
+                                               placeholder="Masukkan NIP"
+                                               value="<?= htmlspecialchars($nip) ?>"
+                                               required>
+                                    </div>
+
+                                    <!-- NAMA GURU -->
+                                    <div class="col-md-6">
+                                        <label for="nama" class="form-label fw-semibold">
+                                            Nama Guru <span class="text-danger">*</span>
+                                        </label>
+
+                                        <input type="text"
+                                               name="nama"
+                                               id="nama"
+                                               class="form-control"
+                                               placeholder="Masukkan nama lengkap guru"
+                                               value="<?= htmlspecialchars($nama) ?>"
+                                               required>
+                                    </div>
+
+                                    <!-- EMAIL -->
+                                    <div class="col-md-6">
+                                        <label for="email" class="form-label fw-semibold">
+                                            Email <span class="text-danger">*</span>
+                                        </label>
+
+                                        <input type="email"
+                                               name="email"
+                                               id="email"
+                                               class="form-control"
+                                               placeholder="Masukkan email guru"
+                                               value="<?= htmlspecialchars($email) ?>"
+                                               required>
+                                    </div>
+
+                                    <!-- STATUS -->
+                                    <div class="col-md-6">
+                                        <label for="status_aktif" class="form-label fw-semibold">
+                                            Status <span class="text-danger">*</span>
+                                        </label>
+
+                                        <select name="status_aktif"
+                                                id="status_aktif"
+                                                class="form-select"
+                                                required>
+
+                                            <option value="1"
+                                                <?= $status === "1" ? "selected" : "" ?>>
+                                                Aktif
+                                            </option>
+
+                                            <option value="0"
+                                                <?= $status === "0" ? "selected" : "" ?>>
+                                                Tidak Aktif
+                                            </option>
+
+                                        </select>
+                                    </div>
+
+                                    <!-- AKUN PENGGUNA -->
+                                    <div class="col-12">
+                                        <label for="user_id" class="form-label fw-semibold">
+                                            Akun Pengguna <span class="text-danger">*</span>
+                                        </label>
+
+                                        <select name="user_id"
+                                                id="user_id"
+                                                class="form-select"
+                                                required>
+
+                                            <option value="">
+                                                -- Pilih Akun Pengguna --
+                                            </option>
+
+                                            <?php while ($u = mysqli_fetch_assoc($akun)) : ?>
+                                                <option value="<?= (int)$u['id'] ?>"
+                                                    <?= (string)$user_id === (string)$u['id'] ? "selected" : "" ?>>
+
+                                                    <?= htmlspecialchars($u['name']) ?>
+                                                    (<?= htmlspecialchars($u['email']) ?>)
+
+                                                </option>
+                                            <?php endwhile; ?>
+
+                                        </select>
+
+                                        <div class="form-text">
+                                            Pilih akun yang sudah tersedia di database.
+                                        </div>
+                                    </div>
+
+                                </div>
+
+                                <hr class="my-4">
+
+                                <!-- TOMBOL -->
+                                <div class="d-flex flex-wrap justify-content-end gap-2">
+
+                                    <a href="guru.php" class="btn btn-secondary">
+                                        Batal
+                                    </a>
+
+                                    <button type="submit"
+                                            class="btn btn-primary px-4">
+                                        Simpan Data Guru
+                                    </button>
+
+                                </div>
+
+                                <p class="text-secondary small mt-3 mb-0">
+                                    <span class="text-danger">*</span>
+                                    Kolom bertanda bintang wajib diisi.
+                                </p>
+
+                            </form>
+
                         </div>
+                    </div>
 
-                        <div class="mb-4">
-                            <label for="user_id" class="form-label">Akun Pengguna</label>
-                            <select name="user_id"
-                                    id="user_id"
-                                    class="form-select"
-                                    required>
-                                <option value="">-- Pilih Akun Pengguna --</option>
-
-                                <?php while ($u = mysqli_fetch_assoc($akun)) : ?>
-                                    <option value="<?= (int)$u['id'] ?>"
-                                        <?= (string)$user_id === (string)$u['id'] ? "selected" : "" ?>>
-                                        <?= htmlspecialchars($u['name']) ?>
-                                        (<?= htmlspecialchars($u['email']) ?>)
-                                    </option>
-                                <?php endwhile; ?>
-                            </select>
-
-                            <div class="form-text">
-                                Pilih akun yang sudah tersedia di database.
-                            </div>
-                        </div>
-
-                        <div class="d-flex gap-2">
-                            <button type="submit" class="btn btn-primary">
-                                Simpan Data Guru
-                            </button>
-
-                            <a href="guru.php" class="btn btn-secondary">
-                                Batal
-                            </a>
-                        </div>
-
-                    </form>
                 </div>
             </div>
 
         </main>
+
     </div>
 </div>
 
 <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
+
 </body>
 </html>
-```
