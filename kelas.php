@@ -20,120 +20,168 @@ if (!$query) {
     die("Gagal mengambil data kelas: " . mysqli_error($koneksi));
 }
 ?>
+
 <!DOCTYPE html>
 <html lang="id">
+
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1">
+
     <title>Data Kelas</title>
 
     <!-- Bootstrap 5.3 -->
-    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css"
+          rel="stylesheet">
+
+    <!-- Bootstrap Icons -->
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.min.css"
+          rel="stylesheet">
 
     <!-- DataTables CSS -->
-    <link href="https://cdn.datatables.net/2.3.4/css/dataTables.bootstrap5.min.css" rel="stylesheet">
+    <link href="https://cdn.datatables.net/2.3.4/css/dataTables.bootstrap5.min.css"
+          rel="stylesheet">
 </head>
 
-<body class="bg-light">
+<body class="bg-white">
 
 <div class="container-fluid">
-
     <div class="row">
 
         <!-- SIDEBAR -->
-        <div class="col-md-3 col-lg-2 bg-dark min-vh-100 p-3">
+        <aside class="col-12 col-md-3 col-lg-2 bg-dark min-vh-100 p-3">
 
-            <h4 class="text-white mb-4">
-                Sistem Pelanggaran
-            </h4>
+            <div class="text-white mb-4">
+                <h4 class="fw-bold mb-0">
+                    <i class="bi bi-shield-check me-2"></i>
+                    Sistem Pelanggaran
+                </h4>
 
-            <ul class="nav nav-pills flex-column">
+                <small class="text-secondary">
+                    Panel Admin
+                </small>
+            </div>
 
-                <li class="nav-item mb-2">
+            <!-- PROFIL PENGGUNA -->
+            <div class="bg-secondary bg-opacity-25 rounded-3 p-3 mb-4">
+
+                <div class="d-flex align-items-center gap-3">
+
+                    <div class="bg-white text-dark rounded-circle p-2">
+                        <i class="bi bi-person-fill fs-4"></i>
+                    </div>
+
+                    <div class="text-white">
+                        <div class="fw-semibold">
+                            <?= htmlspecialchars($_SESSION['name'] ?? 'Pengguna'); ?>
+                        </div>
+
+                        <small class="text-secondary">
+                            ADMIN
+                        </small>
+                    </div>
+
+                </div>
+
+            </div>
+
+            <!-- MENU UTAMA TANPA IKON -->
+            <div class="text-secondary small fw-semibold mb-2">
+                MENU UTAMA
+            </div>
+
+            <ul class="nav nav-pills flex-column gap-1">
+
+                <li class="nav-item">
                     <a href="dashboard.php" class="nav-link text-white">
                         Dashboard
                     </a>
                 </li>
 
-                <li class="nav-item mb-2">
+                <li class="nav-item">
                     <a href="siswa.php" class="nav-link text-white">
                         Data Siswa
                     </a>
                 </li>
 
-                <li class="nav-item mb-2">
+                <li class="nav-item">
                     <a href="guru.php" class="nav-link text-white">
                         Data Guru
                     </a>
                 </li>
 
-                <li class="nav-item mb-2">
+                <li class="nav-item">
                     <a href="kelas.php" class="nav-link active">
                         Kelas
                     </a>
                 </li>
 
-                <li class="nav-item mb-2">
+                <li class="nav-item">
                     <a href="tahun_ajaran.php" class="nav-link text-white">
                         Tahun Ajaran
                     </a>
                 </li>
 
-                <li class="nav-item mb-2">
+                <li class="nav-item">
                     <a href="penempatan_siswa.php" class="nav-link text-white">
                         Penempatan Siswa
                     </a>
                 </li>
 
-                <li class="nav-item mb-2">
+                <li class="nav-item">
                     <a href="wali_kelas.php" class="nav-link text-white">
                         Wali Kelas
                     </a>
                 </li>
 
-                <li class="nav-item mb-2">
+                <li class="nav-item">
                     <a href="kategori_pelanggaran.php" class="nav-link text-white">
                         Kategori Pelanggaran
                     </a>
                 </li>
 
-                <li class="nav-item mb-2">
+                <li class="nav-item">
                     <a href="jenis_pelanggaran.php" class="nav-link text-white">
                         Jenis Pelanggaran
                     </a>
                 </li>
 
-                <li class="nav-item mb-2">
+                <li class="nav-item">
                     <a href="laporan.php" class="nav-link text-white">
                         Laporan
                     </a>
                 </li>
 
-                <li class="nav-item mb-2">
+                <li class="nav-item">
                     <a href="abautme.php" class="nav-link text-white">
                         About Me
                     </a>
                 </li>
 
-                <hr class="text-secondary">
-
-                <li class="nav-item">
-                    <a href="logout.php" class="nav-link text-danger">
-                        Logout
-                    </a>
-                </li>
-
             </ul>
 
-        </div>
+            <hr class="border-secondary">
 
-        <!-- KONTEN -->
-        <div class="col-md-9 col-lg-10 p-4">
+            <!-- LOGOUT -->
+            <a href="logout.php" class="nav-link text-danger">
+                <i class="bi bi-box-arrow-left me-2"></i>
+                Logout
+            </a>
+
+        </aside>
+
+        <!-- KONTEN UTAMA -->
+        <main class="col-12 col-md-9 col-lg-10 p-3 p-lg-4">
 
             <div class="d-flex justify-content-between align-items-center mb-4">
+
                 <div>
                     <h2 class="fw-bold mb-1">Data Kelas</h2>
-                    <p class="text-secondary mb-2">Daftar data kelas</p>
+
+                    <p class="text-secondary mb-2">
+                        Daftar data kelas
+                    </p>
+
                     <a href="dashboard.php" class="btn btn-secondary btn-sm">
                         Kembali ke Dashboard
                     </a>
@@ -142,20 +190,26 @@ if (!$query) {
                 <a href="tambah_kelas.php" class="btn btn-primary">
                     + Tambah Kelas
                 </a>
+
             </div>
 
             <?php if (isset($_GET['pesan']) && $_GET['pesan'] == 'berhasil') { ?>
+
                 <div class="alert alert-success">
                     Data kelas berhasil ditambahkan.
                 </div>
+
             <?php } ?>
 
             <!-- TABEL KELAS -->
             <div class="card border-0 shadow-sm">
+
                 <div class="card-body">
+
                     <div class="table-responsive">
 
                         <table id="tabelKelas" class="table align-middle">
+
                             <thead>
                                 <tr class="table-primary">
                                     <th>No</th>
@@ -168,11 +222,13 @@ if (!$query) {
                             </thead>
 
                             <tbody>
+
                                 <?php
                                 $no = 1;
 
                                 while ($kelas = mysqli_fetch_assoc($query)) {
                                 ?>
+
                                     <tr>
                                         <td><?= $no++; ?></td>
 
@@ -192,46 +248,64 @@ if (!$query) {
 
                                         <td>
                                             <?php if ((int)$kelas['status_aktif'] === 1) { ?>
-                                                <span class="badge bg-success">Aktif</span>
+
+                                                <span class="badge bg-success">
+                                                    Aktif
+                                                </span>
+
                                             <?php } else { ?>
-                                                <span class="badge bg-secondary">Tidak Aktif</span>
+
+                                                <span class="badge bg-secondary">
+                                                    Tidak Aktif
+                                                </span>
+
                                             <?php } ?>
                                         </td>
 
                                         <td>
-                                            <a
-                                                href="edit_kelas.php?id=<?= (int)$kelas['id']; ?>"
-                                                class="btn btn-warning btn-sm"
-                                            >
-                                                Edit
-                                            </a>
+                                            <div class="d-flex gap-1">
 
-                                            <a
-                                                href="hapus_kelas.php?id=<?= (int)$kelas['id']; ?>"
-                                                class="btn btn-danger btn-sm"
-                                                onclick="return confirm('Yakin ingin menghapus data kelas ini?')"
-                                            >
-                                                Hapus
-                                            </a>
+                                                <a
+                                                    href="edit_kelas.php?id=<?= (int)$kelas['id']; ?>"
+                                                    class="btn btn-warning btn-sm">
+                                                    Edit
+                                                </a>
+
+                                                <a
+                                                    href="hapus_kelas.php?id=<?= (int)$kelas['id']; ?>"
+                                                    class="btn btn-danger btn-sm"
+                                                    onclick="return confirm('Yakin ingin menghapus data kelas ini?')">
+                                                    Hapus
+                                                </a>
+
+                                            </div>
                                         </td>
                                     </tr>
+
                                 <?php } ?>
 
                                 <?php if (mysqli_num_rows($query) === 0) { ?>
+
                                     <tr>
                                         <td colspan="6" class="text-center">
                                             Belum ada data kelas.
                                         </td>
                                     </tr>
+
                                 <?php } ?>
+
                             </tbody>
+
                         </table>
 
                     </div>
+
                 </div>
+
             </div>
 
-        </div>
+        </main>
+
     </div>
 </div>
 

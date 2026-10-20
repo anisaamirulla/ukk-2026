@@ -1,4 +1,4 @@
-            
+
 <?php
 session_start();
 
@@ -8,8 +8,7 @@ if (!isset($_SESSION['id'])) {
 }
 
 if (!isset($_SESSION['role']) || $_SESSION['role'] != 'admin') {
-    echo "Anda tidak memiliki akses";
-    exit;
+    exit("Anda tidak memiliki akses");
 }
 
 require_once __DIR__ . "/config/koneksi.php";
@@ -19,28 +18,35 @@ $nip = "";
 $nama = "";
 $email = "";
 $status = "1";
-$user_id = "";
 
 if ($_SERVER["REQUEST_METHOD"] === "POST") {
     $nip = trim($_POST["nip"] ?? "");
     $nama = trim($_POST["nama"] ?? "");
     $email = trim($_POST["email"] ?? "");
     $status = $_POST["status_aktif"] ?? "1";
-    $user_id = $_POST["user_id"] ?? "";
+    $password = $_POST["password"] ?? "";
+    $konfirmasi_password = $_POST["konfirmasi_password"] ?? "";
 
-    if ($nip === "" || $nama === "" || $email === "" || $user_id === "") {
+    if (
+        $nip === "" || $nama === "" || $email === "" ||
+        $password === "" || $konfirmasi_password === ""
+    ) {
         $pesan = "Semua kolom wajib diisi.";
     } elseif (!filter_var($email, FILTER_VALIDATE_EMAIL)) {
         $pesan = "Format email tidak valid.";
     } elseif (!in_array($status, ["0", "1"], true)) {
         $pesan = "Status tidak valid.";
-    } elseif (!ctype_digit((string)$user_id)) {
-        $pesan = "Pilih akun pengguna yang valid.";
+    } elseif (strlen($password) < 8) {
+        $pesan = "Password minimal 8 karakter.";
+    } elseif ($password !== $konfirmasi_password) {
+        $pesan = "Konfirmasi password tidak cocok.";
     } else {
+        // Periksa NIP dan email guru
         $cek = mysqli_prepare(
             $koneksi,
             "SELECT id FROM t_guru WHERE nip = ? OR email = ?"
         );
+
         mysqli_stmt_bind_param($cek, "ss", $nip, $email);
         mysqli_stmt_execute($cek);
         $hasil_cek = mysqli_stmt_get_result($cek);
@@ -48,56 +54,90 @@ if ($_SERVER["REQUEST_METHOD"] === "POST") {
         if (mysqli_num_rows($hasil_cek) > 0) {
             $pesan = "NIP atau email sudah terdaftar.";
         } else {
-            $cek_user = mysqli_prepare(
+            // Periksa email akun pengguna
+            $cekUser = mysqli_prepare(
                 $koneksi,
-                "SELECT id FROM t_user WHERE id = ?"
+                "SELECT id FROM t_user WHERE email = ?"
             );
-            $id_user = (int)$user_id;
-            mysqli_stmt_bind_param($cek_user, "i", $id_user);
-            mysqli_stmt_execute($cek_user);
-            $hasil_user = mysqli_stmt_get_result($cek_user);
 
-            if (mysqli_num_rows($hasil_user) === 0) {
-                $pesan = "Akun pengguna tidak ditemukan.";
+            mysqli_stmt_bind_param($cekUser, "s", $email);
+            mysqli_stmt_execute($cekUser);
+            $hasilUser = mysqli_stmt_get_result($cekUser);
+
+            if (mysqli_num_rows($hasilUser) > 0) {
+                $pesan = "Email sudah digunakan oleh akun pengguna lain.";
             } else {
-                $simpan = mysqli_prepare(
-                    $koneksi,
-                    "INSERT INTO t_guru
-                    (nip, nama, email, status_aktif, user_id)
-                    VALUES (?, ?, ?, ?, ?)"
-                );
+                mysqli_begin_transaction($koneksi);
 
-                $status_int = (int)$status;
+                try {
+                    $passwordHash = password_hash(
+                        $password,
+                        PASSWORD_DEFAULT
+                    );
 
-                mysqli_stmt_bind_param(
-                    $simpan,
-                    "sssii",
-                    $nip,
-                    $nama,
-                    $email,
-                    $status_int,
-                    $id_user
-                );
+                    $role = "guru";
 
-                if (mysqli_stmt_execute($simpan)) {
+                    // Simpan akun pengguna
+                    $simpanUser = mysqli_prepare(
+                        $koneksi,
+                        "INSERT INTO t_user (name, email, password, role)
+                         VALUES (?, ?, ?, ?)"
+                    );
+
+                    mysqli_stmt_bind_param(
+                        $simpanUser,
+                        "ssss",
+                        $nama,
+                        $email,
+                        $passwordHash,
+                        $role
+                    );
+
+                    if (!mysqli_stmt_execute($simpanUser)) {
+                        throw new Exception(
+                            mysqli_stmt_error($simpanUser)
+                        );
+                    }
+
+                    $user_id = mysqli_insert_id($koneksi);
+                    $status_int = (int) $status;
+
+                    // Simpan data guru
+                    $simpanGuru = mysqli_prepare(
+                        $koneksi,
+                        "INSERT INTO t_guru
+                        (nip, nama, email, status_aktif, user_id)
+                        VALUES (?, ?, ?, ?, ?)"
+                    );
+
+                    mysqli_stmt_bind_param(
+                        $simpanGuru,
+                        "sssii",
+                        $nip,
+                        $nama,
+                        $email,
+                        $status_int,
+                        $user_id
+                    );
+
+                    if (!mysqli_stmt_execute($simpanGuru)) {
+                        throw new Exception(
+                            mysqli_stmt_error($simpanGuru)
+                        );
+                    }
+
+                    mysqli_commit($koneksi);
+
                     header("Location: guru.php");
                     exit;
-                } else {
-                    $pesan = "Data guru gagal disimpan: " .
-                        mysqli_stmt_error($simpan);
+
+                } catch (Throwable $e) {
+                    mysqli_rollback($koneksi);
+                    $pesan = "Data guru gagal disimpan. Periksa struktur database dan pastikan data belum terdaftar.";
                 }
             }
         }
     }
-}
-
-$akun = mysqli_query(
-    $koneksi,
-    "SELECT id, name, email FROM t_user ORDER BY name ASC"
-);
-
-if (!$akun) {
-    die("Gagal mengambil akun pengguna: " . mysqli_error($koneksi));
 }
 ?>
 
@@ -106,6 +146,7 @@ if (!$akun) {
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1">
+
     <title>Tambah Guru</title>
 
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css"
@@ -120,77 +161,34 @@ if (!$akun) {
         <!-- SIDEBAR -->
         <aside class="col-md-3 col-lg-2 bg-dark text-white p-3">
 
-            <h4 class="text-center mb-4">
-                Admin Panel
-            </h4>
+            <h4 class="text-center mb-4">Admin Panel</h4>
 
             <div class="nav nav-pills flex-column gap-2">
-
-                <a href="dashboard.php" class="nav-link text-white">
-                    Dashboard
-                </a>
-
-                <a href="siswa.php" class="nav-link text-white">
-                    Data Siswa
-                </a>
-
-                <a href="guru.php" class="nav-link active">
-                    Data Guru
-                </a>
-
-                <a href="kelas.php" class="nav-link text-white">
-                    Data Kelas
-                </a>
-
-                <a href="tahun_ajaran.php" class="nav-link text-white">
-                    Tahun Ajaran
-                </a>
-
-                <a href="penempatan_siswa.php" class="nav-link text-white">
-                    Penempatan Siswa
-                </a>
-
-                <a href="wali_kelas.php" class="nav-link text-white">
-                    Wali Kelas
-                </a>
-
-                <a href="kategori_pelanggaran.php" class="nav-link text-white">
-                    Kategori Pelanggaran
-                </a>
-
-                <a href="jenis_pelanggaran.php" class="nav-link text-white">
-                    Jenis Pelanggaran
-                </a>
-
-                <a href="laporan.php" class="nav-link text-white">
-                    Laporan
-                </a>
-
-                <a href="abautme.php" class="nav-link text-white">
-                    About Me
-                </a>
+                <a href="dashboard.php" class="nav-link text-white">Dashboard</a>
+                <a href="siswa.php" class="nav-link text-white">Data Siswa</a>
+                <a href="guru.php" class="nav-link active">Data Guru</a>
+                <a href="kelas.php" class="nav-link text-white">Data Kelas</a>
+                <a href="tahun_ajaran.php" class="nav-link text-white">Tahun Ajaran</a>
+                <a href="penempatan_siswa.php" class="nav-link text-white">Penempatan Siswa</a>
+                <a href="wali_kelas.php" class="nav-link text-white">Wali Kelas</a>
+                <a href="kategori_pelanggaran.php" class="nav-link text-white">Kategori Pelanggaran</a>
+                <a href="jenis_pelanggaran.php" class="nav-link text-white">Jenis Pelanggaran</a>
+                <a href="laporan.php" class="nav-link text-white">Laporan</a>
+                <a href="abautme.php" class="nav-link text-white">About Me</a>
 
                 <hr class="text-secondary">
 
-                <a href="logout.php" class="nav-link text-danger">
-                    Logout
-                </a>
-
+                <a href="logout.php" class="nav-link text-danger">Logout</a>
             </div>
 
         </aside>
 
-        <!-- KONTEN TAMBAH GURU -->
+        <!-- KONTEN -->
         <main class="col-md-9 col-lg-10 p-3 p-md-4">
 
-            <!-- JUDUL HALAMAN -->
             <div class="d-flex flex-wrap justify-content-between align-items-center gap-3 mb-4">
-
                 <div>
-                    <h2 class="fw-bold mb-1">
-                        Tambah Data Guru
-                    </h2>
-
+                    <h2 class="fw-bold mb-1">Tambah Data Guru</h2>
                     <p class="text-secondary mb-0">
                         Silakan isi formulir data guru dengan lengkap.
                     </p>
@@ -199,34 +197,29 @@ if (!$akun) {
                 <a href="guru.php" class="btn btn-outline-secondary">
                     Kembali ke Data Guru
                 </a>
-
             </div>
 
-            <!-- PESAN ERROR -->
-            <?php if ($pesan != "") { ?>
+            <!-- PESAN -->
+            <?php if ($pesan !== "") { ?>
                 <div class="alert alert-danger alert-dismissible fade show"
                      role="alert">
+                    <?= htmlspecialchars($pesan) ?>
 
-                    <?= htmlspecialchars($pesan); ?>
-
-                    <button type="button"
-                            class="btn-close"
-                            data-bs-dismiss="alert"
-                            aria-label="Tutup"></button>
+                    <button type="button" class="btn-close"
+                            data-bs-dismiss="alert"></button>
                 </div>
             <?php } ?>
 
-            <!-- FORMULIR -->
+            <!-- FORM -->
             <div class="row justify-content-center">
                 <div class="col-12 col-xl-10">
 
                     <div class="card border-0 shadow-sm">
 
                         <div class="card-header bg-white p-3">
-                            <h5 class="fw-bold mb-1">
-                                <span class="text-primary">Formulir Guru</span>
+                            <h5 class="fw-bold text-primary mb-1">
+                                Formulir Guru
                             </h5>
-
                             <small class="text-secondary">
                                 Isi informasi guru pada kolom yang tersedia.
                             </small>
@@ -253,7 +246,7 @@ if (!$akun) {
                                                required>
                                     </div>
 
-                                    <!-- NAMA GURU -->
+                                    <!-- NAMA -->
                                     <div class="col-md-6">
                                         <label for="nama" class="form-label fw-semibold">
                                             Nama Guru <span class="text-danger">*</span>
@@ -263,7 +256,7 @@ if (!$akun) {
                                                name="nama"
                                                id="nama"
                                                class="form-control"
-                                               placeholder="Masukkan nama lengkap guru"
+                                               placeholder="Masukkan nama guru"
                                                value="<?= htmlspecialchars($nama) ?>"
                                                required>
                                     </div>
@@ -283,9 +276,44 @@ if (!$akun) {
                                                required>
                                     </div>
 
+                                    <!-- PASSWORD -->
+                                    <div class="col-md-6">
+                                        <label for="password" class="form-label fw-semibold">
+                                            Password <span class="text-danger">*</span>
+                                        </label>
+
+                                        <input type="password"
+                                               name="password"
+                                               id="password"
+                                               class="form-control"
+                                               placeholder="Minimal 8 karakter"
+                                               minlength="8"
+                                               autocomplete="new-password"
+                                               required>
+                                    </div>
+
+                                    <!-- KONFIRMASI PASSWORD -->
+                                    <div class="col-md-6">
+                                        <label for="konfirmasi_password"
+                                               class="form-label fw-semibold">
+                                            Konfirmasi Password
+                                            <span class="text-danger">*</span>
+                                        </label>
+
+                                        <input type="password"
+                                               name="konfirmasi_password"
+                                               id="konfirmasi_password"
+                                               class="form-control"
+                                               placeholder="Masukkan ulang password"
+                                               minlength="8"
+                                               autocomplete="new-password"
+                                               required>
+                                    </div>
+
                                     <!-- STATUS -->
                                     <div class="col-md-6">
-                                        <label for="status_aktif" class="form-label fw-semibold">
+                                        <label for="status_aktif"
+                                               class="form-label fw-semibold">
                                             Status <span class="text-danger">*</span>
                                         </label>
 
@@ -293,7 +321,6 @@ if (!$akun) {
                                                 id="status_aktif"
                                                 class="form-select"
                                                 required>
-
                                             <option value="1"
                                                 <?= $status === "1" ? "selected" : "" ?>>
                                                 Aktif
@@ -303,49 +330,14 @@ if (!$akun) {
                                                 <?= $status === "0" ? "selected" : "" ?>>
                                                 Tidak Aktif
                                             </option>
-
                                         </select>
-                                    </div>
-
-                                    <!-- AKUN PENGGUNA -->
-                                    <div class="col-12">
-                                        <label for="user_id" class="form-label fw-semibold">
-                                            Akun Pengguna <span class="text-danger">*</span>
-                                        </label>
-
-                                        <select name="user_id"
-                                                id="user_id"
-                                                class="form-select"
-                                                required>
-
-                                            <option value="">
-                                                -- Pilih Akun Pengguna --
-                                            </option>
-
-                                            <?php while ($u = mysqli_fetch_assoc($akun)) : ?>
-                                                <option value="<?= (int)$u['id'] ?>"
-                                                    <?= (string)$user_id === (string)$u['id'] ? "selected" : "" ?>>
-
-                                                    <?= htmlspecialchars($u['name']) ?>
-                                                    (<?= htmlspecialchars($u['email']) ?>)
-
-                                                </option>
-                                            <?php endwhile; ?>
-
-                                        </select>
-
-                                        <div class="form-text">
-                                            Pilih akun yang sudah tersedia di database.
-                                        </div>
                                     </div>
 
                                 </div>
 
                                 <hr class="my-4">
 
-                                <!-- TOMBOL -->
                                 <div class="d-flex flex-wrap justify-content-end gap-2">
-
                                     <a href="guru.php" class="btn btn-secondary">
                                         Batal
                                     </a>
@@ -354,7 +346,6 @@ if (!$akun) {
                                             class="btn btn-primary px-4">
                                         Simpan Data Guru
                                     </button>
-
                                 </div>
 
                                 <p class="text-secondary small mt-3 mb-0">
@@ -371,7 +362,6 @@ if (!$akun) {
             </div>
 
         </main>
-
     </div>
 </div>
 
