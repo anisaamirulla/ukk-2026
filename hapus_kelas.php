@@ -23,33 +23,46 @@ mysqli_begin_transaction($koneksi);
 
 try {
     // Hapus catatan pelanggaran yang menggunakan kelas ini
-    $hapusPelanggaran = mysqli_query(
+    $stmt = mysqli_prepare(
         $koneksi,
-        "DELETE FROM t_pelanggaran_siswa WHERE kelas_id = $id"
+        "DELETE FROM t_pelanggaran_siswa WHERE kelas_id = ?"
     );
-
-    if (!$hapusPelanggaran) {
+    if (!$stmt) {
         throw new Exception(mysqli_error($koneksi));
+    }
+    mysqli_stmt_bind_param($stmt, "i", $id);
+    if (!mysqli_stmt_execute($stmt)) {
+        throw new Exception(mysqli_stmt_error($stmt));
     }
 
     // Hapus penempatan wali kelas yang menggunakan kelas ini
-    $hapusWali = mysqli_query(
+    $stmt = mysqli_prepare(
         $koneksi,
-        "DELETE FROM t_wali_kelas WHERE kelas_id = $id"
+        "DELETE FROM t_wali_kelas WHERE kelas_id = ?"
     );
-
-    if (!$hapusWali) {
+    if (!$stmt) {
         throw new Exception(mysqli_error($koneksi));
+    }
+    mysqli_stmt_bind_param($stmt, "i", $id);
+    if (!mysqli_stmt_execute($stmt)) {
+        throw new Exception(mysqli_stmt_error($stmt));
     }
 
     // Hapus data kelas
-    $hapusKelas = mysqli_query(
+    $stmt = mysqli_prepare(
         $koneksi,
-        "DELETE FROM t_kelas WHERE id = $id"
+        "DELETE FROM t_kelas WHERE id = ?"
     );
-
-    if (!$hapusKelas) {
+    if (!$stmt) {
         throw new Exception(mysqli_error($koneksi));
+    }
+    mysqli_stmt_bind_param($stmt, "i", $id);
+    if (!mysqli_stmt_execute($stmt)) {
+        throw new Exception(mysqli_stmt_error($stmt));
+    }
+
+    if (mysqli_stmt_affected_rows($stmt) < 1) {
+        throw new Exception("Data kelas tidak ditemukan.");
     }
 
     mysqli_commit($koneksi);
@@ -57,14 +70,11 @@ try {
     header("Location: kelas.php?pesan=hapus_berhasil");
     exit;
 
-} catch (Exception $e) {
+} catch (Throwable $e) {
     mysqli_rollback($koneksi);
+    error_log("Gagal menghapus kelas ID {$id}: " . $e->getMessage());
 
-    echo "<div style='font-family: Arial; padding: 20px;'>";
-    echo "<h3>Data kelas gagal dihapus!</h3>";
-    echo "<p>" . htmlspecialchars($e->getMessage()) . "</p>";
-    echo "<a href='kelas.php'>Kembali ke Data Kelas</a>";
-    echo "</div>";
+    header("Location: kelas.php?pesan=gagal_hapus");
     exit;
 }
 ?>

@@ -1,4 +1,4 @@
-```php
+
 <?php
 session_start();
 
@@ -7,62 +7,80 @@ if (!isset($_SESSION['id'])) {
     exit;
 }
 
-if (!isset($_SESSION['role']) || $_SESSION['role'] != 'admin') {
+if (!isset($_SESSION['role']) || $_SESSION['role'] !== 'admin') {
     exit("Anda tidak memiliki akses");
 }
 
 require_once __DIR__ . "/config/koneksi.php";
 
 if (!isset($_GET['id']) || !is_numeric($_GET['id'])) {
-    header("Location: guru.php");
+    header("Location: guru.php?pesan=gagal_hapus");
     exit;
 }
 
 $id = (int) $_GET['id'];
 
+if ($id <= 0) {
+    header("Location: guru.php?pesan=gagal_hapus");
+    exit;
+}
+
 mysqli_begin_transaction($koneksi);
 
 try {
-    // Pastikan data guru tersedia
-    $cek = mysqli_query(
+    // Hapus penugasan wali kelas yang terkait dengan guru
+    $stmtWali = mysqli_prepare(
         $koneksi,
-        "SELECT id FROM t_guru WHERE id = $id FOR UPDATE"
+        "DELETE FROM t_wali_kelas WHERE guru_id = ?"
     );
 
-    if (!$cek || mysqli_num_rows($cek) == 0) {
-        throw new Exception("Data guru tidak ditemukan.");
-    }
-
-    // Hapus penempatan wali kelas yang menggunakan guru ini
-    $hapusWali = mysqli_query(
-        $koneksi,
-        "DELETE FROM t_wali_kelas WHERE guru_id = $id"
-    );
-
-    if (!$hapusWali) {
+    if (!$stmtWali) {
         throw new Exception(mysqli_error($koneksi));
     }
+
+    mysqli_stmt_bind_param($stmtWali, "i", $id);
+
+    if (!mysqli_stmt_execute($stmtWali)) {
+        throw new Exception(mysqli_stmt_error($stmtWali));
+    }
+
+    mysqli_stmt_close($stmtWali);
 
     // Hapus data guru
-    $hapusGuru = mysqli_query(
+    $stmtGuru = mysqli_prepare(
         $koneksi,
-        "DELETE FROM t_guru WHERE id = $id"
+        "DELETE FROM t_guru WHERE id = ?"
     );
 
-    if (!$hapusGuru) {
+    if (!$stmtGuru) {
         throw new Exception(mysqli_error($koneksi));
+    }
+
+    mysqli_stmt_bind_param($stmtGuru, "i", $id);
+
+    if (!mysqli_stmt_execute($stmtGuru)) {
+        throw new Exception(mysqli_stmt_error($stmtGuru));
+    }
+
+    $jumlahTerhapus = mysqli_stmt_affected_rows($stmtGuru);
+    mysqli_stmt_close($stmtGuru);
+
+    if ($jumlahTerhapus <= 0) {
+        throw new Exception("Data guru tidak ditemukan.");
     }
 
     mysqli_commit($koneksi);
 
-    header("Location: guru.php?pesan=hapus_berhasil");
+    header("Location: guru.php?pesan=hapus");
     exit;
 
 } catch (Throwable $e) {
     mysqli_rollback($koneksi);
 
-    header("Location: guru.php?pesan=gagal_hapus");
-    exit;
+    die(
+        "Data guru gagal dihapus. Penyebab: " .
+        htmlspecialchars($e->getMessage(), ENT_QUOTES, 'UTF-8') .
+        "<br><br><a href='guru.php'>Kembali ke Data Guru</a>"
+    );
 }
 ?>
-```

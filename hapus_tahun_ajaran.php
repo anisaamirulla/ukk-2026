@@ -1,4 +1,3 @@
-
 <?php
 session_start();
 
@@ -20,62 +19,65 @@ if (!isset($_GET['id']) || !is_numeric($_GET['id'])) {
 
 $id = (int) $_GET['id'];
 
-// Periksa tahun ajaran
-$cek = mysqli_query(
+// Periksa data tahun ajaran
+$stmt = mysqli_prepare(
     $koneksi,
-    "SELECT id FROM t_tahun_ajaran WHERE id = $id"
+    "SELECT id FROM t_tahun_ajaran WHERE id = ?"
 );
+mysqli_stmt_bind_param($stmt, "i", $id);
+mysqli_stmt_execute($stmt);
+$cek = mysqli_stmt_get_result($stmt);
 
-if (!$cek || mysqli_num_rows($cek) == 0) {
-    header("Location: tahun_ajaran.php");
+if (!$cek || mysqli_num_rows($cek) === 0) {
+    header("Location: tahun_ajaran.php?pesan=gagal_hapus");
     exit;
 }
 
 mysqli_begin_transaction($koneksi);
 
 try {
-    // 1. Hapus catatan pelanggaran terkait tahun ajaran
-    $hapusPelanggaran = mysqli_query(
+    // Hapus catatan pelanggaran terkait tahun ajaran
+    $stmt = mysqli_prepare(
         $koneksi,
-        "DELETE FROM t_pelanggaran_siswa
-         WHERE tahun_ajaran_id = $id"
+        "DELETE FROM t_pelanggaran_siswa WHERE tahun_ajaran_id = ?"
     );
+    mysqli_stmt_bind_param($stmt, "i", $id);
 
-    if (!$hapusPelanggaran) {
-        throw new Exception(mysqli_error($koneksi));
+    if (!mysqli_stmt_execute($stmt)) {
+        throw new Exception("Gagal menghapus catatan pelanggaran.");
     }
 
-    // 2. Hapus penempatan siswa terkait tahun ajaran
-    $hapusSiswa = mysqli_query(
+    // Hapus penempatan siswa terkait tahun ajaran
+    $stmt = mysqli_prepare(
         $koneksi,
-        "DELETE FROM t_kelas_siswa
-         WHERE tahun_ajaran_id = $id"
+        "DELETE FROM t_kelas_siswa WHERE tahun_ajaran_id = ?"
     );
+    mysqli_stmt_bind_param($stmt, "i", $id);
 
-    if (!$hapusSiswa) {
-        throw new Exception(mysqli_error($koneksi));
+    if (!mysqli_stmt_execute($stmt)) {
+        throw new Exception("Gagal menghapus penempatan siswa.");
     }
 
-    // 3. Hapus penugasan wali kelas terkait tahun ajaran
-    $hapusWali = mysqli_query(
+    // Hapus penugasan wali kelas terkait tahun ajaran
+    $stmt = mysqli_prepare(
         $koneksi,
-        "DELETE FROM t_wali_kelas
-         WHERE tahun_ajaran_id = $id"
+        "DELETE FROM t_wali_kelas WHERE tahun_ajaran_id = ?"
     );
+    mysqli_stmt_bind_param($stmt, "i", $id);
 
-    if (!$hapusWali) {
-        throw new Exception(mysqli_error($koneksi));
+    if (!mysqli_stmt_execute($stmt)) {
+        throw new Exception("Gagal menghapus penugasan wali kelas.");
     }
 
-    // 4. Hapus tahun ajaran
-    $hapusTahun = mysqli_query(
+    // Hapus tahun ajaran
+    $stmt = mysqli_prepare(
         $koneksi,
-        "DELETE FROM t_tahun_ajaran
-         WHERE id = $id"
+        "DELETE FROM t_tahun_ajaran WHERE id = ?"
     );
+    mysqli_stmt_bind_param($stmt, "i", $id);
 
-    if (!$hapusTahun) {
-        throw new Exception(mysqli_error($koneksi));
+    if (!mysqli_stmt_execute($stmt)) {
+        throw new Exception("Gagal menghapus data tahun ajaran.");
     }
 
     mysqli_commit($koneksi);
@@ -83,14 +85,12 @@ try {
     header("Location: tahun_ajaran.php?pesan=hapus_berhasil");
     exit;
 
-} catch (Exception $e) {
+} catch (Throwable $e) {
     mysqli_rollback($koneksi);
 
-    echo "<div style='font-family:Arial;padding:20px'>";
-    echo "<h3>Data tahun ajaran gagal dihapus!</h3>";
-    echo "<p>" . htmlspecialchars($e->getMessage()) . "</p>";
-    echo "<a href='tahun_ajaran.php'>Kembali ke Data Tahun Ajaran</a>";
-    echo "</div>";
+    error_log("Gagal menghapus tahun ajaran ID $id: " . $e->getMessage());
+
+    header("Location: tahun_ajaran.php?pesan=gagal_hapus");
     exit;
 }
 ?>

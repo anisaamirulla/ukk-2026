@@ -8,8 +8,7 @@ if (!isset($_SESSION['id'])) {
 }
 
 if (!isset($_SESSION['role']) || $_SESSION['role'] != 'admin') {
-    echo "Anda tidak memiliki akses";
-    exit;
+    exit("Anda tidak memiliki akses");
 }
 
 require_once __DIR__ . "/config/koneksi.php";
@@ -19,11 +18,20 @@ $query = mysqli_query($koneksi, "SELECT * FROM t_tahun_ajaran ORDER BY id ASC");
 if (!$query) {
     die("Gagal mengambil data tahun ajaran: " . mysqli_error($koneksi));
 }
+
+$pesan = $_GET['pesan'] ?? '';
+
+$notifikasi = [
+    'berhasil' => ['success', 'Data tahun ajaran berhasil ditambahkan!'],
+    'edit_berhasil' => ['success', 'Data tahun ajaran berhasil diubah!'],
+    'hapus_berhasil' => ['success', 'Data tahun ajaran berhasil dihapus!'],
+    'gagal_hapus' => ['danger', 'Data tahun ajaran gagal dihapus!'],
+    'edit_gagal' => ['danger', 'Data tahun ajaran gagal diubah!']
+];
 ?>
 
 <!DOCTYPE html>
 <html lang="id">
-
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1">
@@ -50,13 +58,11 @@ if (!$query) {
                 <small class="text-secondary">Panel Admin</small>
             </div>
 
-            <!-- PROFIL PENGGUNA -->
             <div class="bg-secondary bg-opacity-25 rounded-3 p-3 mb-4">
                 <div class="d-flex align-items-center gap-3">
                     <div class="bg-white text-dark rounded-circle p-2">
                         <i class="bi bi-person-fill fs-4"></i>
                     </div>
-
                     <div class="text-white">
                         <div class="fw-semibold">
                             <?= htmlspecialchars($_SESSION['name'] ?? 'Pengguna'); ?>
@@ -109,7 +115,6 @@ if (!$query) {
             <a href="logout.php" class="nav-link text-danger">
                 <i class="bi bi-box-arrow-left me-2"></i>Logout
             </a>
-
         </aside>
 
         <!-- KONTEN UTAMA -->
@@ -130,32 +135,22 @@ if (!$query) {
             </div>
 
             <!-- NOTIFIKASI -->
-            <?php if (isset($_GET['pesan'])) { ?>
+            <?php if (isset($notifikasi[$pesan])) { ?>
+                <div class="alert alert-<?= $notifikasi[$pesan][0]; ?> alert-dismissible fade show"
+                     role="alert">
+                    <i class="bi bi-<?= $notifikasi[$pesan][0] === 'success'
+                        ? 'check-circle-fill'
+                        : 'exclamation-triangle-fill'; ?> me-2"></i>
 
-                <?php if ($_GET['pesan'] == 'berhasil') { ?>
-                    <div class="alert alert-success alert-dismissible fade show" role="alert">
-                        <i class="bi bi-check-circle-fill me-2"></i>
-                        Data tahun ajaran berhasil ditambahkan!
-                        <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
-                    </div>
-                <?php } ?>
+                    <strong><?= $notifikasi[$pesan][0] === 'success'
+                        ? 'Berhasil!'
+                        : 'Gagal!'; ?></strong>
 
-                <?php if ($_GET['pesan'] == 'edit_berhasil') { ?>
-                    <div class="alert alert-success alert-dismissible fade show" role="alert">
-                        <i class="bi bi-check-circle-fill me-2"></i>
-                        Data tahun ajaran berhasil diubah!
-                        <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
-                    </div>
-                <?php } ?>
+                    <?= htmlspecialchars($notifikasi[$pesan][1]); ?>
 
-                <?php if ($_GET['pesan'] == 'hapus_berhasil') { ?>
-                    <div class="alert alert-success alert-dismissible fade show" role="alert">
-                        <i class="bi bi-check-circle-fill me-2"></i>
-                        Data tahun ajaran berhasil dihapus!
-                        <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
-                    </div>
-                <?php } ?>
-
+                    <button type="button" class="btn-close"
+                            data-bs-dismiss="alert" aria-label="Tutup"></button>
+                </div>
             <?php } ?>
 
             <!-- TABEL TAHUN AJARAN -->
@@ -163,8 +158,7 @@ if (!$query) {
                 <div class="card-body">
                     <div class="table-responsive">
 
-                        <table id="tabelTahunAjaran" class="table align-middle">
-
+                        <table id="tabelTahunAjaran" class="table table-hover align-middle">
                             <thead>
                                 <tr class="table-primary">
                                     <th>No</th>
@@ -177,67 +171,55 @@ if (!$query) {
                             </thead>
 
                             <tbody>
-                                <?php
-                                $no = 1;
+                            <?php $no = 1; ?>
 
-                                while ($tahun = mysqli_fetch_assoc($query)) {
-                                ?>
-                                    <tr>
-                                        <td><?= $no++; ?></td>
+                            <?php while ($tahun = mysqli_fetch_assoc($query)) { ?>
+                                <tr>
+                                    <td><?= $no++; ?></td>
 
-                                        <td>
-                                            <strong>
-                                                <?= htmlspecialchars($tahun['nama']); ?>
-                                            </strong>
-                                        </td>
+                                    <td class="fw-semibold">
+                                        <?= htmlspecialchars($tahun['nama']); ?>
+                                    </td>
 
-                                        <td>
-                                            <?= htmlspecialchars($tahun['tanggal_mulai']); ?>
-                                        </td>
+                                    <td><?= htmlspecialchars($tahun['tanggal_mulai']); ?></td>
 
-                                        <td>
-                                            <?= htmlspecialchars($tahun['tanggal_selesai']); ?>
-                                        </td>
+                                    <td><?= htmlspecialchars($tahun['tanggal_selesai']); ?></td>
 
-                                        <td>
-                                            <?php if ((int)$tahun['status_aktif'] === 1) { ?>
-                                                <span class="badge bg-success">Aktif</span>
-                                            <?php } else { ?>
-                                                <span class="badge bg-secondary">Tidak Aktif</span>
-                                            <?php } ?>
-                                        </td>
+                                    <td>
+                                        <?php if ((int)$tahun['status_aktif'] === 1) { ?>
+                                            <span class="badge bg-success">Aktif</span>
+                                        <?php } else { ?>
+                                            <span class="badge bg-secondary">Tidak Aktif</span>
+                                        <?php } ?>
+                                    </td>
 
-                                        <td>
-                                            <div class="d-flex gap-1">
+                                    <td>
+                                        <div class="d-flex gap-1">
+                                            <a href="edit_tahun_ajaran.php?id=<?= (int)$tahun['id']; ?>"
+                                               class="btn btn-warning btn-sm">
+                                                Edit
+                                            </a>
 
-                                                <a
-                                                    href="edit_tahun_ajaran.php?id=<?= (int)$tahun['id']; ?>"
-                                                    class="btn btn-warning btn-sm">
-                                                    Edit
-                                                </a>
+                                            <a href="hapus_tahun_ajaran.php?id=<?= (int)$tahun['id']; ?>"
+                                               class="btn btn-danger btn-sm"
+                                               onclick="return confirm('Yakin ingin menghapus data tahun ajaran ini?')">
+                                                Hapus
+                                            </a>
+                                        </div>
+                                    </td>
+                                </tr>
+                            <?php } ?>
 
-                                                <a
-                                                    href="hapus_tahun_ajaran.php?id=<?= (int)$tahun['id']; ?>"
-                                                    class="btn btn-danger btn-sm"
-                                                    onclick="return confirm('Yakin ingin menghapus data tahun ajaran ini?')">
-                                                    Hapus
-                                                </a>
-
-                                            </div>
-                                        </td>
-                                    </tr>
-                                <?php } ?>
-
-                                <?php if (mysqli_num_rows($query) === 0) { ?>
-                                    <tr>
-                                        <td colspan="6" class="text-center">
-                                            Belum ada data tahun ajaran.
-                                        </td>
-                                    </tr>
-                                <?php } ?>
+                            <?php if (mysqli_num_rows($query) === 0) { ?>
+                                <tr>
+                                    <td colspan="6" class="text-center text-secondary">
+                                        Belum ada data tahun ajaran.
+                                    </td>
+                                </tr>
+                            <?php } ?>
                             </tbody>
-
                         </table>
+
                     </div>
                 </div>
             </div>
@@ -272,10 +254,7 @@ $(document).ready(function () {
             }
         },
         columnDefs: [
-            {
-                targets: [0, 5],
-                orderable: false
-            }
+            { targets: [0, 5], orderable: false }
         ]
     });
 });
