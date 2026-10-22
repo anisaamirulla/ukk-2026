@@ -41,6 +41,7 @@ if (isset($_POST['hapus'])) {
     );
 
     $hapusKelas = false;
+
     if ($hapusPelanggaran) {
         $hapusKelas = mysqli_query(
             $koneksi,
@@ -49,6 +50,7 @@ if (isset($_POST['hapus'])) {
     }
 
     $hapusSiswa = false;
+
     if ($hapusPelanggaran && $hapusKelas) {
         $hapusSiswa = mysqli_query(
             $koneksi,
@@ -70,43 +72,58 @@ if (isset($_POST['hapus'])) {
 // PROSES UPDATE DATA SISWA
 if (isset($_POST['update'])) {
     $id = (int) ($_POST['id'] ?? 0);
-    $nisn = mysqli_real_escape_string($koneksi, trim($_POST['nisn'] ?? ''));
-    $nip = mysqli_real_escape_string($koneksi, trim($_POST['nip'] ?? ''));
-    $nama = mysqli_real_escape_string($koneksi, trim($_POST['nama'] ?? ''));
+    $nisn = trim($_POST['nisn'] ?? '');
+    $nip = trim($_POST['nip'] ?? '');
+    $nama = trim($_POST['nama'] ?? '');
     $jenis_kelamin = $_POST['jenis_kelamin'] ?? '';
     $tanggal_lahir = $_POST['tanggal_lahir'] ?? '';
     $status_aktif = (int) ($_POST['status_aktif'] ?? -1);
 
     if (
         $id <= 0 ||
-        $nisn == '' ||
-        $nip == '' ||
-        $nama == '' ||
+        $nama === '' ||
+        $tanggal_lahir === '' ||
         !in_array($jenis_kelamin, ['L', 'P'], true) ||
-        $tanggal_lahir == '' ||
         !in_array($status_aktif, [0, 1], true)
     ) {
         $pesan = "Data tidak valid. Periksa kembali semua isian.";
+    } elseif (!preg_match('/^[0-9]{10}$/', $nisn)) {
+        $pesan = "NISN wajib tepat 10 digit angka.";
+    } elseif (!preg_match('/^[0-9]{10}$/', $nip)) {
+        $pesan = "NIS wajib tepat 10 digit angka.";
     } else {
-        $jenis_kelamin = mysqli_real_escape_string($koneksi, $jenis_kelamin);
-        $tanggal_lahir = mysqli_real_escape_string($koneksi, $tanggal_lahir);
-
-        $update = mysqli_query($koneksi, "
-            UPDATE t_siswa SET
-                nisn = '$nisn',
-                nip = '$nip',
-                nama = '$nama',
-                jenis_kelamin = '$jenis_kelamin',
-                tanggal_lahir = '$tanggal_lahir',
-                status_aktif = $status_aktif
-            WHERE id = $id
+        $stmt = mysqli_prepare($koneksi, "
+            UPDATE t_siswa
+            SET nisn = ?, nip = ?, nama = ?,
+                jenis_kelamin = ?, tanggal_lahir = ?,
+                status_aktif = ?
+            WHERE id = ?
         ");
 
-        if ($update) {
-            header("Location: siswa.php?pesan=edit_berhasil");
-            exit;
+        if ($stmt) {
+            mysqli_stmt_bind_param(
+                $stmt,
+                "sssssii",
+                $nisn,
+                $nip,
+                $nama,
+                $jenis_kelamin,
+                $tanggal_lahir,
+                $status_aktif,
+                $id
+            );
+
+            if (mysqli_stmt_execute($stmt)) {
+                mysqli_stmt_close($stmt);
+                header("Location: siswa.php?pesan=edit_berhasil");
+                exit;
+            } else {
+                $pesan = "Gagal mengubah data siswa: " .
+                    mysqli_stmt_error($stmt);
+                mysqli_stmt_close($stmt);
+            }
         } else {
-            $pesan = "Gagal mengubah data siswa: " . mysqli_error($koneksi);
+            $pesan = "Gagal menyiapkan perubahan data.";
         }
     }
 }
@@ -116,26 +133,35 @@ $dataEdit = null;
 
 if (isset($_GET['edit']) && is_numeric($_GET['edit'])) {
     $idEdit = (int) $_GET['edit'];
-    $queryEdit = mysqli_query($koneksi, "SELECT * FROM t_siswa WHERE id = $idEdit");
 
-    if ($queryEdit && mysqli_num_rows($queryEdit) > 0) {
-        $dataEdit = mysqli_fetch_assoc($queryEdit);
+    $stmtEdit = mysqli_prepare(
+        $koneksi,
+        "SELECT * FROM t_siswa WHERE id = ?"
+    );
 
-        if (isset($_POST['update'])) {
-            $dataEdit['nisn'] = $_POST['nisn'] ?? '';
-            $dataEdit['nip'] = $_POST['nip'] ?? '';
-            $dataEdit['nama'] = $_POST['nama'] ?? '';
-            $dataEdit['jenis_kelamin'] = $_POST['jenis_kelamin'] ?? '';
-            $dataEdit['tanggal_lahir'] = $_POST['tanggal_lahir'] ?? '';
-            $dataEdit['status_aktif'] = $_POST['status_aktif'] ?? 1;
-        }
-    } else {
+    mysqli_stmt_bind_param($stmtEdit, "i", $idEdit);
+    mysqli_stmt_execute($stmtEdit);
+    $resultEdit = mysqli_stmt_get_result($stmtEdit);
+    $dataEdit = mysqli_fetch_assoc($resultEdit);
+    mysqli_stmt_close($stmtEdit);
+
+    if (!$dataEdit) {
         $pesan = "Data siswa tidak ditemukan.";
+    } elseif (isset($_POST['update'])) {
+        $dataEdit['nisn'] = $_POST['nisn'] ?? '';
+        $dataEdit['nip'] = $_POST['nip'] ?? '';
+        $dataEdit['nama'] = $_POST['nama'] ?? '';
+        $dataEdit['jenis_kelamin'] = $_POST['jenis_kelamin'] ?? '';
+        $dataEdit['tanggal_lahir'] = $_POST['tanggal_lahir'] ?? '';
+        $dataEdit['status_aktif'] = $_POST['status_aktif'] ?? 1;
     }
 }
 
 // AMBIL DATA SISWA
-$query = mysqli_query($koneksi, "SELECT * FROM t_siswa ORDER BY id ASC");
+$query = mysqli_query(
+    $koneksi,
+    "SELECT * FROM t_siswa ORDER BY id ASC"
+);
 
 if (!$query) {
     die("Gagal mengambil data siswa: " . mysqli_error($koneksi));
@@ -199,6 +225,7 @@ if (!$query) {
             </ul>
 
             <hr class="border-secondary">
+
             <a href="logout.php" class="nav-link text-danger">
                 <i class="bi bi-box-arrow-left me-2"></i>Logout
             </a>
@@ -213,6 +240,7 @@ if (!$query) {
                     <p class="text-secondary mb-2">Daftar data siswa</p>
                     <a href="dashboard.php" class="btn btn-secondary btn-sm">Kembali ke Dashboard</a>
                 </div>
+
                 <a href="tambah_siswa.php" class="btn btn-primary">+ Tambah Siswa</a>
             </div>
 
@@ -220,40 +248,40 @@ if (!$query) {
             <?php if (isset($_GET['pesan'])) { ?>
 
                 <?php if ($_GET['pesan'] == 'berhasil') { ?>
-                    <div class="alert alert-success alert-dismissible fade show mt-3" role="alert">
+                    <div class="alert alert-success alert-dismissible fade show mt-3">
                         <i class="bi bi-check-circle-fill me-2"></i>
                         <strong>Berhasil!</strong> Data siswa berhasil ditambahkan.
-                        <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Tutup"></button>
+                        <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
                     </div>
 
                 <?php } elseif ($_GET['pesan'] == 'edit_berhasil') { ?>
-                    <div class="alert alert-success alert-dismissible fade show mt-3" role="alert">
+                    <div class="alert alert-success alert-dismissible fade show mt-3">
                         <i class="bi bi-check-circle-fill me-2"></i>
                         <strong>Berhasil!</strong> Data siswa berhasil diperbarui.
-                        <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Tutup"></button>
+                        <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
                     </div>
 
                 <?php } elseif ($_GET['pesan'] == 'hapus_berhasil') { ?>
-                    <div class="alert alert-success alert-dismissible fade show mt-3" role="alert">
+                    <div class="alert alert-success alert-dismissible fade show mt-3">
                         <i class="bi bi-check-circle-fill me-2"></i>
                         <strong>Berhasil!</strong> Data siswa berhasil dihapus.
-                        <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Tutup"></button>
+                        <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
                     </div>
 
                 <?php } elseif ($_GET['pesan'] == 'gagal_hapus') { ?>
-                    <div class="alert alert-danger alert-dismissible fade show mt-3" role="alert">
+                    <div class="alert alert-danger alert-dismissible fade show mt-3">
                         <i class="bi bi-exclamation-triangle-fill me-2"></i>
                         <strong>Gagal!</strong> Data siswa gagal dihapus. Data mungkin masih digunakan oleh tabel lain.
-                        <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Tutup"></button>
+                        <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
                     </div>
                 <?php } ?>
 
             <?php } ?>
 
             <?php if ($pesan != "") { ?>
-                <div class="alert alert-danger alert-dismissible fade show mt-3" role="alert">
-                    <?= htmlspecialchars($pesan); ?>
-                    <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Tutup"></button>
+                <div class="alert alert-danger alert-dismissible fade show mt-3">
+                    <?= htmlspecialchars($pesan, ENT_QUOTES, 'UTF-8'); ?>
+                    <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
                 </div>
             <?php } ?>
 
@@ -271,37 +299,75 @@ if (!$query) {
                             <div class="row">
                                 <div class="col-md-6 mb-3">
                                     <label class="form-label">NISN</label>
-                                    <input type="text" name="nisn" class="form-control" value="<?= htmlspecialchars($dataEdit['nisn']); ?>" required>
+                                    <input
+                                        type="text"
+                                        name="nisn"
+                                        class="form-control"
+                                        value="<?= htmlspecialchars($dataEdit['nisn'] ?? '', ENT_QUOTES, 'UTF-8'); ?>"
+                                        minlength="10"
+                                        maxlength="10"
+                                        pattern="[0-9]{10}"
+                                        inputmode="numeric"
+                                        oninput="this.value = this.value.replace(/[^0-9]/g, '').slice(0, 10)"
+                                        title="NISN harus tepat 10 digit angka"
+                                        required
+                                    >
+                                    <div class="form-text">NISN harus tepat 10 digit angka.</div>
                                 </div>
 
                                 <div class="col-md-6 mb-3">
-                                    <label class="form-label">NIP</label>
-                                    <input type="text" name="nip" class="form-control" value="<?= htmlspecialchars($dataEdit['nip']); ?>" required>
+                                    <label class="form-label">NIS</label>
+                                    <input
+                                        type="text"
+                                        name="nip"
+                                        class="form-control"
+                                        value="<?= htmlspecialchars($dataEdit['nip'] ?? '', ENT_QUOTES, 'UTF-8'); ?>"
+                                        minlength="10"
+                                        maxlength="10"
+                                        pattern="[0-9]{10}"
+                                        inputmode="numeric"
+                                        oninput="this.value = this.value.replace(/[^0-9]/g, '').slice(0, 10)"
+                                        title="NIS harus tepat 10 digit angka"
+                                        required
+                                    >
+                                    <div class="form-text">NIS harus tepat 10 digit angka.</div>
                                 </div>
 
                                 <div class="col-md-6 mb-3">
                                     <label class="form-label">Nama Siswa</label>
-                                    <input type="text" name="nama" class="form-control" value="<?= htmlspecialchars($dataEdit['nama']); ?>" required>
+                                    <input
+                                        type="text"
+                                        name="nama"
+                                        class="form-control"
+                                        value="<?= htmlspecialchars($dataEdit['nama'] ?? '', ENT_QUOTES, 'UTF-8'); ?>"
+                                        required
+                                    >
                                 </div>
 
                                 <div class="col-md-6 mb-3">
                                     <label class="form-label">Jenis Kelamin</label>
                                     <select name="jenis_kelamin" class="form-select" required>
-                                        <option value="L" <?= $dataEdit['jenis_kelamin'] == 'L' ? 'selected' : ''; ?>>L</option>
-                                        <option value="P" <?= $dataEdit['jenis_kelamin'] == 'P' ? 'selected' : ''; ?>>P</option>
+                                        <option value="L" <?= ($dataEdit['jenis_kelamin'] ?? '') == 'L' ? 'selected' : ''; ?>>L</option>
+                                        <option value="P" <?= ($dataEdit['jenis_kelamin'] ?? '') == 'P' ? 'selected' : ''; ?>>P</option>
                                     </select>
                                 </div>
 
                                 <div class="col-md-6 mb-3">
                                     <label class="form-label">Tanggal Lahir</label>
-                                    <input type="date" name="tanggal_lahir" class="form-control" value="<?= htmlspecialchars($dataEdit['tanggal_lahir']); ?>" required>
+                                    <input
+                                        type="date"
+                                        name="tanggal_lahir"
+                                        class="form-control"
+                                        value="<?= htmlspecialchars($dataEdit['tanggal_lahir'] ?? '', ENT_QUOTES, 'UTF-8'); ?>"
+                                        required
+                                    >
                                 </div>
 
                                 <div class="col-md-6 mb-3">
                                     <label class="form-label">Status Siswa</label>
                                     <select name="status_aktif" class="form-select" required>
-                                        <option value="1" <?= (int)$dataEdit['status_aktif'] === 1 ? 'selected' : ''; ?>>Aktif</option>
-                                        <option value="0" <?= (int)$dataEdit['status_aktif'] === 0 ? 'selected' : ''; ?>>Tidak Aktif</option>
+                                        <option value="1" <?= (int)($dataEdit['status_aktif'] ?? 0) === 1 ? 'selected' : ''; ?>>Aktif</option>
+                                        <option value="0" <?= (int)($dataEdit['status_aktif'] ?? 0) === 0 ? 'selected' : ''; ?>>Tidak Aktif</option>
                                     </select>
                                 </div>
                             </div>
@@ -323,7 +389,7 @@ if (!$query) {
                                     <tr class="table-primary">
                                         <th>No</th>
                                         <th>NISN</th>
-                                        <th>NIP</th>
+                                        <th>NIS</th>
                                         <th>Nama Siswa</th>
                                         <th>Jenis Kelamin</th>
                                         <th>Tanggal Lahir</th>
@@ -339,13 +405,13 @@ if (!$query) {
                                     ?>
                                         <tr>
                                             <td><?= $no++; ?></td>
-                                            <td><?= htmlspecialchars($siswa['nisn']); ?></td>
-                                            <td><?= htmlspecialchars($siswa['nip']); ?></td>
-                                            <td><strong><?= htmlspecialchars($siswa['nama']); ?></strong></td>
-                                            <td><?= htmlspecialchars($siswa['jenis_kelamin']); ?></td>
-                                            <td><?= htmlspecialchars($siswa['tanggal_lahir']); ?></td>
+                                            <td><?= htmlspecialchars($siswa['nisn'] ?? '', ENT_QUOTES, 'UTF-8'); ?></td>
+                                            <td><?= htmlspecialchars($siswa['nip'] ?? '', ENT_QUOTES, 'UTF-8'); ?></td>
+                                            <td><strong><?= htmlspecialchars($siswa['nama'] ?? '', ENT_QUOTES, 'UTF-8'); ?></strong></td>
+                                            <td><?= htmlspecialchars($siswa['jenis_kelamin'] ?? '', ENT_QUOTES, 'UTF-8'); ?></td>
+                                            <td><?= htmlspecialchars($siswa['tanggal_lahir'] ?? '', ENT_QUOTES, 'UTF-8'); ?></td>
                                             <td>
-                                                <?php if ((int)$siswa['status_aktif'] === 1) { ?>
+                                                <?php if ((int)($siswa['status_aktif'] ?? 0) === 1) { ?>
                                                     <span class="badge bg-success">Aktif</span>
                                                 <?php } else { ?>
                                                     <span class="badge bg-secondary">Tidak Aktif</span>

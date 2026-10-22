@@ -1,3 +1,4 @@
+
 <?php
 
 error_reporting(E_ALL);
@@ -11,8 +12,12 @@ $error = "";
 
 if ($_SERVER["REQUEST_METHOD"] == "POST") {
 
-    $email = $_POST['email'];
-    $password = $_POST['password'];
+    $email = mysqli_real_escape_string(
+        $koneksi,
+        trim($_POST['email'] ?? '')
+    );
+
+    $password = $_POST['password'] ?? '';
 
     $query = mysqli_query(
         $koneksi,
@@ -63,7 +68,7 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
         content="width=device-width, initial-scale=1.0"
     >
 
-    <title>Login Sistem Pelanggaran Siswa</title>
+    <title>Login - Sistem Informasi Pelanggaran Siswa</title>
 
     <link
         href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css"
@@ -72,45 +77,48 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
 
 </head>
 
-
 <body class="bg-light">
 
-
-<div class="container min-vh-100 d-flex justify-content-center align-items-center">
+<div class="container min-vh-100 d-flex justify-content-center align-items-center py-4">
 
     <div class="row justify-content-center w-100">
 
-        <div class="col-11 col-sm-8 col-md-6 col-lg-4">
+        <div class="col-12 col-sm-9 col-md-6 col-lg-4">
 
-
-            <!-- CARD LOGIN -->
-
-            <div class="card border-0 shadow-sm">
+            <div class="card border-0 shadow-sm rounded-3">
 
                 <div class="card-body p-4">
 
-
-                    <!-- JUDUL -->
+                    <!-- LOGO DAN NAMA APLIKASI -->
 
                     <div class="text-center mb-4">
 
-                        <h1 class="fw-bold text-uppercase mb-2">
-                            Login
-                        </h1>
+                        <img
+                            src="logo.png"
+                            alt="Logo Sekolah"
+                            class="img-fluid mb-3"
+                            width="90"
+                            height="90"
+                        >
 
-                        <p class="text-secondary mb-0">
-                            Sistem Pelanggaran Siswa
+                        <h5 class="fw-bold text-uppercase mb-2">
+                            Sistem Informasi
+                            <br>
+                            Pelanggaran Siswa
+                        </h5>
+
+                        <p class="text-secondary small mb-0">
+                            Silakan login untuk melanjutkan
                         </p>
 
                     </div>
-
 
                     <!-- PESAN ERROR -->
 
                     <?php if ($error != "") { ?>
 
                         <div
-                            class="alert alert-danger text-center"
+                            class="alert alert-danger py-2 small text-center"
                             role="alert"
                         >
                             <?= htmlspecialchars($error); ?>
@@ -118,11 +126,9 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
 
                     <?php } ?>
 
-
-                    <!-- FORM -->
+                    <!-- FORM LOGIN -->
 
                     <form method="POST">
-
 
                         <div class="mb-3">
 
@@ -134,17 +140,17 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
                             </label>
 
                             <input
-                                type="text"
+                                type="email"
                                 class="form-control"
                                 id="email"
                                 name="email"
-                                placeholder="Masukkan username atau email"
+                                placeholder="Masukkan email"
+                                value="<?= htmlspecialchars($_POST['email'] ?? '') ?>"
                                 autocomplete="username"
                                 required
                             >
 
                         </div>
-
 
                         <div class="mb-4">
 
@@ -167,29 +173,32 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
 
                         </div>
 
-
                         <button
                             type="submit"
-                            class="btn btn-primary w-100"
+                            class="btn btn-primary w-100 py-2 fw-semibold"
                         >
-                            LOGIN
+                            MASUK
                         </button>
-
 
                     </form>
 
+                    <div class="text-center mt-4">
+
+                        <small class="text-secondary">
+                            
+                        </small>
+
+                    </div>
 
                 </div>
 
             </div>
-
 
         </div>
 
     </div>
 
 </div>
-
 
 </body>
 

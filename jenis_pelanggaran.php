@@ -30,13 +30,10 @@ if (!$query) {
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-
     <title>Jenis Pelanggaran</title>
 
-    <link
-        href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css"
-        rel="stylesheet"
-    >
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css"
+          rel="stylesheet">
 </head>
 
 <body class="bg-light">
@@ -44,7 +41,7 @@ if (!$query) {
 <div class="container-fluid">
     <div class="row">
 
-        <!-- SIDEBAR SAMA SEPERTI DASHBOARD -->
+        <!-- SIDEBAR -->
         <div class="col-md-3 col-lg-2 bg-dark min-vh-100 p-3">
 
             <h4 class="text-white mb-4">Sistem Pelanggaran</h4>
@@ -52,77 +49,53 @@ if (!$query) {
             <ul class="nav nav-pills flex-column">
 
                 <li class="nav-item mb-2">
-                    <a href="dashboard.php" class="nav-link text-white">
-                        Dashboard
-                    </a>
+                    <a href="dashboard.php" class="nav-link text-white">Dashboard</a>
                 </li>
 
                 <li class="nav-item mb-2">
-                    <a href="siswa.php" class="nav-link text-white">
-                        Data Siswa
-                    </a>
+                    <a href="siswa.php" class="nav-link text-white">Data Siswa</a>
                 </li>
 
                 <li class="nav-item mb-2">
-                    <a href="guru.php" class="nav-link text-white">
-                        Data Guru
-                    </a>
+                    <a href="guru.php" class="nav-link text-white">Data Guru</a>
                 </li>
 
                 <li class="nav-item mb-2">
-                    <a href="kelas.php" class="nav-link text-white">
-                        Kelas
-                    </a>
+                    <a href="kelas.php" class="nav-link text-white">Kelas</a>
                 </li>
 
                 <li class="nav-item mb-2">
-                    <a href="tahun_ajaran.php" class="nav-link text-white">
-                        Tahun Ajaran
-                    </a>
+                    <a href="tahun_ajaran.php" class="nav-link text-white">Tahun Ajaran</a>
                 </li>
 
                 <li class="nav-item mb-2">
-                    <a href="penempatan_siswa.php" class="nav-link text-white">
-                        Penempatan Siswa
-                    </a>
+                    <a href="penempatan_siswa.php" class="nav-link text-white">Penempatan Siswa</a>
                 </li>
 
                 <li class="nav-item mb-2">
-                    <a href="wali_kelas.php" class="nav-link text-white">
-                        Wali Kelas
-                    </a>
+                    <a href="wali_kelas.php" class="nav-link text-white">Wali Kelas</a>
                 </li>
 
                 <li class="nav-item mb-2">
-                    <a href="kategori_pelanggaran.php" class="nav-link text-white">
-                        Kategori Pelanggaran
-                    </a>
+                    <a href="kategori_pelanggaran.php" class="nav-link text-white">Kategori Pelanggaran</a>
                 </li>
 
                 <li class="nav-item mb-2">
-                    <a href="jenis_pelanggaran.php" class="nav-link active">
-                        Jenis Pelanggaran
-                    </a>
+                    <a href="jenis_pelanggaran.php" class="nav-link active">Jenis Pelanggaran</a>
                 </li>
 
                 <li class="nav-item mb-2">
-                    <a href="laporan.php" class="nav-link text-white">
-                        Laporan
-                    </a>
+                    <a href="laporan.php" class="nav-link text-white">Laporan</a>
                 </li>
 
                 <li class="nav-item mb-2">
-                    <a href="abautme.php" class="nav-link text-white">
-                        About Me
-                    </a>
+                    <a href="abautme.php" class="nav-link text-white">About Me</a>
                 </li>
 
                 <hr class="text-secondary">
 
                 <li class="nav-item">
-                    <a href="logout.php" class="nav-link text-danger">
-                        Logout
-                    </a>
+                    <a href="logout.php" class="nav-link text-danger">Logout</a>
                 </li>
 
             </ul>
@@ -134,7 +107,6 @@ if (!$query) {
             <div class="d-flex justify-content-between align-items-center mb-4">
                 <div>
                     <h3 class="fw-bold mb-1">Jenis Pelanggaran</h3>
-
                     <p class="text-secondary mb-0">
                         Daftar jenis pelanggaran siswa
                     </p>
@@ -151,6 +123,25 @@ if (!$query) {
                 </a>
             </div>
 
+            <?php if (isset($_GET['pesan'])): ?>
+                <?php if ($_GET['pesan'] == 'edit'): ?>
+                    <div class="alert alert-success alert-dismissible fade show">
+                        Data jenis pelanggaran berhasil diperbarui.
+                        <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+                    </div>
+                <?php elseif ($_GET['pesan'] == 'hapus'): ?>
+                    <div class="alert alert-success alert-dismissible fade show">
+                        Data jenis pelanggaran berhasil dihapus.
+                        <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+                    </div>
+                <?php elseif ($_GET['pesan'] == 'gagal'): ?>
+                    <div class="alert alert-danger alert-dismissible fade show">
+                        Data gagal diproses. Periksa apakah data masih digunakan pada catatan pelanggaran siswa.
+                        <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+                    </div>
+                <?php endif; ?>
+            <?php endif; ?>
+
             <!-- TABEL JENIS PELANGGARAN -->
             <div class="card border-0 shadow-sm">
 
@@ -159,7 +150,6 @@ if (!$query) {
                 </div>
 
                 <div class="card-body">
-
                     <div class="table-responsive">
 
                         <table class="table align-middle table-hover">
@@ -173,59 +163,65 @@ if (!$query) {
                                     <th>Poin</th>
                                     <th>Deskripsi</th>
                                     <th>Status</th>
+                                    <th class="text-center">Aksi</th>
                                 </tr>
                             </thead>
 
                             <tbody>
-                                <?php if (mysqli_num_rows($query) > 0): ?>
+                            <?php if (mysqli_num_rows($query) > 0): ?>
+                                <?php $no = 1; ?>
 
-                                    <?php $no = 1; ?>
-
-                                    <?php while ($data = mysqli_fetch_assoc($query)): ?>
-                                        <tr>
-                                            <td><?= $no++; ?></td>
-
-                                            <td>
-                                                <?= htmlspecialchars($data['kode'] ?? ''); ?>
-                                            </td>
-
-                                            <td>
-                                                <?= htmlspecialchars($data['nama'] ?? ''); ?>
-                                            </td>
-
-                                            <td>
-                                                <?= htmlspecialchars($data['nama_kategori'] ?? '-'); ?>
-                                            </td>
-
-                                            <td>
-                                                <?= (int)($data['poin'] ?? 0); ?>
-                                            </td>
-
-                                            <td>
-                                                <?= htmlspecialchars($data['deksripsi'] ?? ''); ?>
-                                            </td>
-
-                                            <td>
-                                                <?php if (($data['status_aktif'] ?? 0) == 1): ?>
-                                                    <span class="badge bg-success">
-                                                        Aktif
-                                                    </span>
-                                                <?php else: ?>
-                                                    <span class="badge bg-secondary">
-                                                        Tidak Aktif
-                                                    </span>
-                                                <?php endif; ?>
-                                            </td>
-                                        </tr>
-                                    <?php endwhile; ?>
-
-                                <?php else: ?>
+                                <?php while ($data = mysqli_fetch_assoc($query)): ?>
                                     <tr>
-                                        <td colspan="7" class="text-center text-secondary py-4">
-                                            Belum ada data jenis pelanggaran.
+                                        <td><?= $no++; ?></td>
+
+                                        <td><?= htmlspecialchars($data['kode'] ?? ''); ?></td>
+
+                                        <td><?= htmlspecialchars($data['nama'] ?? ''); ?></td>
+
+                                        <td><?= htmlspecialchars($data['nama_kategori'] ?? '-'); ?></td>
+
+                                        <td><?= (int)($data['poin'] ?? 0); ?></td>
+
+                                        <td><?= htmlspecialchars($data['deksripsi'] ?? ''); ?></td>
+
+                                        <td>
+                                            <?php if (($data['status_aktif'] ?? 0) == 1): ?>
+                                                <span class="badge bg-success">Aktif</span>
+                                            <?php else: ?>
+                                                <span class="badge bg-secondary">Tidak Aktif</span>
+                                            <?php endif; ?>
+                                        </td>
+
+                                        <td class="text-center">
+                                            <a href="edit_jenis_pelanggaran.php?id=<?= (int)$data['id']; ?>"
+                                               class="btn btn-warning btn-sm">
+                                                Edit
+                                            </a>
+
+                                            <form action="hapus_jenis_pelanggaran.php"
+                                                  method="POST"
+                                                  class="d-inline"
+                                                  onsubmit="return confirm('Yakin ingin menghapus jenis pelanggaran ini?');">
+
+                                                <input type="hidden" name="id"
+                                                       value="<?= (int)$data['id']; ?>">
+
+                                                <button type="submit" class="btn btn-danger btn-sm">
+                                                    Hapus
+                                                </button>
+                                            </form>
                                         </td>
                                     </tr>
-                                <?php endif; ?>
+                                <?php endwhile; ?>
+
+                            <?php else: ?>
+                                <tr>
+                                    <td colspan="8" class="text-center text-secondary py-4">
+                                        Belum ada data jenis pelanggaran.
+                                    </td>
+                                </tr>
+                            <?php endif; ?>
                             </tbody>
 
                         </table>
@@ -242,4 +238,3 @@ if (!$query) {
 
 </body>
 </html>
-```

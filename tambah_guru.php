@@ -32,6 +32,8 @@ if ($_SERVER["REQUEST_METHOD"] === "POST") {
         $password === "" || $konfirmasi_password === ""
     ) {
         $pesan = "Semua kolom wajib diisi.";
+    } elseif (!preg_match('/^[0-9]{18}$/', $nip)) {
+        $pesan = "NIP harus terdiri dari tepat 18 digit angka.";
     } elseif (!filter_var($email, FILTER_VALIDATE_EMAIL)) {
         $pesan = "Format email tidak valid.";
     } elseif (!in_array($status, ["0", "1"], true)) {
@@ -41,7 +43,6 @@ if ($_SERVER["REQUEST_METHOD"] === "POST") {
     } elseif ($password !== $konfirmasi_password) {
         $pesan = "Konfirmasi password tidak cocok.";
     } else {
-        // Periksa NIP dan email guru
         $cek = mysqli_prepare(
             $koneksi,
             "SELECT id FROM t_guru WHERE nip = ? OR email = ?"
@@ -54,7 +55,6 @@ if ($_SERVER["REQUEST_METHOD"] === "POST") {
         if (mysqli_num_rows($hasil_cek) > 0) {
             $pesan = "NIP atau email sudah terdaftar.";
         } else {
-            // Periksa email akun pengguna
             $cekUser = mysqli_prepare(
                 $koneksi,
                 "SELECT id FROM t_user WHERE email = ?"
@@ -77,7 +77,6 @@ if ($_SERVER["REQUEST_METHOD"] === "POST") {
 
                     $role = "guru";
 
-                    // Simpan akun pengguna
                     $simpanUser = mysqli_prepare(
                         $koneksi,
                         "INSERT INTO t_user (name, email, password, role)
@@ -94,20 +93,17 @@ if ($_SERVER["REQUEST_METHOD"] === "POST") {
                     );
 
                     if (!mysqli_stmt_execute($simpanUser)) {
-                        throw new Exception(
-                            mysqli_stmt_error($simpanUser)
-                        );
+                        throw new Exception(mysqli_stmt_error($simpanUser));
                     }
 
                     $user_id = mysqli_insert_id($koneksi);
                     $status_int = (int) $status;
 
-                    // Simpan data guru
                     $simpanGuru = mysqli_prepare(
                         $koneksi,
                         "INSERT INTO t_guru
-                        (nip, nama, email, status_aktif, user_id)
-                        VALUES (?, ?, ?, ?, ?)"
+                         (nip, nama, email, status_aktif, user_id)
+                         VALUES (?, ?, ?, ?, ?)"
                     );
 
                     mysqli_stmt_bind_param(
@@ -121,9 +117,7 @@ if ($_SERVER["REQUEST_METHOD"] === "POST") {
                     );
 
                     if (!mysqli_stmt_execute($simpanGuru)) {
-                        throw new Exception(
-                            mysqli_stmt_error($simpanGuru)
-                        );
+                        throw new Exception(mysqli_stmt_error($simpanGuru));
                     }
 
                     mysqli_commit($koneksi);
@@ -146,7 +140,6 @@ if ($_SERVER["REQUEST_METHOD"] === "POST") {
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1">
-
     <title>Tambah Guru</title>
 
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css"
@@ -158,9 +151,7 @@ if ($_SERVER["REQUEST_METHOD"] === "POST") {
 <div class="container-fluid">
     <div class="row min-vh-100">
 
-        <!-- SIDEBAR -->
         <aside class="col-md-3 col-lg-2 bg-dark text-white p-3">
-
             <h4 class="text-center mb-4">Admin Panel</h4>
 
             <div class="nav nav-pills flex-column gap-2">
@@ -180,10 +171,8 @@ if ($_SERVER["REQUEST_METHOD"] === "POST") {
 
                 <a href="logout.php" class="nav-link text-danger">Logout</a>
             </div>
-
         </aside>
 
-        <!-- KONTEN -->
         <main class="col-md-9 col-lg-10 p-3 p-md-4">
 
             <div class="d-flex flex-wrap justify-content-between align-items-center gap-3 mb-4">
@@ -199,39 +188,30 @@ if ($_SERVER["REQUEST_METHOD"] === "POST") {
                 </a>
             </div>
 
-            <!-- PESAN -->
-            <?php if ($pesan !== "") { ?>
-                <div class="alert alert-danger alert-dismissible fade show"
-                     role="alert">
+            <?php if ($pesan !== ""): ?>
+                <div class="alert alert-danger alert-dismissible fade show" role="alert">
                     <?= htmlspecialchars($pesan) ?>
-
                     <button type="button" class="btn-close"
                             data-bs-dismiss="alert"></button>
                 </div>
-            <?php } ?>
+            <?php endif; ?>
 
-            <!-- FORM -->
             <div class="row justify-content-center">
                 <div class="col-12 col-xl-10">
 
                     <div class="card border-0 shadow-sm">
-
                         <div class="card-header bg-white p-3">
-                            <h5 class="fw-bold text-primary mb-1">
-                                Formulir Guru
-                            </h5>
+                            <h5 class="fw-bold text-primary mb-1">Formulir Guru</h5>
                             <small class="text-secondary">
                                 Isi informasi guru pada kolom yang tersedia.
                             </small>
                         </div>
 
                         <div class="card-body p-3 p-md-4">
-
                             <form method="POST" action="">
 
                                 <div class="row g-3">
 
-                                    <!-- NIP -->
                                     <div class="col-md-6">
                                         <label for="nip" class="form-label fw-semibold">
                                             NIP <span class="text-danger">*</span>
@@ -241,12 +221,17 @@ if ($_SERVER["REQUEST_METHOD"] === "POST") {
                                                name="nip"
                                                id="nip"
                                                class="form-control"
-                                               placeholder="Masukkan NIP"
+                                               placeholder="Masukkan 18 digit NIP"
+                                               inputmode="numeric"
+                                               maxlength="18"
+                                               minlength="18"
+                                               pattern="[0-9]{18}"
+                                               title="NIP harus terdiri dari tepat 18 digit angka"
+                                               oninput="this.value = this.value.replace(/[^0-9]/g, '').slice(0, 18)"
                                                value="<?= htmlspecialchars($nip) ?>"
                                                required>
                                     </div>
 
-                                    <!-- NAMA -->
                                     <div class="col-md-6">
                                         <label for="nama" class="form-label fw-semibold">
                                             Nama Guru <span class="text-danger">*</span>
@@ -261,7 +246,6 @@ if ($_SERVER["REQUEST_METHOD"] === "POST") {
                                                required>
                                     </div>
 
-                                    <!-- EMAIL -->
                                     <div class="col-md-6">
                                         <label for="email" class="form-label fw-semibold">
                                             Email <span class="text-danger">*</span>
@@ -276,7 +260,6 @@ if ($_SERVER["REQUEST_METHOD"] === "POST") {
                                                required>
                                     </div>
 
-                                    <!-- PASSWORD -->
                                     <div class="col-md-6">
                                         <label for="password" class="form-label fw-semibold">
                                             Password <span class="text-danger">*</span>
@@ -292,12 +275,9 @@ if ($_SERVER["REQUEST_METHOD"] === "POST") {
                                                required>
                                     </div>
 
-                                    <!-- KONFIRMASI PASSWORD -->
                                     <div class="col-md-6">
-                                        <label for="konfirmasi_password"
-                                               class="form-label fw-semibold">
-                                            Konfirmasi Password
-                                            <span class="text-danger">*</span>
+                                        <label for="konfirmasi_password" class="form-label fw-semibold">
+                                            Konfirmasi Password <span class="text-danger">*</span>
                                         </label>
 
                                         <input type="password"
@@ -310,10 +290,8 @@ if ($_SERVER["REQUEST_METHOD"] === "POST") {
                                                required>
                                     </div>
 
-                                    <!-- STATUS -->
                                     <div class="col-md-6">
-                                        <label for="status_aktif"
-                                               class="form-label fw-semibold">
+                                        <label for="status_aktif" class="form-label fw-semibold">
                                             Status <span class="text-danger">*</span>
                                         </label>
 
@@ -321,13 +299,11 @@ if ($_SERVER["REQUEST_METHOD"] === "POST") {
                                                 id="status_aktif"
                                                 class="form-select"
                                                 required>
-                                            <option value="1"
-                                                <?= $status === "1" ? "selected" : "" ?>>
+                                            <option value="1" <?= $status === "1" ? "selected" : "" ?>>
                                                 Aktif
                                             </option>
 
-                                            <option value="0"
-                                                <?= $status === "0" ? "selected" : "" ?>>
+                                            <option value="0" <?= $status === "0" ? "selected" : "" ?>>
                                                 Tidak Aktif
                                             </option>
                                         </select>
@@ -338,12 +314,9 @@ if ($_SERVER["REQUEST_METHOD"] === "POST") {
                                 <hr class="my-4">
 
                                 <div class="d-flex flex-wrap justify-content-end gap-2">
-                                    <a href="guru.php" class="btn btn-secondary">
-                                        Batal
-                                    </a>
+                                    <a href="guru.php" class="btn btn-secondary">Batal</a>
 
-                                    <button type="submit"
-                                            class="btn btn-primary px-4">
+                                    <button type="submit" class="btn btn-primary px-4">
                                         Simpan Data Guru
                                     </button>
                                 </div>
@@ -354,7 +327,6 @@ if ($_SERVER["REQUEST_METHOD"] === "POST") {
                                 </p>
 
                             </form>
-
                         </div>
                     </div>
 
