@@ -13,6 +13,12 @@ if (!isset($_SESSION['role']) || $_SESSION['role'] != 'admin') {
 
 require_once __DIR__ . "/config/koneksi.php";
 
+$namaPengguna = htmlspecialchars(
+    $_SESSION['name'] ?? 'Pengguna',
+    ENT_QUOTES,
+    'UTF-8'
+);
+
 $pesan = "";
 $nip = "";
 $nama = "";
@@ -122,7 +128,7 @@ if ($_SERVER["REQUEST_METHOD"] === "POST") {
 
                     mysqli_commit($koneksi);
 
-                    header("Location: guru.php");
+                    header("Location: guru.php?pesan=berhasil");
                     exit;
 
                 } catch (Throwable $e) {
@@ -133,6 +139,20 @@ if ($_SERVER["REQUEST_METHOD"] === "POST") {
         }
     }
 }
+
+$menuAdmin = [
+    ['Dashboard', 'dashboard.php'],
+    ['Data Siswa', 'siswa.php'],
+    ['Data Guru', 'guru.php'],
+    ['Kelas', 'kelas.php'],
+    ['Tahun Ajaran', 'tahun_ajaran.php'],
+    ['Penempatan Siswa', 'penempatan_siswa.php'],
+    ['Wali Kelas', 'wali_kelas.php'],
+    ['Kategori Pelanggaran', 'kategori_pelanggaran.php'],
+    ['Jenis Pelanggaran', 'jenis_pelanggaran.php'],
+    ['Laporan', 'laporan.php'],
+    ['About Me', 'abautme.php']
+];
 ?>
 
 <!DOCTYPE html>
@@ -140,170 +160,213 @@ if ($_SERVER["REQUEST_METHOD"] === "POST") {
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1">
-    <title>Tambah Guru</title>
 
-    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css"
-          rel="stylesheet">
+    <title>Tambah Data Guru - Sistem Informasi Pelanggaran Siswa</title>
+
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.min.css" rel="stylesheet">
 </head>
 
 <body class="bg-light">
 
 <div class="container-fluid">
-    <div class="row min-vh-100">
+    <div class="row">
 
-        <aside class="col-md-3 col-lg-2 bg-dark text-white p-3">
-            <h4 class="text-center mb-4">Admin Panel</h4>
+        <!-- SIDEBAR -->
+        <aside class="col-12 col-md-3 col-lg-2 bg-dark min-vh-100 p-3">
 
-            <div class="nav nav-pills flex-column gap-2">
-                <a href="dashboard.php" class="nav-link text-white">Dashboard</a>
-                <a href="siswa.php" class="nav-link text-white">Data Siswa</a>
-                <a href="guru.php" class="nav-link active">Data Guru</a>
-                <a href="kelas.php" class="nav-link text-white">Data Kelas</a>
-                <a href="tahun_ajaran.php" class="nav-link text-white">Tahun Ajaran</a>
-                <a href="penempatan_siswa.php" class="nav-link text-white">Penempatan Siswa</a>
-                <a href="wali_kelas.php" class="nav-link text-white">Wali Kelas</a>
-                <a href="kategori_pelanggaran.php" class="nav-link text-white">Kategori Pelanggaran</a>
-                <a href="jenis_pelanggaran.php" class="nav-link text-white">Jenis Pelanggaran</a>
-                <a href="laporan.php" class="nav-link text-white">Laporan</a>
-                <a href="abautme.php" class="nav-link text-white">About Me</a>
-
-                <hr class="text-secondary">
-
-                <a href="logout.php" class="nav-link text-danger">Logout</a>
+            <div class="text-white mb-4 pt-3 pb-3 border-bottom border-secondary">
+                <h5 class="fw-bold mb-2">
+                    <i class="bi bi-shield-check me-2"></i>
+                    Sistem Pelanggaran
+                </h5>
+                <small class="text-secondary">Panel Admin</small>
             </div>
+
+            <div class="bg-secondary bg-opacity-25 rounded-3 p-3 mb-4">
+                <div class="d-flex align-items-center gap-3">
+                    <img
+                        src="logo.png"
+                        alt="Logo Aplikasi"
+                        width="44"
+                        height="44"
+                        class="rounded-circle bg-white p-1"
+                    >
+
+                    <div class="text-white text-break">
+                        <div class="fw-semibold"><?= $namaPengguna; ?></div>
+                        <small class="text-secondary">ADMIN</small>
+                    </div>
+                </div>
+            </div>
+
+            <div class="text-secondary small fw-semibold mb-3">
+                MENU UTAMA
+            </div>
+
+            <ul class="nav nav-pills flex-column gap-2">
+                <?php foreach ($menuAdmin as $item): ?>
+                    <li class="nav-item">
+                        <a
+                            href="<?= htmlspecialchars($item[1], ENT_QUOTES, 'UTF-8'); ?>"
+                            class="nav-link <?= $item[0] === 'Data Guru' ? 'active' : 'text-white'; ?> rounded-2 py-2 px-3"
+                        >
+                            <?= htmlspecialchars($item[0], ENT_QUOTES, 'UTF-8'); ?>
+                        </a>
+                    </li>
+                <?php endforeach; ?>
+            </ul>
+
+            <hr class="border-secondary my-4">
+
+            <a href="logout.php" class="nav-link text-danger rounded-2 py-2 px-3">
+                <i class="bi bi-box-arrow-left me-2"></i>
+                Logout
+            </a>
+
         </aside>
 
-        <main class="col-md-9 col-lg-10 p-3 p-md-4">
+        <!-- KONTEN TAMBAH GURU -->
+        <main class="col-12 col-md-9 col-lg-10 p-3 p-lg-5">
 
-            <div class="d-flex flex-wrap justify-content-between align-items-center gap-3 mb-4">
+            <div class="d-flex flex-wrap justify-content-between align-items-center gap-3 mb-4 pb-4 border-bottom">
                 <div>
-                    <h2 class="fw-bold mb-1">Tambah Data Guru</h2>
+                    <h2 class="fw-bold mb-2">Tambah Data Guru</h2>
                     <p class="text-secondary mb-0">
                         Silakan isi formulir data guru dengan lengkap.
                     </p>
                 </div>
-
-                <a href="guru.php" class="btn btn-outline-secondary">
-                    Kembali ke Data Guru
-                </a>
             </div>
 
+            <!-- NOTIFIKASI ERROR -->
             <?php if ($pesan !== ""): ?>
                 <div class="alert alert-danger alert-dismissible fade show" role="alert">
-                    <?= htmlspecialchars($pesan) ?>
-                    <button type="button" class="btn-close"
-                            data-bs-dismiss="alert"></button>
+                    <?= htmlspecialchars($pesan, ENT_QUOTES, 'UTF-8'); ?>
+                    <button
+                        type="button"
+                        class="btn-close"
+                        data-bs-dismiss="alert"
+                        aria-label="Tutup"
+                    ></button>
                 </div>
             <?php endif; ?>
 
+            <!-- FORMULIR GURU -->
             <div class="row justify-content-center">
                 <div class="col-12 col-xl-10">
 
-                    <div class="card border-0 shadow-sm">
+                    <div class="card border-0 shadow-sm rounded-3">
+
                         <div class="card-header bg-white p-3">
-                            <h5 class="fw-bold text-primary mb-1">Formulir Guru</h5>
+                            <h5 class="text-primary fw-bold mb-1">Formulir Guru</h5>
                             <small class="text-secondary">
                                 Isi informasi guru pada kolom yang tersedia.
                             </small>
                         </div>
 
-                        <div class="card-body p-3 p-md-4">
+                        <div class="card-body p-4">
+
                             <form method="POST" action="">
 
                                 <div class="row g-3">
 
                                     <div class="col-md-6">
-                                        <label for="nip" class="form-label fw-semibold">
+                                        <label for="nip" class="form-label">
                                             NIP <span class="text-danger">*</span>
                                         </label>
-
-                                        <input type="text"
-                                               name="nip"
-                                               id="nip"
-                                               class="form-control"
-                                               placeholder="Masukkan 18 digit NIP"
-                                               inputmode="numeric"
-                                               maxlength="18"
-                                               minlength="18"
-                                               pattern="[0-9]{18}"
-                                               title="NIP harus terdiri dari tepat 18 digit angka"
-                                               oninput="this.value = this.value.replace(/[^0-9]/g, '').slice(0, 18)"
-                                               value="<?= htmlspecialchars($nip) ?>"
-                                               required>
+                                        <input
+                                            type="text"
+                                            name="nip"
+                                            id="nip"
+                                            class="form-control"
+                                            placeholder="Masukkan 18 digit NIP"
+                                            inputmode="numeric"
+                                            maxlength="18"
+                                            minlength="18"
+                                            pattern="[0-9]{18}"
+                                            title="NIP harus terdiri dari tepat 18 digit angka"
+                                            oninput="this.value=this.value.replace(/[^0-9]/g,'').slice(0,18)"
+                                            value="<?= htmlspecialchars($nip, ENT_QUOTES, 'UTF-8'); ?>"
+                                            required
+                                        >
                                     </div>
 
                                     <div class="col-md-6">
-                                        <label for="nama" class="form-label fw-semibold">
+                                        <label for="nama" class="form-label">
                                             Nama Guru <span class="text-danger">*</span>
                                         </label>
-
-                                        <input type="text"
-                                               name="nama"
-                                               id="nama"
-                                               class="form-control"
-                                               placeholder="Masukkan nama guru"
-                                               value="<?= htmlspecialchars($nama) ?>"
-                                               required>
+                                        <input
+                                            type="text"
+                                            name="nama"
+                                            id="nama"
+                                            class="form-control"
+                                            placeholder="Masukkan nama guru"
+                                            value="<?= htmlspecialchars($nama, ENT_QUOTES, 'UTF-8'); ?>"
+                                            required
+                                        >
                                     </div>
 
-                                    <div class="col-md-6">
-                                        <label for="email" class="form-label fw-semibold">
+                                    <div class="col-12">
+                                        <label for="email" class="form-label">
                                             Email <span class="text-danger">*</span>
                                         </label>
-
-                                        <input type="email"
-                                               name="email"
-                                               id="email"
-                                               class="form-control"
-                                               placeholder="Masukkan email guru"
-                                               value="<?= htmlspecialchars($email) ?>"
-                                               required>
+                                        <input
+                                            type="email"
+                                            name="email"
+                                            id="email"
+                                            class="form-control"
+                                            placeholder="Masukkan email guru"
+                                            value="<?= htmlspecialchars($email, ENT_QUOTES, 'UTF-8'); ?>"
+                                            required
+                                        >
                                     </div>
 
                                     <div class="col-md-6">
-                                        <label for="password" class="form-label fw-semibold">
+                                        <label for="password" class="form-label">
                                             Password <span class="text-danger">*</span>
                                         </label>
-
-                                        <input type="password"
-                                               name="password"
-                                               id="password"
-                                               class="form-control"
-                                               placeholder="Minimal 8 karakter"
-                                               minlength="8"
-                                               autocomplete="new-password"
-                                               required>
+                                        <input
+                                            type="password"
+                                            name="password"
+                                            id="password"
+                                            class="form-control"
+                                            placeholder="Minimal 8 karakter"
+                                            minlength="8"
+                                            autocomplete="new-password"
+                                            required
+                                        >
                                     </div>
 
                                     <div class="col-md-6">
-                                        <label for="konfirmasi_password" class="form-label fw-semibold">
+                                        <label for="konfirmasi_password" class="form-label">
                                             Konfirmasi Password <span class="text-danger">*</span>
                                         </label>
-
-                                        <input type="password"
-                                               name="konfirmasi_password"
-                                               id="konfirmasi_password"
-                                               class="form-control"
-                                               placeholder="Masukkan ulang password"
-                                               minlength="8"
-                                               autocomplete="new-password"
-                                               required>
+                                        <input
+                                            type="password"
+                                            name="konfirmasi_password"
+                                            id="konfirmasi_password"
+                                            class="form-control"
+                                            placeholder="Masukkan ulang password"
+                                            minlength="8"
+                                            autocomplete="new-password"
+                                            required
+                                        >
                                     </div>
 
                                     <div class="col-md-6">
-                                        <label for="status_aktif" class="form-label fw-semibold">
+                                        <label for="status_aktif" class="form-label">
                                             Status <span class="text-danger">*</span>
                                         </label>
-
-                                        <select name="status_aktif"
-                                                id="status_aktif"
-                                                class="form-select"
-                                                required>
-                                            <option value="1" <?= $status === "1" ? "selected" : "" ?>>
+                                        <select
+                                            name="status_aktif"
+                                            id="status_aktif"
+                                            class="form-select"
+                                            required
+                                        >
+                                            <option value="1" <?= $status === "1" ? "selected" : ""; ?>>
                                                 Aktif
                                             </option>
-
-                                            <option value="0" <?= $status === "0" ? "selected" : "" ?>>
+                                            <option value="0" <?= $status === "0" ? "selected" : ""; ?>>
                                                 Tidak Aktif
                                             </option>
                                         </select>
@@ -313,10 +376,12 @@ if ($_SERVER["REQUEST_METHOD"] === "POST") {
 
                                 <hr class="my-4">
 
-                                <div class="d-flex flex-wrap justify-content-end gap-2">
-                                    <a href="guru.php" class="btn btn-secondary">Batal</a>
+                                <div class="d-flex justify-content-end gap-2">
+                                    <a href="guru.php" class="btn btn-secondary">
+                                        Batal
+                                    </a>
 
-                                    <button type="submit" class="btn btn-primary px-4">
+                                    <button type="submit" class="btn btn-primary">
                                         Simpan Data Guru
                                     </button>
                                 </div>
@@ -327,13 +392,19 @@ if ($_SERVER["REQUEST_METHOD"] === "POST") {
                                 </p>
 
                             </form>
+
                         </div>
                     </div>
 
                 </div>
             </div>
 
+            <div class="text-secondary small mt-5 pt-3 border-top">
+                Sistem Informasi Pelanggaran Siswa
+            </div>
+
         </main>
+
     </div>
 </div>
 

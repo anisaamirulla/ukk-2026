@@ -3,9 +3,9 @@
 -- https://www.phpmyadmin.net/
 --
 -- Host: 127.0.0.1
--- Waktu pembuatan: 01 Okt 2026 pada 06.17
+-- Waktu pembuatan: 23 Okt 2026 pada 10.02
 -- Versi server: 10.4.32-MariaDB
--- Versi PHP: 8.2.12
+-- Versi PHP: 8.0.30
 
 SET SQL_MODE = "NO_AUTO_VALUE_ON_ZERO";
 START TRANSACTION;
@@ -92,7 +92,10 @@ INSERT INTO `t_guru` (`id`, `nip`, `nama`, `email`, `status_aktif`, `user_id`, `
 (47, 'NIP00047', 'Siti Rahma', 'guru47@ukk2026.sch.id', 1, 47, '2026-09-23 02:31:55', '2026-09-23 02:31:55'),
 (48, 'NIP00048', 'Fajar Hidayat', 'guru48@ukk2026.sch.id', 1, 48, '2026-09-23 02:31:55', '2026-09-23 02:31:55'),
 (49, 'NIP00049', 'Nia Lestari', 'guru49@ukk2026.sch.id', 1, 49, '2026-09-23 02:31:55', '2026-09-23 02:31:55'),
-(50, 'NIP00050', 'Budi Hartono', 'guru50@ukk2026.sch.id', 1, 50, '2026-09-23 02:31:55', '2026-09-23 02:31:55');
+(50, 'NIP00050', 'Budi Hartono', 'guru50@ukk2026.sch.id', 1, 50, '2026-09-23 02:31:55', '2026-09-23 02:31:55'),
+(52, '976568586575786896', 'Yati Nur', 'yati@gmail.com', 1, 52, '2026-10-23 06:48:58', '2026-10-23 06:48:58'),
+(53, '232436547698809809', 'Yanti', 'yanti@gmail.com', 1, 53, '2026-10-23 06:49:58', '2026-10-23 06:49:58'),
+(54, '024264635078709734', 'Asep', 'asep@gmail.com', 1, 54, '2026-10-23 06:55:06', '2026-10-23 06:55:06');
 
 -- --------------------------------------------------------
 
@@ -115,7 +118,6 @@ CREATE TABLE `t_kelas` (
 --
 
 INSERT INTO `t_kelas` (`id`, `nama`, `tingkat`, `jurusan`, `status_aktif`, `created_at`, `updated_at`) VALUES
-(1, 'X RPL 1', 'X', 'Rekayasa Perangkat Lunak', 1, '2026-09-23 03:54:49', '2026-09-23 03:54:49'),
 (2, 'X RPL 2', 'X', 'Rekayasa Perangkat Lunak', 1, '2026-09-23 03:54:49', '2026-09-23 03:54:49'),
 (3, 'X RPL 3', 'X', 'Rekayasa Perangkat Lunak', 1, '2026-09-23 03:54:49', '2026-09-23 03:54:49'),
 (4, 'X TKJ 1', 'X', 'Teknik Komputer dan Jaringan', 1, '2026-09-23 03:54:49', '2026-09-23 03:54:49'),
@@ -164,7 +166,9 @@ INSERT INTO `t_kelas` (`id`, `nama`, `tingkat`, `jurusan`, `status_aktif`, `crea
 (47, 'XI MPLB 3', 'XI', 'Manajemen Perkantoran', 1, '2026-09-23 03:54:49', '2026-09-23 03:54:49'),
 (48, 'XI MPLB 4', 'XI', 'Manajemen Perkantoran', 1, '2026-09-23 03:54:49', '2026-09-23 03:54:49'),
 (49, 'XI BDP 2', 'XI', 'Bisnis Daring dan Pemasaran', 1, '2026-09-23 03:54:49', '2026-09-23 03:54:49'),
-(50, 'XI BDP 3', 'XI', 'Bisnis Daring dan Pemasaran', 1, '2026-09-23 03:54:49', '2026-09-23 03:54:49');
+(50, 'XI BDP 3', 'XI', 'Bisnis Daring dan Pemasaran', 1, '2026-09-23 03:54:49', '2026-09-23 03:54:49'),
+(51, 'XI RPL 20', 'XI', 'Rekayasa Perangkat Lunak', 1, '2026-10-23 07:38:58', '2026-10-23 07:38:58'),
+(52, 'XII RPL 22', 'XII', 'Rekayasa Perangkat Lunak', 1, '2026-10-23 07:48:54', '2026-10-23 07:48:54');
 
 -- --------------------------------------------------------
 
@@ -189,8 +193,6 @@ CREATE TABLE `t_kelas_siswa` (
 --
 
 INSERT INTO `t_kelas_siswa` (`id`, `siswa_id`, `tahun_ajaran_id`, `kelas_id`, `tanggal_mulai`, `tanggal_selesai`, `status_aktif`, `created_at`, `updated_at`) VALUES
-(1, 1, 1, 1, '2026-01-01', '2026-12-31', 1, '2026-09-23 03:56:12', '2026-09-23 03:56:12'),
-(2, 2, 2, 2, '2026-01-01', '2026-12-31', 1, '2026-09-23 03:56:12', '2026-09-23 03:56:12'),
 (3, 3, 3, 3, '2026-01-01', '2026-12-31', 1, '2026-09-23 03:56:12', '2026-09-23 03:56:12'),
 (4, 4, 4, 4, '2026-01-01', '2026-12-31', 1, '2026-09-23 03:56:12', '2026-09-23 03:56:12'),
 (5, 5, 5, 5, '2026-01-01', '2026-12-31', 1, '2026-09-23 03:56:12', '2026-09-23 03:56:12'),
@@ -417,52 +419,41 @@ CREATE TABLE `t_pelanggaran_siswa` (
 --
 
 INSERT INTO `t_pelanggaran_siswa` (`id`, `tahun_ajaran_id`, `siswa_id`, `nama_siswa`, `kelas_id`, `nama_kelas`, `pelanggaran_id`, `nama_pelanggaran`, `pelanggaran_kategori_id`, `guru_id`, `nama_guru`, `tanggal`, `keterangan`, `poin`, `tindakan`, `status`, `created_at`, `updated_at`) VALUES
-(1, 1, 1, 'Alya Putri', 1, 'X RPL 1', 51, 'Terlambat masuk sekolah', 1, 1, 'Ari Sandriana', '2026-08-01', 'Datang terlambat ke sekolah', 3, 'Pembinaan', 'Diproses', '2026-09-23 04:32:46', '2026-09-23 04:32:46'),
-(2, 2, 2, 'Anisa Amirulla', 2, 'XI TKJ 1', 52, 'Tidak hadir tanpa keterangan', 2, 2, 'Aldi Maulana', '2026-08-02', 'Tidak hadir tanpa keterangan', 4, 'Peringatan', 'Belum Diproses', '2026-09-23 04:32:46', '2026-09-23 04:32:46'),
 (3, 3, 3, 'Amelia Khusuma', 3, 'XII AKL 1', 53, 'Tidak memakai seragam lengkap', 3, 3, 'Ansor Muhajir', '2026-08-03', 'Tidak memakai seragam lengkap', 5, 'Tugas Tambahan', 'Selesai', '2026-09-23 04:32:46', '2026-09-23 04:32:46'),
 (4, 4, 4, 'Aulia Lestari', 4, 'X MPLB 1', 54, 'Rambut tidak sesuai aturan', 4, 4, 'Deni Setiawan', '2026-08-04', 'Rambut tidak sesuai aturan sekolah', 6, 'Pemanggilan Wali', 'Diproses', '2026-09-23 04:32:46', '2026-09-23 04:32:46'),
 (5, 5, 5, 'Azka Pratama', 5, 'XI TBSM 1', 55, 'Tidak menjaga ketertiban', 5, 5, 'Rina Marlina', '2026-08-05', 'Mengganggu ketertiban sekolah', 5, 'Pembinaan', 'Diproses', '2026-09-23 04:32:46', '2026-09-23 04:32:46'),
-(6, 1, 6, 'Bagas Ramadhan', 1, 'X RPL 1', 56, 'Membuang sampah sembarangan', 1, 1, 'Ari Sandriana', '2026-08-06', 'Membuang sampah sembarangan', 3, 'Pembinaan', 'Selesai', '2026-09-23 04:32:46', '2026-09-23 04:32:46'),
 (7, 2, 7, 'Bella Safitri', 2, 'XI TKJ 1', 57, 'Tidak mengerjakan tugas', 2, 2, 'Aldi Maulana', '2026-08-07', 'Tidak mengerjakan tugas sekolah', 4, 'Tugas Tambahan', 'Diproses', '2026-09-23 04:32:46', '2026-09-23 04:32:46'),
 (8, 3, 8, 'Citra Lestari', 3, 'XII AKL 1', 58, 'Tidak mengikuti kegiatan', 3, 3, 'Ansor Muhajir', '2026-08-08', 'Tidak mengikuti kegiatan sekolah', 5, 'Peringatan', 'Belum Diproses', '2026-09-23 04:32:46', '2026-09-23 04:32:46'),
 (9, 4, 9, 'Dafa Maulana', 4, 'X MPLB 1', 59, 'Tidak mengikuti apel', 4, 4, 'Deni Setiawan', '2026-08-09', 'Tidak mengikuti apel pagi', 3, 'Pembinaan', 'Selesai', '2026-09-23 04:32:46', '2026-09-23 04:32:46'),
 (10, 5, 10, 'Dinda Amelia', 5, 'XI TBSM 1', 60, 'Tidak mengikuti kegiatan wajib', 5, 5, 'Rina Marlina', '2026-08-10', 'Tidak mengikuti kegiatan wajib', 5, 'Peringatan', 'Diproses', '2026-09-23 04:32:46', '2026-09-23 04:32:46'),
-(11, 1, 11, 'Fajar Nugraha', 1, 'X RPL 1', 61, 'Terlambat masuk kelas', 1, 1, 'Ari Sandriana', '2026-08-11', 'Terlambat masuk kelas', 3, 'Pembinaan', 'Selesai', '2026-09-23 04:32:46', '2026-09-23 04:32:46'),
 (12, 2, 12, 'Fitri Handayani', 2, 'XI TKJ 1', 62, 'Berkata tidak sopan', 2, 2, 'Aldi Maulana', '2026-08-12', 'Berkata tidak sopan kepada teman', 5, 'Peringatan', 'Diproses', '2026-09-23 04:32:46', '2026-09-23 04:32:46'),
 (13, 3, 13, 'Galih Pratama', 3, 'XII AKL 1', 63, 'Atribut tidak lengkap', 3, 3, 'Ansor Muhajir', '2026-08-13', 'Atribut seragam tidak lengkap', 3, 'Pembinaan', 'Selesai', '2026-09-23 04:32:46', '2026-09-23 04:32:46'),
 (14, 4, 14, 'Hana Salsabila', 4, 'X MPLB 1', 64, 'Tidak rapi', 4, 4, 'Deni Setiawan', '2026-08-14', 'Penampilan tidak rapi', 3, 'Pembinaan', 'Diproses', '2026-09-23 04:32:46', '2026-09-23 04:32:46'),
 (15, 5, 15, 'Ilham Fauzi', 5, 'XI TBSM 1', 65, 'Membuat keributan', 5, 5, 'Rina Marlina', '2026-08-15', 'Membuat keributan di kelas', 6, 'Pemanggilan Wali', 'Diproses', '2026-09-23 04:32:46', '2026-09-23 04:32:46'),
-(16, 1, 16, 'Intan Permata', 1, 'X RPL 1', 66, 'Tidak menjaga kebersihan', 1, 1, 'Ari Sandriana', '2026-08-16', 'Tidak menjaga kebersihan kelas', 4, 'Tugas Tambahan', 'Selesai', '2026-09-23 04:32:46', '2026-09-23 04:32:46'),
 (17, 2, 17, 'Joko Susanto', 2, 'XI TKJ 1', 67, 'Tidak mengerjakan piket', 2, 2, 'Aldi Maulana', '2026-08-17', 'Tidak melaksanakan piket kelas', 4, 'Tugas Tambahan', 'Diproses', '2026-09-23 04:32:46', '2026-09-23 04:32:46'),
 (18, 3, 18, 'Kania Putri', 3, 'XII AKL 1', 68, 'Keluar kelas tanpa izin', 3, 3, 'Ansor Muhajir', '2026-08-18', 'Keluar kelas tanpa izin guru', 5, 'Peringatan', 'Belum Diproses', '2026-09-23 04:32:46', '2026-09-23 04:32:46'),
 (19, 4, 19, 'Lukman Hakim', 4, 'X MPLB 1', 69, 'Meninggalkan sekolah tanpa izin', 4, 4, 'Deni Setiawan', '2026-08-19', 'Meninggalkan sekolah tanpa izin', 7, 'Pemanggilan Wali', 'Diproses', '2026-09-23 04:32:46', '2026-09-23 04:32:46'),
 (20, 5, 20, 'Maya Sari', 5, 'XI TBSM 1', 70, 'Berkelahi', 5, 5, 'Rina Marlina', '2026-08-20', 'Terlibat perkelahian', 10, 'Pemanggilan Wali', 'Diproses', '2026-09-23 04:32:46', '2026-09-23 04:32:46'),
-(21, 1, 21, 'Nanda Pratama', 1, 'X RPL 1', 71, 'Mengganggu teman', 1, 1, 'Ari Sandriana', '2026-08-21', 'Mengganggu teman saat pembelajaran', 4, 'Pembinaan', 'Selesai', '2026-09-23 04:32:46', '2026-09-23 04:32:46'),
 (22, 2, 22, 'Nisa Aulia', 2, 'XI TKJ 1', 72, 'Tidak menghormati guru', 2, 2, 'Aldi Maulana', '2026-08-22', 'Tidak menghormati guru', 6, 'Peringatan', 'Diproses', '2026-09-23 04:32:46', '2026-09-23 04:32:46'),
 (23, 3, 23, 'Raka Aditya', 3, 'XII AKL 1', 73, 'Tidak mengikuti pembelajaran', 3, 3, 'Ansor Muhajir', '2026-08-23', 'Tidak mengikuti pembelajaran', 5, 'Pembinaan', 'Belum Diproses', '2026-09-23 04:32:46', '2026-09-23 04:32:46'),
 (24, 4, 24, 'Salsa Nabila', 4, 'X MPLB 1', 74, 'Menggunakan HP saat belajar', 4, 4, 'Deni Setiawan', '2026-08-24', 'Menggunakan HP saat pembelajaran', 6, 'Peringatan', 'Diproses', '2026-09-23 04:32:46', '2026-09-23 04:32:46'),
 (25, 5, 25, 'Tegar Ramadhan', 5, 'XI TBSM 1', 75, 'Menyontek', 5, 5, 'Rina Marlina', '2026-08-25', 'Menyontek saat mengerjakan tugas', 8, 'Peringatan', 'Selesai', '2026-09-23 04:32:46', '2026-09-23 04:32:46'),
-(26, 1, 26, 'Vina Aprilia', 1, 'X RPL 1', 76, 'Datang terlambat berulang', 1, 1, 'Ari Sandriana', '2026-08-26', 'Terlambat masuk sekolah', 3, 'Pembinaan', 'Diproses', '2026-09-23 04:32:46', '2026-09-23 04:32:46'),
 (27, 2, 27, 'Wahyu Hidayat', 2, 'XI TKJ 1', 77, 'Tidak hadir tanpa keterangan', 2, 2, 'Aldi Maulana', '2026-08-27', 'Tidak hadir tanpa keterangan', 4, 'Peringatan', 'Belum Diproses', '2026-09-23 04:32:46', '2026-09-23 04:32:46'),
 (28, 3, 28, 'Yuni Kartika', 3, 'XII AKL 1', 78, 'Seragam tidak lengkap', 3, 3, 'Ansor Muhajir', '2026-08-28', 'Seragam tidak lengkap', 5, 'Pembinaan', 'Selesai', '2026-09-23 04:32:46', '2026-09-23 04:32:46'),
 (29, 4, 29, 'Zaki Ramadhan', 4, 'X MPLB 1', 79, 'Tidak menaati aturan', 4, 4, 'Deni Setiawan', '2026-08-29', 'Tidak menaati aturan sekolah', 5, 'Peringatan', 'Diproses', '2026-09-23 04:32:46', '2026-09-23 04:32:46'),
 (30, 5, 30, 'Adinda Putri', 5, 'XI TBSM 1', 80, 'Mengganggu ketertiban', 5, 5, 'Rina Marlina', '2026-08-30', 'Mengganggu ketertiban sekolah', 5, 'Pembinaan', 'Selesai', '2026-09-23 04:32:46', '2026-09-23 04:32:46'),
-(31, 1, 31, 'Bima Saputra', 1, 'X RPL 1', 81, 'Tidak menjaga kebersihan', 1, 1, 'Ari Sandriana', '2026-09-01', 'Tidak menjaga kebersihan lingkungan', 4, 'Tugas Tambahan', 'Diproses', '2026-09-23 04:32:46', '2026-09-23 04:32:46'),
 (32, 2, 32, 'Caca Amelia', 2, 'XI TKJ 1', 82, 'Tidak melaksanakan piket', 2, 2, 'Aldi Maulana', '2026-09-02', 'Tidak melaksanakan piket', 4, 'Tugas Tambahan', 'Selesai', '2026-09-23 04:32:46', '2026-09-23 04:32:46'),
 (33, 3, 33, 'Doni Kurniawan', 3, 'XII AKL 1', 83, 'Keluar kelas tanpa izin', 3, 3, 'Ansor Muhajir', '2026-09-03', 'Keluar kelas tanpa izin', 5, 'Pembinaan', 'Diproses', '2026-09-23 04:32:46', '2026-09-23 04:32:46'),
 (34, 4, 34, 'Elsa Maharani', 4, 'X MPLB 1', 84, 'Meninggalkan sekolah tanpa izin', 4, 4, 'Deni Setiawan', '2026-09-04', 'Meninggalkan sekolah tanpa izin', 7, 'Pemanggilan Wali', 'Diproses', '2026-09-23 04:32:46', '2026-09-23 04:32:46'),
 (35, 5, 35, 'Farhan Akbar', 5, 'XI TBSM 1', 85, 'Berkata tidak sopan', 5, 5, 'Rina Marlina', '2026-09-05', 'Berkata tidak sopan', 5, 'Peringatan', 'Selesai', '2026-09-23 04:32:46', '2026-09-23 04:32:46'),
-(36, 1, 36, 'Gina Lestari', 1, 'X RPL 1', 86, 'Atribut tidak lengkap', 1, 1, 'Ari Sandriana', '2026-09-06', 'Atribut seragam tidak lengkap', 3, 'Pembinaan', 'Diproses', '2026-09-23 04:32:46', '2026-09-23 04:32:46'),
 (37, 2, 37, 'Hendra Wijaya', 2, 'XI TKJ 1', 87, 'Tidak rapi', 2, 2, 'Aldi Maulana', '2026-09-07', 'Tidak berpenampilan rapi', 3, 'Pembinaan', 'Selesai', '2026-09-23 04:32:46', '2026-09-23 04:32:46'),
 (38, 3, 38, 'Indah Puspita', 3, 'XII AKL 1', 88, 'Membuat keributan', 3, 3, 'Ansor Muhajir', '2026-09-08', 'Membuat keributan di kelas', 6, 'Peringatan', 'Diproses', '2026-09-23 04:32:46', '2026-09-23 04:32:46'),
 (39, 4, 39, 'Jihan Safitri', 4, 'X MPLB 1', 89, 'Tidak menghormati guru', 4, 4, 'Deni Setiawan', '2026-09-09', 'Tidak menghormati guru', 6, 'Peringatan', 'Belum Diproses', '2026-09-23 04:32:46', '2026-09-23 04:32:46'),
 (40, 5, 40, 'Kevin Maulana', 5, 'XI TBSM 1', 90, 'Tidak mengikuti pembelajaran', 5, 5, 'Rina Marlina', '2026-09-10', 'Tidak mengikuti pembelajaran', 5, 'Pembinaan', 'Selesai', '2026-09-23 04:32:46', '2026-09-23 04:32:46'),
-(41, 1, 41, 'Laila Nuraini', 1, 'X RPL 1', 91, 'Menggunakan HP saat belajar', 1, 1, 'Ari Sandriana', '2026-09-11', 'Menggunakan HP saat belajar', 6, 'Peringatan', 'Diproses', '2026-09-23 04:32:46', '2026-09-23 04:32:46'),
 (42, 2, 42, 'Miftahul Jannah', 2, 'XI TKJ 1', 92, 'Menyontek', 2, 2, 'Aldi Maulana', '2026-09-12', 'Menyontek saat ujian', 8, 'Peringatan', 'Diproses', '2026-09-23 04:32:46', '2026-09-23 04:32:46'),
 (43, 3, 43, 'Naufal Ardiansyah', 3, 'XII AKL 1', 93, 'Terlambat masuk kelas', 3, 3, 'Ansor Muhajir', '2026-09-13', 'Terlambat masuk kelas', 3, 'Pembinaan', 'Selesai', '2026-09-23 04:32:46', '2026-09-23 04:32:46'),
 (44, 4, 44, 'Olivia Maharani', 4, 'X MPLB 1', 94, 'Tidak mengikuti apel', 4, 4, 'Deni Setiawan', '2026-09-14', 'Tidak mengikuti apel', 3, 'Pembinaan', 'Diproses', '2026-09-23 04:32:46', '2026-09-23 04:32:46'),
 (45, 5, 45, 'Putra Wijaya', 5, 'XI TBSM 1', 95, 'Tidak mengikuti kegiatan wajib', 5, 5, 'Rina Marlina', '2026-09-15', 'Tidak mengikuti kegiatan wajib', 5, 'Peringatan', 'Belum Diproses', '2026-09-23 04:32:46', '2026-09-23 04:32:46'),
-(46, 1, 46, 'Qori Aulia', 1, 'X RPL 1', 96, 'Membuang sampah sembarangan', 1, 1, 'Ari Sandriana', '2026-09-16', 'Membuang sampah sembarangan', 3, 'Pembinaan', 'Selesai', '2026-09-23 04:32:46', '2026-09-23 04:32:46'),
 (47, 2, 47, 'Rizky Firmansyah', 2, 'XI TKJ 1', 97, 'Tidak mengerjakan tugas', 2, 2, 'Aldi Maulana', '2026-09-17', 'Tidak mengerjakan tugas', 4, 'Tugas Tambahan', 'Diproses', '2026-09-23 04:32:46', '2026-09-23 04:32:46'),
 (48, 3, 48, 'Siti Rahma', 3, 'XII AKL 1', 98, 'Tidak mengikuti kegiatan', 3, 3, 'Ansor Muhajir', '2026-09-18', 'Tidak mengikuti kegiatan sekolah', 5, 'Peringatan', 'Selesai', '2026-09-23 04:32:46', '2026-09-23 04:32:46'),
 (49, 4, 49, 'Tio Prasetyo', 4, 'X MPLB 1', 99, 'Rambut tidak sesuai aturan', 4, 4, 'Deni Setiawan', '2026-09-19', 'Rambut tidak sesuai aturan', 6, 'Pembinaan', 'Diproses', '2026-09-23 04:32:46', '2026-09-23 04:32:46'),
@@ -476,7 +467,7 @@ INSERT INTO `t_pelanggaran_siswa` (`id`, `tahun_ajaran_id`, `siswa_id`, `nama_si
 
 CREATE TABLE `t_siswa` (
   `id` int(11) NOT NULL,
-  `nip` varchar(30) NOT NULL,
+  `nis` varchar(30) NOT NULL,
   `nisn` varchar(20) NOT NULL,
   `nama` varchar(150) NOT NULL,
   `jenis_kelamin` char(5) NOT NULL,
@@ -491,10 +482,8 @@ CREATE TABLE `t_siswa` (
 -- Dumping data untuk tabel `t_siswa`
 --
 
-INSERT INTO `t_siswa` (`id`, `nip`, `nisn`, `nama`, `jenis_kelamin`, `tanggal_lahir`, `alamat`, `status_aktif`, `created_at`, `updated_at`) VALUES
-(1, 'NIP00001', 'NISN0000000001', 'Alya Putri', 'L', '2008-01-03', 'Jl. Pendidikan No. 1, Tasikmalaya', 1, '2026-09-23 02:32:16', '2026-09-23 02:32:16'),
-(2, 'NIP00002', 'NISN0000000002', 'Anisa Amirulla', 'P', '2007-02-06', 'Jl. Pendidikan No. 2, Tasikmalaya', 1, '2026-09-23 02:32:16', '2026-09-23 02:32:16'),
-(3, 'NIP00003', 'NISN0000000003', 'Amelia Khusuma', 'L', '2008-03-09', 'Jl. Pendidikan No. 3, Tasikmalaya', 1, '2026-09-23 02:32:16', '2026-09-23 02:32:16'),
+INSERT INTO `t_siswa` (`id`, `nis`, `nisn`, `nama`, `jenis_kelamin`, `tanggal_lahir`, `alamat`, `status_aktif`, `created_at`, `updated_at`) VALUES
+(3, '8787680097', '0198362435', 'Amelia Khusuma', 'L', '2008-03-09', 'Jl. Pendidikan No. 3, Tasikmalaya', 0, '2026-09-23 02:32:16', '2026-09-23 02:32:16'),
 (4, 'NIP00004', 'NISN0000000004', 'Aulia Lestari', 'P', '2007-04-12', 'Jl. Pendidikan No. 4, Tasikmalaya', 1, '2026-09-23 02:32:16', '2026-09-23 02:32:16'),
 (5, 'NIP00005', 'NISN0000000005', 'Azka Pratama', 'L', '2008-05-15', 'Jl. Pendidikan No. 5, Tasikmalaya', 1, '2026-09-23 02:32:16', '2026-09-23 02:32:16'),
 (6, 'NIP00006', 'NISN0000000006', 'Bagas Ramadhan', 'P', '2007-06-18', 'Jl. Pendidikan No. 6, Tasikmalaya', 1, '2026-09-23 02:32:16', '2026-09-23 02:32:16'),
@@ -541,7 +530,12 @@ INSERT INTO `t_siswa` (`id`, `nip`, `nisn`, `nama`, `jenis_kelamin`, `tanggal_la
 (47, 'NIP00047', 'NISN0000000047', 'Gilang Santoso', 'L', '2008-11-06', 'Jl. Pendidikan No. 47, Tasikmalaya', 1, '2026-09-23 02:32:16', '2026-09-23 02:32:16'),
 (48, 'NIP00048', 'NISN0000000048', 'Hilda Permata', 'P', '2007-12-09', 'Jl. Pendidikan No. 48, Tasikmalaya', 1, '2026-09-23 02:32:16', '2026-09-23 02:32:16'),
 (49, 'NIP00049', 'NISN0000000049', 'Ilham Saputra', 'L', '2008-01-12', 'Jl. Pendidikan No. 49, Tasikmalaya', 1, '2026-09-23 02:32:16', '2026-09-23 02:32:16'),
-(50, 'NIP00050', 'NISN0000000050', 'Kevin Maulana', 'P', '2007-02-15', 'Jl. Pendidikan No. 50, Tasikmalaya', 1, '2026-09-23 02:32:16', '2026-09-23 02:32:16');
+(50, 'NIP00050', 'NISN0000000050', 'Kevin Maulana', 'P', '2007-02-15', 'Jl. Pendidikan No. 50, Tasikmalaya', 1, '2026-09-23 02:32:16', '2026-09-23 02:32:16'),
+(51, '0059432698', '0031268578', 'Alya Putri', 'P', '2019-01-29', 'jln.pataruman', 0, '2026-10-23 02:46:59', '2026-10-23 02:46:59'),
+(52, '0235497426', '0359740054', 'Budi Hartono', 'P', '2010-06-08', 'jln. awipari', 0, '2026-10-23 02:47:52', '2026-10-23 02:47:52'),
+(53, '3547658798', '0008767868', 'Asih Susinto', 'P', '2009-02-03', 'jln.peteran', 0, '2026-10-23 03:10:04', '2026-10-23 03:10:04'),
+(54, '7698534231', '0986864575', 'Asih Susinto', 'P', '2017-02-01', 'jln.pataruman', 0, '2026-10-23 05:14:53', '2026-10-23 05:14:53'),
+(55, '0998765435', '0987645764', 'Budi Hartono', 'P', '2007-01-30', 'jln.ddh', 0, '2026-10-23 05:25:36', '2026-10-23 05:25:36');
 
 -- --------------------------------------------------------
 
@@ -687,7 +681,11 @@ INSERT INTO `t_user` (`id`, `name`, `email`, `email_verifed_at`, `password`, `re
 (47, 'User 47', 'user47@ukk2026.sch.id', '2026-09-23 02:21:30', '$2y$10$abcdefghijklmnopqrstuuABCDEFGHIJKLMNO1234567890', '', 'petugas', '2026-09-23 02:21:30', '2026-09-23 02:21:30'),
 (48, 'User 48', 'user48@ukk2026.sch.id', '2026-09-23 02:21:30', '$2y$10$abcdefghijklmnopqrstuuABCDEFGHIJKLMNO1234567890', '', 'petugas', '2026-09-23 02:21:30', '2026-09-23 02:21:30'),
 (49, 'User 49', 'user49@ukk2026.sch.id', '2026-09-23 02:21:30', '$2y$10$abcdefghijklmnopqrstuuABCDEFGHIJKLMNO1234567890', '', 'petugas', '2026-09-23 02:21:30', '2026-09-23 02:21:30'),
-(50, 'User 50', 'user50@ukk2026.sch.id', '2026-09-23 02:21:30', '$2y$10$abcdefghijklmnopqrstuuABCDEFGHIJKLMNO1234567890', '', 'petugas', '2026-09-23 02:21:30', '2026-09-23 02:21:30');
+(50, 'User 50', 'user50@ukk2026.sch.id', '2026-09-23 02:21:30', '$2y$10$abcdefghijklmnopqrstuuABCDEFGHIJKLMNO1234567890', '', 'petugas', '2026-09-23 02:21:30', '2026-09-23 02:21:30'),
+(51, 'Asih Permata', 'asih@gmail.com', '2026-10-23 05:38:18', '$2y$10$7wP1.7yYItzyzxAIIDBgo.GBXEP9e5CboIsfiKoNTjyRV6O9gkqqO', '', 'guru', '2026-10-23 05:38:18', '2026-10-23 05:38:18'),
+(52, 'Yati Nur', 'yati@gmail.com', '2026-10-23 06:48:58', '$2y$10$Z8xX41jg5lBy7TeQHm37tOB3Kuy0W0zGpNQK/ElrbAEQ1lhSMDCXK', '', 'guru', '2026-10-23 06:48:58', '2026-10-23 06:48:58'),
+(53, 'Yanti', 'yanti@gmail.com', '2026-10-23 06:49:58', '$2y$10$GgIqnfLPAP5BgWnQb68clecuKcMijZNft/kfYIsJBJ48VXF0Sk/1u', '', 'guru', '2026-10-23 06:49:58', '2026-10-23 06:49:58'),
+(54, 'Asep', 'asep@gmail.com', '2026-10-23 06:55:06', '$2y$10$.9z9TAEKR1fbVQXT0/lE7uWpax3PE3oLO3u4Zx6qmt1bKF2jC.tui', '', 'guru', '2026-10-23 06:55:06', '2026-10-23 06:55:06');
 
 -- --------------------------------------------------------
 
@@ -712,7 +710,6 @@ CREATE TABLE `t_wali_kelas` (
 --
 
 INSERT INTO `t_wali_kelas` (`id`, `tahun_ajaran_id`, `kelas_id`, `guru_id`, `tanggal_mulai`, `tanggal_selesai`, `status_aktif`, `created_at`, `updated_at`) VALUES
-(1, 1, 1, 1, '2026-07-01', '2027-06-30', 1, '2026-09-23 04:19:18', '2026-09-23 04:19:18'),
 (2, 2, 2, 2, '2026-07-01', '2027-06-30', 1, '2026-09-23 04:19:18', '2026-09-23 04:19:18'),
 (3, 3, 3, 3, '2026-07-01', '2027-06-30', 1, '2026-09-23 04:19:18', '2026-09-23 04:19:18'),
 (4, 4, 4, 4, '2026-07-01', '2027-06-30', 1, '2026-09-23 04:19:18', '2026-09-23 04:19:18'),
@@ -849,13 +846,13 @@ ALTER TABLE `t_wali_kelas`
 -- AUTO_INCREMENT untuk tabel `t_guru`
 --
 ALTER TABLE `t_guru`
-  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=51;
+  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=55;
 
 --
 -- AUTO_INCREMENT untuk tabel `t_kelas`
 --
 ALTER TABLE `t_kelas`
-  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=51;
+  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=53;
 
 --
 -- AUTO_INCREMENT untuk tabel `t_kelas_siswa`
@@ -885,7 +882,7 @@ ALTER TABLE `t_pelanggaran_siswa`
 -- AUTO_INCREMENT untuk tabel `t_siswa`
 --
 ALTER TABLE `t_siswa`
-  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=51;
+  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=56;
 
 --
 -- AUTO_INCREMENT untuk tabel `t_tahun_ajaran`
@@ -897,7 +894,7 @@ ALTER TABLE `t_tahun_ajaran`
 -- AUTO_INCREMENT untuk tabel `t_user`
 --
 ALTER TABLE `t_user`
-  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=51;
+  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=55;
 
 --
 -- AUTO_INCREMENT untuk tabel `t_wali_kelas`
