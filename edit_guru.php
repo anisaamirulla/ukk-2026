@@ -1,4 +1,3 @@
-
 <?php
 session_start();
 
@@ -136,6 +135,20 @@ if (isset($_POST['update'])) {
 }
 
 $namaAdmin = htmlspecialchars($_SESSION['name'] ?? 'Admin');
+
+$menuAdmin = [
+    ['Dashboard', 'dashboard.php'],
+    ['Data Siswa', 'siswa.php'],
+    ['Data Guru', 'guru.php'],
+    ['Kelas', 'kelas.php'],
+    ['Tahun Ajaran', 'tahun_ajaran.php'],
+    ['Penempatan Siswa', 'penempatan_siswa.php'],
+    ['Wali Kelas', 'wali_kelas.php'],
+    ['Kategori Pelanggaran', 'kategori_pelanggaran.php'],
+    ['Jenis Pelanggaran', 'jenis_pelanggaran.php'],
+    ['Laporan', 'laporan.php'],
+    ['About Me', 'abautme.php']
+];
 ?>
 
 <!DOCTYPE html>
@@ -147,15 +160,9 @@ $namaAdmin = htmlspecialchars($_SESSION['name'] ?? 'Admin');
 
     <title>Edit Data Guru - Sistem Informasi Pelanggaran Siswa</title>
 
-    <link
-        href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css"
-        rel="stylesheet"
-    >
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet">
 
-    <link
-        href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.min.css"
-        rel="stylesheet"
-    >
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.min.css" rel="stylesheet">
 </head>
 
 <body class="bg-light">
@@ -163,7 +170,7 @@ $namaAdmin = htmlspecialchars($_SESSION['name'] ?? 'Admin');
 <div class="container-fluid">
     <div class="row">
 
-        <!-- SIDEBAR -->
+        <!-- SIDEBAR DISESUAIKAN DENGAN EDIT SISWA -->
         <aside class="col-12 col-md-3 col-lg-2 bg-dark min-vh-100 p-3">
 
             <div class="text-white mb-4 pt-3 pb-3 border-bottom border-secondary">
@@ -191,7 +198,7 @@ $namaAdmin = htmlspecialchars($_SESSION['name'] ?? 'Admin');
 
                     <div class="text-white text-break">
                         <div class="fw-semibold">
-                            <?= $namaAdmin ?>
+                            <?= $namaAdmin; ?>
                         </div>
 
                         <small class="text-secondary">
@@ -208,140 +215,88 @@ $namaAdmin = htmlspecialchars($_SESSION['name'] ?? 'Admin');
 
             <ul class="nav nav-pills flex-column gap-2">
 
-                <li class="nav-item">
-                    <a href="dashboard.php"
-                       class="nav-link text-white rounded-2 py-2 px-3">
-                        Dashboard
-                    </a>
-                </li>
+                <?php foreach ($menuAdmin as $item): ?>
 
-                <li class="nav-item">
-                    <a href="siswa.php"
-                       class="nav-link text-white rounded-2 py-2 px-3">
-                        Data Siswa
-                    </a>
-                </li>
+                    <li class="nav-item">
+                        <a
+                            href="<?= htmlspecialchars($item[1], ENT_QUOTES, 'UTF-8'); ?>"
+                            class="nav-link <?= $item[0] === 'Data Guru' ? 'active' : 'text-white'; ?> rounded-2 py-2 px-3"
+                        >
+                            <?= htmlspecialchars($item[0], ENT_QUOTES, 'UTF-8'); ?>
+                        </a>
+                    </li>
 
-                <li class="nav-item">
-                    <a href="guru.php"
-                       class="nav-link active rounded-2 py-2 px-3"
-                       aria-current="page">
-                        Data Guru
-                    </a>
-                </li>
-
-                <li class="nav-item">
-                    <a href="kelas.php"
-                       class="nav-link text-white rounded-2 py-2 px-3">
-                        Kelas
-                    </a>
-                </li>
-
-                <li class="nav-item">
-                    <a href="tahun_ajaran.php"
-                       class="nav-link text-white rounded-2 py-2 px-3">
-                        Tahun Ajaran
-                    </a>
-                </li>
-
-                <li class="nav-item">
-                    <a href="penempatan_siswa.php"
-                       class="nav-link text-white rounded-2 py-2 px-3">
-                        Penempatan Siswa
-                    </a>
-                </li>
-
-                <li class="nav-item">
-                    <a href="wali_kelas.php"
-                       class="nav-link text-white rounded-2 py-2 px-3">
-                        Wali Kelas
-                    </a>
-                </li>
-
-                <li class="nav-item">
-                    <a href="kategori_pelanggaran.php"
-                       class="nav-link text-white rounded-2 py-2 px-3">
-                        Kategori Pelanggaran
-                    </a>
-                </li>
-
-                <li class="nav-item">
-                    <a href="jenis_pelanggaran.php"
-                       class="nav-link text-white rounded-2 py-2 px-3">
-                        Jenis Pelanggaran
-                    </a>
-                </li>
-
-                <li class="nav-item">
-                    <a href="laporan.php"
-                       class="nav-link text-white rounded-2 py-2 px-3">
-                        Laporan
-                    </a>
-                </li>
-
-                <li class="nav-item">
-                    <a href="abautme.php"
-                       class="nav-link text-white rounded-2 py-2 px-3">
-                        About Me
-                    </a>
-                </li>
+                <?php endforeach; ?>
 
             </ul>
 
             <hr class="border-secondary my-4">
 
-            <a href="logout.php"
-               class="nav-link text-danger rounded-2 py-2 px-3">
+            <a href="logout.php" class="nav-link text-danger rounded-2 py-2 px-3">
                 <i class="bi bi-box-arrow-left me-2"></i>
                 Logout
             </a>
 
         </aside>
 
-        <!-- KONTEN UTAMA -->
+        <!-- KONTEN EDIT GURU -->
         <main class="col-12 col-md-9 col-lg-10 p-3 p-lg-5">
 
             <!-- JUDUL HALAMAN -->
-            <div class="mb-4 pb-4 border-bottom">
-                <h2 class="fw-bold mb-2">
-                    Edit Data Guru
-                </h2>
+            <div class="d-flex flex-wrap justify-content-between align-items-center gap-3 mb-4 pb-4 border-bottom">
 
-                <p class="text-secondary mb-0">
-                    Perbarui informasi data guru.
-                </p>
+                <div>
+                    <h2 class="fw-bold mb-2">
+                        Edit Data Guru
+                    </h2>
+
+                    <p class="text-secondary mb-0">
+                        Silakan perbarui data guru dengan lengkap.
+                    </p>
+                </div>
+
             </div>
 
-            <!-- FORM EDIT GURU -->
+            <!-- PESAN ERROR -->
+            <?php if ($pesan !== ''): ?>
+
+                <div class="alert alert-danger alert-dismissible fade show" role="alert">
+
+                    <?= htmlspecialchars($pesan, ENT_QUOTES, 'UTF-8'); ?>
+
+                    <button
+                        type="button"
+                        class="btn-close"
+                        data-bs-dismiss="alert"
+                        aria-label="Tutup"
+                    ></button>
+
+                </div>
+
+            <?php endif; ?>
+
+            <!-- FORMULIR EDIT GURU -->
             <div class="row justify-content-center">
-                <div class="col-12 col-lg-10 col-xl-9">
 
-                    <div class="card border-0 shadow-sm">
-                        <div class="card-body p-4 p-lg-5">
+                <div class="col-12 col-xl-10">
 
-                            <h5 class="fw-bold mb-4 text-primary">
-                                Form Edit Data Guru
+                    <div class="card border-0 shadow-sm rounded-3">
+
+                        <div class="card-header bg-white p-3">
+
+                            <h5 class="text-primary fw-bold mb-1">
+                                Formulir Guru
                             </h5>
 
-                            <!-- PESAN ERROR -->
-                            <?php if ($pesan != ''): ?>
-                                <div class="alert alert-danger alert-dismissible fade show"
-                                     role="alert">
+                            <small class="text-secondary">
+                                Perbarui informasi guru pada kolom yang tersedia.
+                            </small>
 
-                                    <?= htmlspecialchars($pesan) ?>
+                        </div>
 
-                                    <button
-                                        type="button"
-                                        class="btn-close"
-                                        data-bs-dismiss="alert"
-                                        aria-label="Tutup"
-                                    ></button>
+                        <div class="card-body p-4">
 
-                                </div>
-                            <?php endif; ?>
-
-                            <form method="POST"
-                                  action="edit_guru.php?id=<?= $id ?>">
+                            <form method="POST" action="edit_guru.php?id=<?= $id ?>">
 
                                 <input
                                     type="hidden"
@@ -349,91 +304,113 @@ $namaAdmin = htmlspecialchars($_SESSION['name'] ?? 'Admin');
                                     value="<?= $id ?>"
                                 >
 
-                                <!-- NIP -->
-                                <div class="mb-4">
-                                    <label for="nip" class="form-label">
-                                        NIP <span class="text-danger">*</span>
-                                    </label>
+                                <div class="row g-3">
 
-                                    <input
-                                        type="text"
-                                        name="nip"
-                                        id="nip"
-                                        class="form-control"
-                                        placeholder="Masukkan 18 digit NIP"
-                                        inputmode="numeric"
-                                        maxlength="18"
-                                        minlength="18"
-                                        pattern="[0-9]{18}"
-                                        title="NIP harus tepat 18 digit angka"
-                                        oninput="this.value = this.value.replace(/[^0-9]/g, '').slice(0, 18)"
-                                        value="<?= htmlspecialchars($guru['nip'] ?? '') ?>"
-                                        required
-                                    >
-                                </div>
+                                    <!-- NIP -->
+                                    <div class="col-md-6">
 
-                                <!-- NAMA GURU -->
-                                <div class="mb-4">
-                                    <label for="nama" class="form-label">
-                                        Nama Guru <span class="text-danger">*</span>
-                                    </label>
+                                        <label for="nip" class="form-label">
+                                            NIP <span class="text-danger">*</span>
+                                        </label>
 
-                                    <input
-                                        type="text"
-                                        name="nama"
-                                        id="nama"
-                                        class="form-control"
-                                        placeholder="Masukkan nama guru"
-                                        value="<?= htmlspecialchars($guru['nama'] ?? '') ?>"
-                                        required
-                                    >
-                                </div>
+                                        <input
+                                            type="text"
+                                            name="nip"
+                                            id="nip"
+                                            class="form-control"
+                                            placeholder="Masukkan 18 digit NIP"
+                                            inputmode="numeric"
+                                            maxlength="18"
+                                            minlength="18"
+                                            pattern="[0-9]{18}"
+                                            title="NIP harus tepat 18 digit angka"
+                                            oninput="this.value = this.value.replace(/[^0-9]/g, '').slice(0, 18)"
+                                            value="<?= htmlspecialchars($guru['nip'] ?? '', ENT_QUOTES, 'UTF-8'); ?>"
+                                            required
+                                        >
 
-                                <!-- EMAIL -->
-                                <div class="mb-4">
-                                    <label for="email" class="form-label">
-                                        Email <span class="text-danger">*</span>
-                                    </label>
+                                    </div>
 
-                                    <input
-                                        type="email"
-                                        name="email"
-                                        id="email"
-                                        class="form-control"
-                                        placeholder="Masukkan email guru"
-                                        value="<?= htmlspecialchars($guru['email'] ?? '') ?>"
-                                        required
-                                    >
-                                </div>
+                                    <!-- NAMA GURU -->
+                                    <div class="col-md-6">
 
-                                <!-- STATUS GURU -->
-                                <div class="mb-4">
-                                    <label for="status_aktif" class="form-label">
-                                        Status Guru <span class="text-danger">*</span>
-                                    </label>
+                                        <label for="nama" class="form-label">
+                                            Nama Guru <span class="text-danger">*</span>
+                                        </label>
 
-                                    <select
-                                        name="status_aktif"
-                                        id="status_aktif"
-                                        class="form-select"
-                                        required
-                                    >
-                                        <option value="1"
-                                            <?= (int)$guru['status_aktif'] === 1 ? 'selected' : '' ?>>
-                                            Aktif
-                                        </option>
+                                        <input
+                                            type="text"
+                                            name="nama"
+                                            id="nama"
+                                            class="form-control"
+                                            placeholder="Masukkan nama lengkap guru"
+                                            value="<?= htmlspecialchars($guru['nama'] ?? '', ENT_QUOTES, 'UTF-8'); ?>"
+                                            required
+                                        >
 
-                                        <option value="0"
-                                            <?= (int)$guru['status_aktif'] === 0 ? 'selected' : '' ?>>
-                                            Tidak Aktif
-                                        </option>
-                                    </select>
+                                    </div>
+
+                                    <!-- EMAIL -->
+                                    <div class="col-md-6">
+
+                                        <label for="email" class="form-label">
+                                            Email <span class="text-danger">*</span>
+                                        </label>
+
+                                        <input
+                                            type="email"
+                                            name="email"
+                                            id="email"
+                                            class="form-control"
+                                            placeholder="Masukkan email guru"
+                                            value="<?= htmlspecialchars($guru['email'] ?? '', ENT_QUOTES, 'UTF-8'); ?>"
+                                            required
+                                        >
+
+                                    </div>
+
+                                    <!-- STATUS GURU -->
+                                    <div class="col-md-6">
+
+                                        <label for="status_aktif" class="form-label">
+                                            Status Guru <span class="text-danger">*</span>
+                                        </label>
+
+                                        <select
+                                            name="status_aktif"
+                                            id="status_aktif"
+                                            class="form-select"
+                                            required
+                                        >
+
+                                            <option
+                                                value="1"
+                                                <?= (int)($guru['status_aktif'] ?? 0) === 1 ? 'selected' : ''; ?>
+                                            >
+                                                Aktif
+                                            </option>
+
+                                            <option
+                                                value="0"
+                                                <?= (int)($guru['status_aktif'] ?? 0) === 0 ? 'selected' : ''; ?>
+                                            >
+                                                Tidak Aktif
+                                            </option>
+
+                                        </select>
+
+                                    </div>
+
                                 </div>
 
                                 <hr class="my-4">
 
                                 <!-- TOMBOL AKSI -->
-                                <div class="d-flex flex-wrap gap-2">
+                                <div class="d-flex justify-content-end gap-2">
+
+                                    <a href="guru.php" class="btn btn-secondary">
+                                        Batal
+                                    </a>
 
                                     <button
                                         type="submit"
@@ -443,11 +420,12 @@ $namaAdmin = htmlspecialchars($_SESSION['name'] ?? 'Admin');
                                         Simpan Perubahan
                                     </button>
 
-                                    <a href="guru.php" class="btn btn-secondary">
-                                        Batal
-                                    </a>
-
                                 </div>
+
+                                <p class="text-secondary small mt-3 mb-0">
+                                    <span class="text-danger">*</span>
+                                    Kolom bertanda bintang wajib diisi.
+                                </p>
 
                             </form>
 
