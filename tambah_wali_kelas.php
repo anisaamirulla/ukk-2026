@@ -1,19 +1,19 @@
-
 <?php
 session_start();
+require_once __DIR__ . "/config/koneksi.php";
 
 if (!isset($_SESSION['id'])) {
     header("Location: login.php");
     exit;
 }
 
-if (!isset($_SESSION['role']) || $_SESSION['role'] != 'admin') {
-    echo "Anda tidak memiliki akses";
-    exit;
+$role = strtolower(trim($_SESSION['role'] ?? ''));
+
+if ($role !== 'admin') {
+    exit("Anda tidak memiliki akses");
 }
 
-require_once __DIR__ . "/config/koneksi.php";
-
+$nama = htmlspecialchars($_SESSION['name'] ?? 'Pengguna', ENT_QUOTES, 'UTF-8');
 $error = "";
 $edit_id = (int)($_GET['edit'] ?? 0);
 
@@ -99,7 +99,10 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         $error = "Semua kolom wajib diisi.";
     } elseif ($tanggal_selesai < $tanggal_mulai) {
         $error = "Tanggal selesai tidak boleh sebelum tanggal mulai.";
+    } elseif (!in_array($status_aktif, [0, 1], true)) {
+        $error = "Status tidak valid.";
     } else {
+
         if ($edit_id > 0) {
             $stmt = mysqli_prepare(
                 $koneksi,
@@ -137,6 +140,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                 $error = "Gagal memperbarui data: " . mysqli_stmt_error($stmt);
                 mysqli_stmt_close($stmt);
             }
+
         } else {
             $stmt = mysqli_prepare(
                 $koneksi,
@@ -172,6 +176,21 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         }
     }
 }
+
+/* Menu Admin */
+$menuAdmin = [
+    ['Dashboard', 'dashboard.php'],
+    ['Data Siswa', 'siswa.php'],
+    ['Data Guru', 'guru.php'],
+    ['Kelas', 'kelas.php'],
+    ['Tahun Ajaran', 'tahun_ajaran.php'],
+    ['Penempatan Siswa', 'penempatan_siswa.php'],
+    ['Wali Kelas', 'wali_kelas.php'],
+    ['Kategori Pelanggaran', 'kategori_pelanggaran.php'],
+    ['Jenis Pelanggaran', 'jenis_pelanggaran.php'],
+    ['Laporan', 'laporan.php'],
+    ['About Me', 'abautme.php']
+];
 ?>
 
 <!DOCTYPE html>
@@ -180,12 +199,10 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1">
 
-    <title><?= $edit_id > 0 ? 'Edit' : 'Tambah'; ?> Wali Kelas</title>
+    <title><?= $edit_id > 0 ? 'Edit' : 'Tambah'; ?> Wali Kelas - Sistem Informasi Pelanggaran Siswa</title>
 
-    <link
-        href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css"
-        rel="stylesheet"
-    >
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.min.css" rel="stylesheet">
 </head>
 
 <body class="bg-light">
@@ -194,219 +211,270 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     <div class="row">
 
         <!-- SIDEBAR -->
-        <div class="col-md-3 col-lg-2 bg-dark min-vh-100 p-3">
-            <h4 class="text-white mb-4">Admin UKK</h4>
+        <aside class="col-12 col-md-3 col-lg-2 bg-dark min-vh-100 p-3">
 
-            <ul class="nav flex-column gap-1">
-                <li class="nav-item">
-                    <a href="dashboard.php" class="nav-link text-white rounded">
-                        Dashboard
-                    </a>
-                </li>
-
-                <li class="nav-item">
-                    <a href="siswa.php" class="nav-link text-white rounded">
-                        Data Siswa
-                    </a>
-                </li>
-
-                <li class="nav-item">
-                    <a href="guru.php" class="nav-link text-white rounded">
-                        Data Guru
-                    </a>
-                </li>
-
-                <li class="nav-item">
-                    <a href="kelas.php" class="nav-link text-white rounded">
-                        Data Kelas
-                    </a>
-                </li>
-
-                <li class="nav-item">
-                    <a href="tahun_ajaran.php" class="nav-link text-white rounded">
-                        Tahun Ajaran
-                    </a>
-                </li>
-
-                <li class="nav-item">
-                    <a href="penempatan_siswa.php" class="nav-link text-white rounded">
-                        Penempatan Siswa
-                    </a>
-                </li>
-
-                <li class="nav-item">
-                    <a href="wali_kelas.php"
-                       class="nav-link active bg-primary text-white rounded">
-                        Wali Kelas
-                    </a>
-                </li>
-
-                <li class="nav-item">
-                    <a href="kategori_pelanggaran.php" class="nav-link text-white rounded">
-                        Kategori Pelanggaran
-                    </a>
-                </li>
-
-                <li class="nav-item">
-                    <a href="jenis_pelanggaran.php" class="nav-link text-white rounded">
-                        Jenis Pelanggaran
-                    </a>
-                </li>
-
-                <li class="nav-item">
-                    <a href="cetak_export.php" class="nav-link text-white rounded">
-                        Cetak / Export
-                    </a>
-                </li>
-
-                <li class="nav-item">
-                    <a href="logout.php" class="nav-link text-danger rounded">
-                        Logout
-                    </a>
-                </li>
-            </ul>
-        </div>
-
-        <!-- KONTEN -->
-        <div class="col-md-9 col-lg-10 p-4">
-
-            <div class="mb-4">
-                <h2 class="fw-bold mb-1">
-                    <?= $edit_id > 0 ? 'Edit' : 'Tambah'; ?> Wali Kelas
-                </h2>
-
-                <p class="text-secondary mb-2">
-                    Kelola penugasan wali kelas berdasarkan tahun ajaran.
-                </p>
-
-                <a href="dashboard.php" class="btn btn-secondary btn-sm">
-                    Kembali ke Dashboard
-                </a>
+            <div class="text-white mb-4 pt-3 pb-3 border-bottom border-secondary">
+                <h5 class="fw-bold mb-2">
+                    <i class="bi bi-shield-check me-2"></i>
+                    Sistem Pelanggaran
+                </h5>
+                <small class="text-secondary">Panel Admin</small>
             </div>
 
-            <?php if ($error !== '') { ?>
-                <div class="alert alert-danger">
-                    <?= htmlspecialchars($error); ?>
+            <!-- PROFIL PENGGUNA -->
+            <div class="bg-secondary bg-opacity-25 rounded-3 p-3 mb-4">
+                <div class="d-flex align-items-center gap-3">
+                    <img
+                        src="logo.png"
+                        alt="Logo Aplikasi"
+                        width="44"
+                        height="44"
+                        class="rounded-circle bg-white p-1"
+                    >
+
+                    <div class="text-white text-break">
+                        <div class="fw-semibold"><?= $nama; ?></div>
+                        <small class="text-secondary">ADMIN</small>
+                    </div>
                 </div>
-            <?php } ?>
+            </div>
 
-            <!-- FORM -->
-            <div class="card border-0 shadow-sm">
-                <div class="card-body">
+            <div class="text-secondary small fw-semibold mb-3">
+                MENU UTAMA
+            </div>
 
-                    <form method="POST"
-                          action="tambah_wali_kelas.php<?= $edit_id > 0 ? '?edit=' . $edit_id : ''; ?>">
-
-                        <input type="hidden" name="id"
-                               value="<?= $edit_id; ?>">
-
-                        <div class="mb-3">
-                            <label for="tahun_ajaran_id" class="form-label">
-                                Tahun Ajaran
-                            </label>
-
-                            <select name="tahun_ajaran_id" id="tahun_ajaran_id"
-                                    class="form-select" required>
-                                <option value="">-- Pilih Tahun Ajaran --</option>
-
-                                <?php while ($row = mysqli_fetch_assoc($tahun)) { ?>
-                                    <option value="<?= (int)$row['id']; ?>"
-                                        <?= (int)$form['tahun_ajaran_id'] === (int)$row['id'] ? 'selected' : ''; ?>>
-                                        <?= htmlspecialchars($row['nama']); ?>
-                                    </option>
-                                <?php } ?>
-                            </select>
-                        </div>
-
-                        <div class="mb-3">
-                            <label for="kelas_id" class="form-label">Kelas</label>
-
-                            <select name="kelas_id" id="kelas_id"
-                                    class="form-select" required>
-                                <option value="">-- Pilih Kelas --</option>
-
-                                <?php while ($row = mysqli_fetch_assoc($kelas)) { ?>
-                                    <option value="<?= (int)$row['id']; ?>"
-                                        <?= (int)$form['kelas_id'] === (int)$row['id'] ? 'selected' : ''; ?>>
-                                        <?= htmlspecialchars($row['nama']); ?>
-                                    </option>
-                                <?php } ?>
-                            </select>
-                        </div>
-
-                        <div class="mb-3">
-                            <label for="guru_id" class="form-label">Nama Guru</label>
-
-                            <select name="guru_id" id="guru_id"
-                                    class="form-select" required>
-                                <option value="">-- Pilih Guru --</option>
-
-                                <?php while ($row = mysqli_fetch_assoc($guru)) { ?>
-                                    <option value="<?= (int)$row['id']; ?>"
-                                        <?= (int)$form['guru_id'] === (int)$row['id'] ? 'selected' : ''; ?>>
-                                        <?= htmlspecialchars($row['nip']); ?> -
-                                        <?= htmlspecialchars($row['nama']); ?>
-                                    </option>
-                                <?php } ?>
-                            </select>
-                        </div>
-
-                        <div class="mb-3">
-                            <label for="tanggal_mulai" class="form-label">
-                                Tanggal Mulai
-                            </label>
-
-                            <input type="date" name="tanggal_mulai"
-                                   id="tanggal_mulai" class="form-control"
-                                   value="<?= htmlspecialchars($form['tanggal_mulai']); ?>"
-                                   required>
-                        </div>
-
-                        <div class="mb-3">
-                            <label for="tanggal_selesai" class="form-label">
-                                Tanggal Selesai
-                            </label>
-
-                            <input type="date" name="tanggal_selesai"
-                                   id="tanggal_selesai" class="form-control"
-                                   value="<?= htmlspecialchars($form['tanggal_selesai']); ?>"
-                                   required>
-                        </div>
-
-                        <div class="mb-3">
-                            <label for="status_aktif" class="form-label">
-                                Status
-                            </label>
-
-                            <select name="status_aktif" id="status_aktif"
-                                    class="form-select" required>
-                                <option value="1"
-                                    <?= (int)$form['status_aktif'] === 1 ? 'selected' : ''; ?>>
-                                    Aktif
-                                </option>
-
-                                <option value="0"
-                                    <?= (int)$form['status_aktif'] === 0 ? 'selected' : ''; ?>>
-                                    Tidak Aktif
-                                </option>
-                            </select>
-                        </div>
-
-                        <button type="submit" class="btn btn-primary">
-                            <?= $edit_id > 0 ? 'Simpan Perubahan' : 'Simpan Wali Kelas'; ?>
-                        </button>
-
-                        <a href="wali_kelas.php" class="btn btn-secondary">
-                            Batal
+            <ul class="nav nav-pills flex-column gap-2">
+                <?php foreach ($menuAdmin as $item): ?>
+                    <li class="nav-item">
+                        <a
+                            href="<?= htmlspecialchars($item[1], ENT_QUOTES, 'UTF-8'); ?>"
+                            class="nav-link <?= $item[0] === 'Wali Kelas' ? 'active' : 'text-white'; ?> rounded-2 py-2 px-3"
+                        >
+                            <?= htmlspecialchars($item[0], ENT_QUOTES, 'UTF-8'); ?>
                         </a>
+                    </li>
+                <?php endforeach; ?>
+            </ul>
 
-                    </form>
+            <hr class="border-secondary my-4">
+
+            <a href="logout.php" class="nav-link text-danger rounded-2 py-2 px-3">
+                <i class="bi bi-box-arrow-left me-2"></i>
+                Logout
+            </a>
+
+        </aside>
+
+        <!-- KONTEN WALI KELAS -->
+        <main class="col-12 col-md-9 col-lg-10 p-3 p-lg-5">
+
+            <div class="d-flex flex-wrap justify-content-between align-items-center gap-3 mb-4 pb-4 border-bottom">
+                <div>
+                    <h2 class="fw-bold mb-2">
+                        <?= $edit_id > 0 ? 'Edit Wali Kelas' : 'Tambah Wali Kelas'; ?>
+                    </h2>
+
+                    <p class="text-secondary mb-0">
+                        Silakan isi formulir wali kelas dengan lengkap.
+                    </p>
                 </div>
             </div>
 
-        </div>
+            <!-- PESAN ERROR -->
+            <?php if ($error !== ''): ?>
+                <div class="alert alert-danger alert-dismissible fade show" role="alert">
+                    <?= htmlspecialchars($error, ENT_QUOTES, 'UTF-8'); ?>
+                    <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Tutup"></button>
+                </div>
+            <?php endif; ?>
+
+            <!-- FORMULIR -->
+            <div class="row justify-content-center">
+                <div class="col-12 col-xl-11">
+
+                    <div class="card border-0 shadow-sm rounded-3">
+
+                        <div class="card-header bg-white p-3">
+                            <h5 class="text-primary fw-bold mb-1">
+                                <?= $edit_id > 0 ? 'Formulir Edit Wali Kelas' : 'Formulir Wali Kelas'; ?>
+                            </h5>
+
+                            <small class="text-secondary">
+                                Isi informasi wali kelas pada kolom yang tersedia.
+                            </small>
+                        </div>
+
+                        <div class="card-body p-4">
+
+                            <form method="POST" action="">
+
+                                <input type="hidden" name="id" value="<?= $edit_id; ?>">
+
+                                <div class="row g-4">
+
+                                    <div class="col-12">
+                                        <label for="tahun_ajaran_id" class="form-label">
+                                            Tahun Ajaran <span class="text-danger">*</span>
+                                        </label>
+
+                                        <select name="tahun_ajaran_id"
+                                                id="tahun_ajaran_id"
+                                                class="form-select"
+                                                required>
+
+                                            <option value="">-- Pilih Tahun Ajaran --</option>
+
+                                            <?php while ($row = mysqli_fetch_assoc($tahun)): ?>
+                                                <option
+                                                    value="<?= (int)$row['id']; ?>"
+                                                    <?= (int)$form['tahun_ajaran_id'] === (int)$row['id'] ? 'selected' : ''; ?>
+                                                >
+                                                    <?= htmlspecialchars($row['nama'], ENT_QUOTES, 'UTF-8'); ?>
+                                                </option>
+                                            <?php endwhile; ?>
+
+                                        </select>
+                                    </div>
+
+                                    <div class="col-12">
+                                        <label for="kelas_id" class="form-label">
+                                            Kelas <span class="text-danger">*</span>
+                                        </label>
+
+                                        <select name="kelas_id"
+                                                id="kelas_id"
+                                                class="form-select"
+                                                required>
+
+                                            <option value="">-- Pilih Kelas --</option>
+
+                                            <?php while ($row = mysqli_fetch_assoc($kelas)): ?>
+                                                <option
+                                                    value="<?= (int)$row['id']; ?>"
+                                                    <?= (int)$form['kelas_id'] === (int)$row['id'] ? 'selected' : ''; ?>
+                                                >
+                                                    <?= htmlspecialchars($row['nama'], ENT_QUOTES, 'UTF-8'); ?>
+                                                </option>
+                                            <?php endwhile; ?>
+
+                                        </select>
+                                    </div>
+
+                                    <div class="col-12">
+                                        <label for="guru_id" class="form-label">
+                                            Nama Guru <span class="text-danger">*</span>
+                                        </label>
+
+                                        <select name="guru_id"
+                                                id="guru_id"
+                                                class="form-select"
+                                                required>
+
+                                            <option value="">-- Pilih Guru --</option>
+
+                                            <?php while ($row = mysqli_fetch_assoc($guru)): ?>
+                                                <option
+                                                    value="<?= (int)$row['id']; ?>"
+                                                    <?= (int)$form['guru_id'] === (int)$row['id'] ? 'selected' : ''; ?>
+                                                >
+                                                    <?= htmlspecialchars($row['nip'], ENT_QUOTES, 'UTF-8'); ?> -
+                                                    <?= htmlspecialchars($row['nama'], ENT_QUOTES, 'UTF-8'); ?>
+                                                </option>
+                                            <?php endwhile; ?>
+
+                                        </select>
+                                    </div>
+
+                                    <div class="col-12">
+                                        <label for="tanggal_mulai" class="form-label">
+                                            Tanggal Mulai <span class="text-danger">*</span>
+                                        </label>
+
+                                        <input
+                                            type="date"
+                                            name="tanggal_mulai"
+                                            id="tanggal_mulai"
+                                            class="form-control"
+                                            value="<?= htmlspecialchars($form['tanggal_mulai'], ENT_QUOTES, 'UTF-8'); ?>"
+                                            required
+                                        >
+                                    </div>
+
+                                    <div class="col-12">
+                                        <label for="tanggal_selesai" class="form-label">
+                                            Tanggal Selesai <span class="text-danger">*</span>
+                                        </label>
+
+                                        <input
+                                            type="date"
+                                            name="tanggal_selesai"
+                                            id="tanggal_selesai"
+                                            class="form-control"
+                                            value="<?= htmlspecialchars($form['tanggal_selesai'], ENT_QUOTES, 'UTF-8'); ?>"
+                                            required
+                                        >
+                                    </div>
+
+                                    <div class="col-12">
+                                        <label for="status_aktif" class="form-label">
+                                            Status <span class="text-danger">*</span>
+                                        </label>
+
+                                        <select name="status_aktif"
+                                                id="status_aktif"
+                                                class="form-select"
+                                                required>
+
+                                            <option value="1"
+                                                <?= (int)$form['status_aktif'] === 1 ? 'selected' : ''; ?>>
+                                                Aktif
+                                            </option>
+
+                                            <option value="0"
+                                                <?= (int)$form['status_aktif'] === 0 ? 'selected' : ''; ?>>
+                                                Tidak Aktif
+                                            </option>
+
+                                        </select>
+                                    </div>
+
+                                </div>
+
+                                <hr class="my-4">
+
+                                <div class="d-flex justify-content-end gap-2">
+                                    <a href="wali_kelas.php" class="btn btn-secondary">
+                                        Batal
+                                    </a>
+
+                                    <button type="submit" class="btn btn-primary">
+                                        <?= $edit_id > 0 ? 'Simpan Perubahan' : 'Simpan Wali Kelas'; ?>
+                                    </button>
+                                </div>
+
+                                <p class="text-secondary small mt-3 mb-0">
+                                    <span class="text-danger">*</span>
+                                    Kolom bertanda bintang wajib diisi.
+                                </p>
+
+                            </form>
+
+                        </div>
+                    </div>
+
+                </div>
+            </div>
+
+            <div class="text-secondary small mt-5 pt-3 border-top">
+                Sistem Informasi Pelanggaran Siswa
+            </div>
+
+        </main>
+
     </div>
 </div>
+
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
 
 </body>
 </html>

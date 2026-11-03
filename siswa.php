@@ -180,13 +180,13 @@ $nama = htmlspecialchars(
     <link href="https://cdn.datatables.net/2.3.4/css/dataTables.bootstrap5.min.css" rel="stylesheet">
 </head>
 
-<body class="bg-light">
+<body class="bg-light overflow-hidden">
 
-<div class="container-fluid">
-    <div class="row">
+<div class="container-fluid vh-100 overflow-hidden">
+    <div class="row h-100 flex-nowrap">
 
         <!-- SIDEBAR -->
-        <aside class="col-12 col-md-3 col-lg-2 bg-dark min-vh-100 p-3">
+        <aside class="col-12 col-md-3 col-lg-2 bg-dark vh-100 overflow-auto position-sticky top-0 p-3">
 
             <div class="text-white mb-4 pt-3 pb-3 border-bottom border-secondary">
                 <h5 class="fw-bold mb-2">
@@ -278,7 +278,7 @@ $nama = htmlspecialchars(
         </aside>
 
         <!-- KONTEN DATA SISWA -->
-        <main class="col-12 col-md-9 col-lg-10 p-3 p-lg-5">
+        <main class="col-12 col-md-9 col-lg-10 vh-100 overflow-auto p-3 p-lg-5">
 
             <!-- JUDUL HALAMAN -->
             <div class="d-flex flex-wrap justify-content-between align-items-center gap-3 mb-4 pb-4 border-bottom">
@@ -292,6 +292,10 @@ $nama = htmlspecialchars(
                             ? 'Silakan perbarui data siswa dengan lengkap.'
                             : 'Kelola data siswa pada Sistem Informasi Pelanggaran Siswa.'; ?>
                     </p>
+
+                    <a href="dashboard.php" class="btn btn-secondary btn-sm">
+                        Kembali ke Dashboard
+                    </a>
                 </div>
 
                 <?php if ($dataEdit === null): ?>
