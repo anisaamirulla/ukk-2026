@@ -1,11 +1,11 @@
 -- phpMyAdmin SQL Dump
--- version 5.2.1
+-- version 5.2.0
 -- https://www.phpmyadmin.net/
 --
 -- Host: 127.0.0.1
--- Waktu pembuatan: 23 Okt 2026 pada 10.02
--- Versi server: 10.4.32-MariaDB
--- Versi PHP: 8.0.30
+-- Waktu pembuatan: 04 Nov 2026 pada 06.23
+-- Versi server: 10.4.25-MariaDB
+-- Versi PHP: 8.0.23
 
 SET SQL_MODE = "NO_AUTO_VALUE_ON_ZERO";
 START TRANSACTION;
@@ -36,7 +36,7 @@ CREATE TABLE `t_guru` (
   `user_id` int(11) NOT NULL,
   `created_at` timestamp NULL DEFAULT current_timestamp(),
   `updated_at` timestamp NULL DEFAULT current_timestamp()
-) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
 
 --
 -- Dumping data untuk tabel `t_guru`
@@ -83,19 +83,18 @@ INSERT INTO `t_guru` (`id`, `nip`, `nama`, `email`, `status_aktif`, `user_id`, `
 (38, 'NIP00038', 'Fajar Hidayat', 'guru38@ukk2026.sch.id', 1, 38, '2026-09-23 02:31:55', '2026-09-23 02:31:55'),
 (39, 'NIP00039', 'Nia Lestari', 'guru39@ukk2026.sch.id', 1, 39, '2026-09-23 02:31:55', '2026-09-23 02:31:55'),
 (40, 'NIP00040', 'Budi Hartono', 'guru40@ukk2026.sch.id', 1, 40, '2026-09-23 02:31:55', '2026-09-23 02:31:55'),
-(41, 'NIP00041', 'Ari Sandriana', 'guru41@ukk2026.sch.id', 1, 41, '2026-09-23 02:31:55', '2026-09-23 02:31:55'),
-(42, 'NIP00042', 'Aldi Maulana', 'guru42@ukk2026.sch.id', 1, 42, '2026-09-23 02:31:55', '2026-09-23 02:31:55'),
-(43, 'NIP00043', 'Ansor Muhajir', 'guru43@ukk2026.sch.id', 1, 43, '2026-09-23 02:31:55', '2026-09-23 02:31:55'),
 (44, 'NIP00044', 'Deni Setiawan', 'guru44@ukk2026.sch.id', 1, 44, '2026-09-23 02:31:55', '2026-09-23 02:31:55'),
 (45, 'NIP00045', 'Rina Marlina', 'guru45@ukk2026.sch.id', 1, 45, '2026-09-23 02:31:55', '2026-09-23 02:31:55'),
 (46, 'NIP00046', 'Yudi Kurnia', 'guru46@ukk2026.sch.id', 1, 46, '2026-09-23 02:31:55', '2026-09-23 02:31:55'),
 (47, 'NIP00047', 'Siti Rahma', 'guru47@ukk2026.sch.id', 1, 47, '2026-09-23 02:31:55', '2026-09-23 02:31:55'),
 (48, 'NIP00048', 'Fajar Hidayat', 'guru48@ukk2026.sch.id', 1, 48, '2026-09-23 02:31:55', '2026-09-23 02:31:55'),
 (49, 'NIP00049', 'Nia Lestari', 'guru49@ukk2026.sch.id', 1, 49, '2026-09-23 02:31:55', '2026-09-23 02:31:55'),
-(50, 'NIP00050', 'Budi Hartono', 'guru50@ukk2026.sch.id', 1, 50, '2026-09-23 02:31:55', '2026-09-23 02:31:55'),
 (52, '976568586575786896', 'Yati Nur', 'yati@gmail.com', 1, 52, '2026-10-23 06:48:58', '2026-10-23 06:48:58'),
 (53, '232436547698809809', 'Yanti', 'yanti@gmail.com', 1, 53, '2026-10-23 06:49:58', '2026-10-23 06:49:58'),
-(54, '024264635078709734', 'Asep', 'asep@gmail.com', 1, 54, '2026-10-23 06:55:06', '2026-10-23 06:55:06');
+(54, '024264635078709734', 'Asep', 'asep@gmail.com', 1, 54, '2026-10-23 06:55:06', '2026-10-23 06:55:06'),
+(55, '000313695221966226', 'Aji Makbur', 'aji@gmail.com', 1, 55, '2026-11-04 02:09:21', '2026-11-04 02:09:21'),
+(56, '458834748124526184', 'Budi Bareto', 'budibaheula@gmail.com', 1, 56, '2026-11-04 02:20:57', '2026-11-04 02:20:57'),
+(57, '021654978265020545', 'Asih Raya', 'asihraya@gmail.com', 1, 57, '2026-11-04 02:33:58', '2026-11-04 02:33:58');
 
 -- --------------------------------------------------------
 
@@ -111,7 +110,7 @@ CREATE TABLE `t_kelas` (
   `status_aktif` tinyint(1) NOT NULL,
   `created_at` timestamp NULL DEFAULT current_timestamp(),
   `updated_at` timestamp NULL DEFAULT current_timestamp()
-) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
 
 --
 -- Dumping data untuk tabel `t_kelas`
@@ -186,7 +185,7 @@ CREATE TABLE `t_kelas_siswa` (
   `status_aktif` tinyint(1) NOT NULL,
   `created_at` timestamp NOT NULL DEFAULT current_timestamp(),
   `updated_at` timestamp NOT NULL DEFAULT current_timestamp()
-) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
 
 --
 -- Dumping data untuk tabel `t_kelas_siswa`
@@ -258,7 +257,7 @@ CREATE TABLE `t_pelanggaran` (
   `status_aktif` tinyint(1) NOT NULL,
   `created_at` timestamp NOT NULL DEFAULT current_timestamp(),
   `updated_at` timestamp NOT NULL DEFAULT current_timestamp()
-) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
 
 --
 -- Dumping data untuk tabel `t_pelanggaran`
@@ -329,7 +328,7 @@ CREATE TABLE `t_pelanggaran_kategori` (
   `status_aktif` tinyint(1) NOT NULL,
   `created_at` timestamp NOT NULL DEFAULT current_timestamp(),
   `updated_at` timestamp NOT NULL DEFAULT current_timestamp()
-) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
 
 --
 -- Dumping data untuk tabel `t_pelanggaran_kategori`
@@ -412,7 +411,7 @@ CREATE TABLE `t_pelanggaran_siswa` (
   `status` varchar(30) NOT NULL,
   `created_at` timestamp NOT NULL DEFAULT current_timestamp(),
   `updated_at` timestamp NOT NULL DEFAULT current_timestamp()
-) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
 
 --
 -- Dumping data untuk tabel `t_pelanggaran_siswa`
@@ -456,8 +455,9 @@ INSERT INTO `t_pelanggaran_siswa` (`id`, `tahun_ajaran_id`, `siswa_id`, `nama_si
 (45, 5, 45, 'Putra Wijaya', 5, 'XI TBSM 1', 95, 'Tidak mengikuti kegiatan wajib', 5, 5, 'Rina Marlina', '2026-09-15', 'Tidak mengikuti kegiatan wajib', 5, 'Peringatan', 'Belum Diproses', '2026-09-23 04:32:46', '2026-09-23 04:32:46'),
 (47, 2, 47, 'Rizky Firmansyah', 2, 'XI TKJ 1', 97, 'Tidak mengerjakan tugas', 2, 2, 'Aldi Maulana', '2026-09-17', 'Tidak mengerjakan tugas', 4, 'Tugas Tambahan', 'Diproses', '2026-09-23 04:32:46', '2026-09-23 04:32:46'),
 (48, 3, 48, 'Siti Rahma', 3, 'XII AKL 1', 98, 'Tidak mengikuti kegiatan', 3, 3, 'Ansor Muhajir', '2026-09-18', 'Tidak mengikuti kegiatan sekolah', 5, 'Peringatan', 'Selesai', '2026-09-23 04:32:46', '2026-09-23 04:32:46'),
-(49, 4, 49, 'Tio Prasetyo', 4, 'X MPLB 1', 99, 'Rambut tidak sesuai aturan', 4, 4, 'Deni Setiawan', '2026-09-19', 'Rambut tidak sesuai aturan', 6, 'Pembinaan', 'Diproses', '2026-09-23 04:32:46', '2026-09-23 04:32:46'),
-(50, 5, 50, 'Ulfa Nabila', 5, 'XI TBSM 1', 100, 'Tidak menjaga ketertiban', 5, 5, 'Rina Marlina', '2026-09-20', 'Tidak menjaga ketertiban', 5, 'Peringatan', 'Selesai', '2026-09-23 04:32:46', '2026-09-23 04:32:46');
+(49, 4, 49, 'Tio Prasetyo', 4, 'X MPLB 1', 99, 'Rambut tidak sesuai aturan', 4, 4, 'Deni Setiawan', '2026-09-19', 'Rambut tidak sesuai aturan', 6, 'Pembinaan', 'Selesai', '2026-09-23 04:32:46', '2026-09-23 04:32:46'),
+(50, 5, 50, 'Ulfa Nabila', 5, 'XI TBSM 1', 100, 'Tidak menjaga ketertiban', 5, 5, 'Rina Marlina', '2026-09-20', 'Tidak menjaga ketertiban', 5, 'Peringatan', 'Selesai', '2026-09-23 04:32:46', '2026-09-23 04:32:46'),
+(51, 3, 3, 'Amelia Khusuma', 3, 'X RPL 3', 63, 'Atribut tidak lengkap', 13, 55, 'Aji Makbur', '2026-11-04', 'tidak menggunakan atribut lengkap', 3, 'poin di potong', 'Selesai', '2026-11-04 03:59:34', '2026-11-04 03:59:34');
 
 -- --------------------------------------------------------
 
@@ -476,16 +476,16 @@ CREATE TABLE `t_siswa` (
   `status_aktif` tinyint(1) NOT NULL,
   `created_at` timestamp NULL DEFAULT current_timestamp(),
   `updated_at` timestamp NULL DEFAULT current_timestamp()
-) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
 
 --
 -- Dumping data untuk tabel `t_siswa`
 --
 
 INSERT INTO `t_siswa` (`id`, `nis`, `nisn`, `nama`, `jenis_kelamin`, `tanggal_lahir`, `alamat`, `status_aktif`, `created_at`, `updated_at`) VALUES
-(3, '8787680097', '0198362435', 'Amelia Khusuma', 'L', '2008-03-09', 'Jl. Pendidikan No. 3, Tasikmalaya', 0, '2026-09-23 02:32:16', '2026-09-23 02:32:16'),
-(4, 'NIP00004', 'NISN0000000004', 'Aulia Lestari', 'P', '2007-04-12', 'Jl. Pendidikan No. 4, Tasikmalaya', 1, '2026-09-23 02:32:16', '2026-09-23 02:32:16'),
-(5, 'NIP00005', 'NISN0000000005', 'Azka Pratama', 'L', '2008-05-15', 'Jl. Pendidikan No. 5, Tasikmalaya', 1, '2026-09-23 02:32:16', '2026-09-23 02:32:16'),
+(3, '8787680097', '0198362435', 'Adittia Nur Latip', 'L', '2008-03-09', 'Jl. Pendidikan No. 3, Tasikmalaya', 0, '2026-09-23 02:32:16', '2026-09-23 02:32:16'),
+(4, 'NIP00004', 'NISN0000000004', 'Agnia Rosya Noerillah', 'P', '2007-04-12', 'Jl. Pendidikan No. 4, Tasikmalaya', 1, '2026-09-23 02:32:16', '2026-09-23 02:32:16'),
+(5, 'NIP00005', 'NISN0000000005', 'Anisa Amirulla', 'P', '2008-05-15', 'Jl. Pendidikan No. 5, Tasikmalaya', 1, '2026-09-23 02:32:16', '2026-09-23 02:32:16'),
 (6, 'NIP00006', 'NISN0000000006', 'Bagas Ramadhan', 'P', '2007-06-18', 'Jl. Pendidikan No. 6, Tasikmalaya', 1, '2026-09-23 02:32:16', '2026-09-23 02:32:16'),
 (7, 'NIP00007', 'NISN0000000007', 'Bima Santoso', 'L', '2008-07-21', 'Jl. Pendidikan No. 7, Tasikmalaya', 1, '2026-09-23 02:32:16', '2026-09-23 02:32:16'),
 (8, 'NIP00008', 'NISN0000000008', 'Citra Permata', 'P', '2007-08-24', 'Jl. Pendidikan No. 8, Tasikmalaya', 1, '2026-09-23 02:32:16', '2026-09-23 02:32:16'),
@@ -551,7 +551,7 @@ CREATE TABLE `t_tahun_ajaran` (
   `status_aktif` tinyint(1) NOT NULL,
   `created_at` timestamp NOT NULL DEFAULT current_timestamp(),
   `updated_at` timestamp NOT NULL DEFAULT current_timestamp()
-) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
 
 --
 -- Dumping data untuk tabel `t_tahun_ajaran`
@@ -607,7 +607,8 @@ INSERT INTO `t_tahun_ajaran` (`id`, `nama`, `tanggal_mulai`, `tanggal_selesai`, 
 (47, 'Tahun Ajaran 2024/20', '2024-07-01', '2025-06-30', 0, '2026-09-23 02:15:57', '2026-09-23 02:15:57'),
 (48, 'Tahun Ajaran 2025/20', '2025-07-01', '2026-06-30', 0, '2026-09-23 02:15:57', '2026-09-23 02:15:57'),
 (49, 'Tahun Ajaran 2026/20', '2026-07-01', '2027-06-30', 0, '2026-09-23 02:15:57', '2026-09-23 02:15:57'),
-(50, 'Tahun Ajaran 2027/20', '2027-07-01', '2028-06-30', 1, '2026-09-23 02:15:57', '2026-09-23 02:15:57');
+(50, 'Tahun Ajaran 2027/20', '2027-07-01', '2028-06-30', 0, '2026-09-23 02:15:57', '2026-09-23 02:15:57'),
+(51, '2026/2027', '2026-11-04', '2027-11-04', 1, '2026-11-04 01:15:43', '2026-11-04 01:15:43');
 
 -- --------------------------------------------------------
 
@@ -625,15 +626,15 @@ CREATE TABLE `t_user` (
   `role` varchar(255) NOT NULL,
   `created_at` timestamp NULL DEFAULT current_timestamp(),
   `updated_at` timestamp NULL DEFAULT current_timestamp()
-) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
 
 --
 -- Dumping data untuk tabel `t_user`
 --
 
 INSERT INTO `t_user` (`id`, `name`, `email`, `email_verifed_at`, `password`, `remember_token`, `role`, `created_at`, `updated_at`) VALUES
-(1, 'User 1', 'user1@ukk2026.sch.id', '2026-09-23 02:21:30', 'admin123', '', 'admin', '2026-09-23 02:21:30', '2026-09-23 02:21:30'),
-(2, 'User 2', 'user2@ukk2026.sch.id', '2026-09-23 02:21:30', 'guru123', '', 'guru', '2026-09-23 02:21:30', '2026-09-23 02:21:30'),
+(1, 'User 1', 'user1@ukk2026.sch.id', '2026-09-23 02:21:30', '$2y$10$RSAzj89SW4GdcivVlTC3De03/cMZy.ZHm.uNqpps5iOQO9BoeRSYO', '', 'admin', '2026-09-23 02:21:30', '2026-09-23 02:21:30'),
+(2, 'User 2', 'user2@ukk2026.sch.id', '2026-09-23 02:21:30', '$2y$10$J2srBXqTIYg6I4Anqhnod.4wTqySVGj./3IcHNvowpxyVxPszaw5W', '', 'guru', '2026-09-23 02:21:30', '2026-09-23 02:21:30'),
 (3, 'User 3', 'user3@ukk2026.sch.id', '2026-09-23 02:21:30', '$2y$10$abcdefghijklmnopqrstuuABCDEFGHIJKLMNO1234567890', '', 'guru', '2026-09-23 02:21:30', '2026-09-23 02:21:30'),
 (4, 'User 4', 'user4@ukk2026.sch.id', '2026-09-23 02:21:30', '$2y$10$abcdefghijklmnopqrstuuABCDEFGHIJKLMNO1234567890', '', 'guru', '2026-09-23 02:21:30', '2026-09-23 02:21:30'),
 (5, 'User 5', 'user5@ukk2026.sch.id', '2026-09-23 02:21:30', '$2y$10$abcdefghijklmnopqrstuuABCDEFGHIJKLMNO1234567890', '', 'guru', '2026-09-23 02:21:30', '2026-09-23 02:21:30'),
@@ -681,11 +682,14 @@ INSERT INTO `t_user` (`id`, `name`, `email`, `email_verifed_at`, `password`, `re
 (47, 'User 47', 'user47@ukk2026.sch.id', '2026-09-23 02:21:30', '$2y$10$abcdefghijklmnopqrstuuABCDEFGHIJKLMNO1234567890', '', 'petugas', '2026-09-23 02:21:30', '2026-09-23 02:21:30'),
 (48, 'User 48', 'user48@ukk2026.sch.id', '2026-09-23 02:21:30', '$2y$10$abcdefghijklmnopqrstuuABCDEFGHIJKLMNO1234567890', '', 'petugas', '2026-09-23 02:21:30', '2026-09-23 02:21:30'),
 (49, 'User 49', 'user49@ukk2026.sch.id', '2026-09-23 02:21:30', '$2y$10$abcdefghijklmnopqrstuuABCDEFGHIJKLMNO1234567890', '', 'petugas', '2026-09-23 02:21:30', '2026-09-23 02:21:30'),
-(50, 'User 50', 'user50@ukk2026.sch.id', '2026-09-23 02:21:30', '$2y$10$abcdefghijklmnopqrstuuABCDEFGHIJKLMNO1234567890', '', 'petugas', '2026-09-23 02:21:30', '2026-09-23 02:21:30'),
+(50, 'Budi Hartono', 'guru50@ukk2026.sch.id', '2026-09-23 02:21:30', '$2y$10$abcdefghijklmnopqrstuuABCDEFGHIJKLMNO1234567890', '', 'petugas', '2026-09-23 02:21:30', '2026-09-23 02:21:30'),
 (51, 'Asih Permata', 'asih@gmail.com', '2026-10-23 05:38:18', '$2y$10$7wP1.7yYItzyzxAIIDBgo.GBXEP9e5CboIsfiKoNTjyRV6O9gkqqO', '', 'guru', '2026-10-23 05:38:18', '2026-10-23 05:38:18'),
 (52, 'Yati Nur', 'yati@gmail.com', '2026-10-23 06:48:58', '$2y$10$Z8xX41jg5lBy7TeQHm37tOB3Kuy0W0zGpNQK/ElrbAEQ1lhSMDCXK', '', 'guru', '2026-10-23 06:48:58', '2026-10-23 06:48:58'),
 (53, 'Yanti', 'yanti@gmail.com', '2026-10-23 06:49:58', '$2y$10$GgIqnfLPAP5BgWnQb68clecuKcMijZNft/kfYIsJBJ48VXF0Sk/1u', '', 'guru', '2026-10-23 06:49:58', '2026-10-23 06:49:58'),
-(54, 'Asep', 'asep@gmail.com', '2026-10-23 06:55:06', '$2y$10$.9z9TAEKR1fbVQXT0/lE7uWpax3PE3oLO3u4Zx6qmt1bKF2jC.tui', '', 'guru', '2026-10-23 06:55:06', '2026-10-23 06:55:06');
+(54, 'Asep', 'asep@gmail.com', '2026-10-23 06:55:06', '$2y$10$.9z9TAEKR1fbVQXT0/lE7uWpax3PE3oLO3u4Zx6qmt1bKF2jC.tui', '', 'guru', '2026-10-23 06:55:06', '2026-10-23 06:55:06'),
+(55, 'Aji Makbur', 'aji@gmail.com', '2026-11-04 02:09:21', 'aji123456', '', 'guru', '2026-11-04 02:09:21', '2026-11-04 02:09:21'),
+(56, 'Budi Bareto', 'budibaheula@gmail.com', '2026-11-04 02:20:57', '$2y$10$Ch.REePFXvIe5YlIHQRLzeSMtiAQoahhHQHBG8Ca5Y0L4fhRkJsda', '', 'guru', '2026-11-04 02:20:57', '2026-11-04 02:20:57'),
+(57, 'Asih Raya', 'asihraya@gmail.com', '2026-11-04 02:33:58', '$2y$10$pZsY6TDE5ghyd2NdSAsV.uRy/upaaqqosHK2wT22wwJFcsIVJUBl.', '', 'guru', '2026-11-04 02:33:58', '2026-11-04 02:33:58');
 
 -- --------------------------------------------------------
 
@@ -703,7 +707,7 @@ CREATE TABLE `t_wali_kelas` (
   `status_aktif` tinyint(1) NOT NULL,
   `created_at` timestamp NULL DEFAULT current_timestamp(),
   `updated_at` timestamp NULL DEFAULT current_timestamp()
-) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
 
 --
 -- Dumping data untuk tabel `t_wali_kelas`
@@ -714,8 +718,8 @@ INSERT INTO `t_wali_kelas` (`id`, `tahun_ajaran_id`, `kelas_id`, `guru_id`, `tan
 (3, 3, 3, 3, '2026-07-01', '2027-06-30', 1, '2026-09-23 04:19:18', '2026-09-23 04:19:18'),
 (4, 4, 4, 4, '2026-07-01', '2027-06-30', 1, '2026-09-23 04:19:18', '2026-09-23 04:19:18'),
 (5, 5, 5, 5, '2026-07-01', '2027-06-30', 1, '2026-09-23 04:19:18', '2026-09-23 04:19:18'),
-(6, 6, 6, 6, '2026-07-01', '2027-06-30', 1, '2026-09-23 04:19:18', '2026-09-23 04:19:18'),
-(7, 7, 7, 7, '2026-07-01', '2027-06-30', 1, '2026-09-23 04:19:18', '2026-09-23 04:19:18'),
+(6, 6, 6, 6, '2026-07-01', '2027-06-30', 0, '2026-09-23 04:19:18', '2026-09-23 04:19:18'),
+(7, 7, 7, 7, '2026-07-01', '2027-06-30', 0, '2026-09-23 04:19:18', '2026-09-23 04:19:18'),
 (8, 8, 8, 8, '2026-07-01', '2027-06-30', 1, '2026-09-23 04:19:18', '2026-09-23 04:19:18'),
 (9, 9, 9, 9, '2026-07-01', '2027-06-30', 1, '2026-09-23 04:19:18', '2026-09-23 04:19:18'),
 (10, 10, 10, 10, '2026-07-01', '2027-06-30', 1, '2026-09-23 04:19:18', '2026-09-23 04:19:18'),
@@ -741,24 +745,21 @@ INSERT INTO `t_wali_kelas` (`id`, `tahun_ajaran_id`, `kelas_id`, `guru_id`, `tan
 (30, 30, 30, 30, '2026-07-01', '2027-06-30', 1, '2026-09-23 04:19:18', '2026-09-23 04:19:18'),
 (31, 31, 31, 31, '2026-07-01', '2027-06-30', 1, '2026-09-23 04:19:18', '2026-09-23 04:19:18'),
 (32, 32, 32, 32, '2026-07-01', '2027-06-30', 1, '2026-09-23 04:19:18', '2026-09-23 04:19:18'),
-(33, 33, 33, 33, '2026-07-01', '2027-06-30', 1, '2026-09-23 04:19:18', '2026-09-23 04:19:18'),
 (34, 34, 34, 34, '2026-07-01', '2027-06-30', 1, '2026-09-23 04:19:18', '2026-09-23 04:19:18'),
 (35, 35, 35, 35, '2026-07-01', '2027-06-30', 1, '2026-09-23 04:19:18', '2026-09-23 04:19:18'),
 (36, 36, 36, 36, '2026-07-01', '2027-06-30', 1, '2026-09-23 04:19:18', '2026-09-23 04:19:18'),
 (37, 37, 37, 37, '2026-07-01', '2027-06-30', 1, '2026-09-23 04:19:18', '2026-09-23 04:19:18'),
 (38, 38, 38, 38, '2026-07-01', '2027-06-30', 1, '2026-09-23 04:19:18', '2026-09-23 04:19:18'),
 (39, 39, 39, 39, '2026-07-01', '2027-06-30', 1, '2026-09-23 04:19:18', '2026-09-23 04:19:18'),
-(40, 40, 40, 40, '2026-07-01', '2027-06-30', 1, '2026-09-23 04:19:18', '2026-09-23 04:19:18'),
-(41, 41, 41, 41, '2026-07-01', '2027-06-30', 1, '2026-09-23 04:19:18', '2026-09-23 04:19:18'),
-(42, 42, 42, 42, '2026-07-01', '2027-06-30', 1, '2026-09-23 04:19:18', '2026-09-23 04:19:18'),
-(43, 43, 43, 43, '2026-07-01', '2027-06-30', 1, '2026-09-23 04:19:18', '2026-09-23 04:19:18'),
 (44, 44, 44, 44, '2026-07-01', '2027-06-30', 1, '2026-09-23 04:19:18', '2026-09-23 04:19:18'),
 (45, 45, 45, 45, '2026-07-01', '2027-06-30', 1, '2026-09-23 04:19:18', '2026-09-23 04:19:18'),
 (46, 46, 46, 46, '2026-07-01', '2027-06-30', 1, '2026-09-23 04:19:18', '2026-09-23 04:19:18'),
 (47, 47, 47, 47, '2026-07-01', '2027-06-30', 1, '2026-09-23 04:19:18', '2026-09-23 04:19:18'),
 (48, 48, 48, 48, '2026-07-01', '2027-06-30', 1, '2026-09-23 04:19:18', '2026-09-23 04:19:18'),
 (49, 49, 49, 49, '2026-07-01', '2027-06-30', 1, '2026-09-23 04:19:18', '2026-09-23 04:19:18'),
-(50, 50, 50, 50, '2026-07-01', '2027-06-30', 1, '2026-09-23 04:19:18', '2026-09-23 04:19:18');
+(51, 51, 35, 33, '2026-11-04', '2029-11-04', 1, '2026-11-04 01:41:31', '2026-11-04 01:41:31'),
+(52, 51, 2, 52, '2026-11-04', '2027-11-04', 1, '2026-11-04 02:04:50', '2026-11-04 02:04:50'),
+(53, 51, 19, 55, '2026-11-04', '2027-11-04', 1, '2026-11-04 02:10:58', '2026-11-04 02:10:58');
 
 --
 -- Indexes for dumped tables
@@ -846,7 +847,7 @@ ALTER TABLE `t_wali_kelas`
 -- AUTO_INCREMENT untuk tabel `t_guru`
 --
 ALTER TABLE `t_guru`
-  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=55;
+  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=58;
 
 --
 -- AUTO_INCREMENT untuk tabel `t_kelas`
@@ -876,7 +877,7 @@ ALTER TABLE `t_pelanggaran_kategori`
 -- AUTO_INCREMENT untuk tabel `t_pelanggaran_siswa`
 --
 ALTER TABLE `t_pelanggaran_siswa`
-  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=51;
+  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=52;
 
 --
 -- AUTO_INCREMENT untuk tabel `t_siswa`
@@ -888,19 +889,19 @@ ALTER TABLE `t_siswa`
 -- AUTO_INCREMENT untuk tabel `t_tahun_ajaran`
 --
 ALTER TABLE `t_tahun_ajaran`
-  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=51;
+  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=52;
 
 --
 -- AUTO_INCREMENT untuk tabel `t_user`
 --
 ALTER TABLE `t_user`
-  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=55;
+  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=58;
 
 --
 -- AUTO_INCREMENT untuk tabel `t_wali_kelas`
 --
 ALTER TABLE `t_wali_kelas`
-  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=51;
+  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=54;
 
 --
 -- Ketidakleluasaan untuk tabel pelimpahan (Dumped Tables)

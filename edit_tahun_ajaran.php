@@ -1,4 +1,3 @@
-
 <?php
 session_start();
 
@@ -153,13 +152,13 @@ if (isset($_POST['simpan'])) {
     >
 </head>
 
-<body class="bg-light">
+<body class="bg-light overflow-hidden">
 
-<div class="container-fluid">
-    <div class="row">
+<div class="container-fluid vh-100 overflow-hidden">
+    <div class="row h-100 flex-nowrap">
 
         <!-- SIDEBAR -->
-        <aside class="col-12 col-md-3 col-lg-2 bg-dark min-vh-100 p-3">
+        <aside class="col-3 col-md-3 col-lg-2 bg-dark vh-100 overflow-auto p-3 flex-shrink-0">
 
             <div class="text-white mb-4 pt-3 pb-3 border-bottom border-secondary">
                 <h5 class="fw-bold mb-2">
@@ -281,7 +280,7 @@ if (isset($_POST['simpan'])) {
         </aside>
 
         <!-- KONTEN UTAMA -->
-        <main class="col-12 col-md-9 col-lg-10 p-3 p-lg-5">
+        <main class="col-9 col-md-9 col-lg-10 vh-100 overflow-auto p-3 p-lg-5">
 
             <!-- JUDUL HALAMAN -->
             <div class="mb-4 pb-3 border-bottom">

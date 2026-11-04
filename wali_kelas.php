@@ -23,19 +23,28 @@ function aman($nilai) {
 if (isset($_GET['hapus'])) {
     $id = (int)$_GET['hapus'];
 
+    if ($id <= 0) {
+        header("Location: wali_kelas.php?pesan=gagal_hapus");
+        exit;
+    }
+
     $stmt = mysqli_prepare(
         $koneksi,
         "DELETE FROM t_wali_kelas WHERE id = ?"
     );
 
     if (!$stmt) {
-        die("Gagal menyiapkan penghapusan: " . mysqli_error($koneksi));
+        header("Location: wali_kelas.php?pesan=gagal_hapus");
+        exit;
     }
 
     mysqli_stmt_bind_param($stmt, "i", $id);
-    mysqli_stmt_execute($stmt);
 
-    $berhasil = mysqli_stmt_affected_rows($stmt) > 0;
+    if (mysqli_stmt_execute($stmt)) {
+        $berhasil = mysqli_stmt_affected_rows($stmt) > 0;
+    } else {
+        $berhasil = false;
+    }
 
     mysqli_stmt_close($stmt);
 
@@ -99,13 +108,13 @@ $pesan_gagal = [
     <link href="https://cdn.datatables.net/2.3.4/css/dataTables.bootstrap5.min.css" rel="stylesheet">
 </head>
 
-<body class="bg-light">
+<body class="bg-light overflow-hidden">
 
-<div class="container-fluid">
-    <div class="row">
+<div class="container-fluid vh-100 overflow-hidden">
+    <div class="row h-100 flex-nowrap">
 
         <!-- SIDEBAR -->
-        <aside class="col-12 col-md-3 col-lg-2 bg-dark min-vh-100 p-3">
+        <aside class="col-3 col-md-3 col-lg-2 bg-dark vh-100 overflow-auto p-3 flex-shrink-0">
 
             <div class="text-white mb-4 pt-3 pb-3 border-bottom border-secondary">
 
@@ -229,7 +238,7 @@ $pesan_gagal = [
         </aside>
 
         <!-- KONTEN DATA WALI KELAS -->
-        <main class="col-12 col-md-9 col-lg-10 p-3 p-lg-5">
+        <main class="col-9 col-md-9 col-lg-10 vh-100 overflow-auto p-3 p-lg-5">
 
             <!-- JUDUL HALAMAN -->
             <div class="d-flex flex-wrap justify-content-between align-items-center gap-3 mb-4 pb-4 border-bottom">

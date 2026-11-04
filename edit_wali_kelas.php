@@ -97,36 +97,109 @@ if (isset($_POST['update'])) {
 
     } else {
 
-        $update = mysqli_prepare($koneksi, "
-            UPDATE t_wali_kelas
-            SET tahun_ajaran_id = ?, kelas_id = ?, guru_id = ?,
-                tanggal_mulai = ?, tanggal_selesai = ?, status_aktif = ?
-            WHERE id = ?
-        ");
+        /* CEK DUPLIKASI JIKA STATUS AKTIF */
+        if ($status === 1) {
 
-        if (!$update) {
-            $pesan = "Query update gagal: " . mysqli_error($koneksi);
-        } else {
-
-            mysqli_stmt_bind_param(
-                $update,
-                "iiissii",
-                $tahun_id,
-                $kelas_id,
-                $guru_id,
-                $mulai,
-                $selesai,
-                $status,
-                $id
+            /* Guru tidak boleh memiliki dua penugasan aktif */
+            $cek_guru = mysqli_prepare(
+                $koneksi,
+                "SELECT id FROM t_wali_kelas
+                 WHERE guru_id = ?
+                 AND status_aktif = 1
+                 AND id != ?
+                 LIMIT 1"
             );
 
-            if (mysqli_stmt_execute($update)) {
-                mysqli_stmt_close($update);
-                header("Location: wali_kelas.php?pesan=edit");
-                exit;
+            if (!$cek_guru) {
+                $pesan = "Gagal memeriksa data guru: " . mysqli_error($koneksi);
             } else {
-                $pesan = "Data wali kelas gagal diperbarui.";
-                mysqli_stmt_close($update);
+                mysqli_stmt_bind_param(
+                    $cek_guru,
+                    "ii",
+                    $guru_id,
+                    $id
+                );
+
+                mysqli_stmt_execute($cek_guru);
+                $hasil_guru = mysqli_stmt_get_result($cek_guru);
+
+                if (mysqli_num_rows($hasil_guru) > 0) {
+                    $pesan = "Guru tersebut masih menjadi wali kelas aktif di kelas lain. Silakan pilih guru yang berbeda.";
+                }
+
+                mysqli_stmt_close($cek_guru);
+            }
+
+            /* Satu kelas hanya boleh memiliki satu wali kelas aktif
+               pada tahun ajaran yang sama */
+            if ($pesan === '') {
+                $cek_kelas = mysqli_prepare(
+                    $koneksi,
+                    "SELECT id FROM t_wali_kelas
+                     WHERE tahun_ajaran_id = ?
+                     AND kelas_id = ?
+                     AND status_aktif = 1
+                     AND id != ?
+                     LIMIT 1"
+                );
+
+                if (!$cek_kelas) {
+                    $pesan = "Gagal memeriksa data kelas: " . mysqli_error($koneksi);
+                } else {
+                    mysqli_stmt_bind_param(
+                        $cek_kelas,
+                        "iii",
+                        $tahun_id,
+                        $kelas_id,
+                        $id
+                    );
+
+                    mysqli_stmt_execute($cek_kelas);
+                    $hasil_kelas = mysqli_stmt_get_result($cek_kelas);
+
+                    if (mysqli_num_rows($hasil_kelas) > 0) {
+                        $pesan = "Kelas tersebut sudah memiliki wali kelas aktif pada tahun ajaran ini.";
+                    }
+
+                    mysqli_stmt_close($cek_kelas);
+                }
+            }
+        }
+
+        /* UPDATE DATA JIKA TIDAK ADA DUPLIKASI */
+        if ($pesan === '') {
+
+            $update = mysqli_prepare($koneksi, "
+                UPDATE t_wali_kelas
+                SET tahun_ajaran_id = ?, kelas_id = ?, guru_id = ?,
+                    tanggal_mulai = ?, tanggal_selesai = ?, status_aktif = ?
+                WHERE id = ?
+            ");
+
+            if (!$update) {
+                $pesan = "Query update gagal: " . mysqli_error($koneksi);
+            } else {
+
+                mysqli_stmt_bind_param(
+                    $update,
+                    "iiissii",
+                    $tahun_id,
+                    $kelas_id,
+                    $guru_id,
+                    $mulai,
+                    $selesai,
+                    $status,
+                    $id
+                );
+
+                if (mysqli_stmt_execute($update)) {
+                    mysqli_stmt_close($update);
+                    header("Location: wali_kelas.php?pesan=edit");
+                    exit;
+                } else {
+                    $pesan = "Data wali kelas gagal diperbarui.";
+                    mysqli_stmt_close($update);
+                }
             }
         }
     }
@@ -142,6 +215,10 @@ if (isset($_POST['update'])) {
     $tahun_list = mysqli_query($koneksi, "SELECT id, nama FROM t_tahun_ajaran ORDER BY id DESC");
     $kelas_list = mysqli_query($koneksi, "SELECT id, nama FROM t_kelas ORDER BY nama ASC");
     $guru_list = mysqli_query($koneksi, "SELECT id, nip, nama FROM t_guru ORDER BY nama ASC");
+
+    if (!$tahun_list || !$kelas_list || !$guru_list) {
+        die("Gagal mengambil data referensi: " . mysqli_error($koneksi));
+    }
 }
 
 $menuAdmin = [
@@ -171,13 +248,13 @@ $menuAdmin = [
     <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.min.css" rel="stylesheet">
 </head>
 
-<body class="bg-light">
+<body class="bg-light overflow-hidden">
 
-<div class="container-fluid">
-    <div class="row">
+<div class="container-fluid vh-100 overflow-hidden">
+    <div class="row h-100 flex-nowrap">
 
         <!-- SIDEBAR -->
-        <aside class="col-12 col-md-3 col-lg-2 bg-dark min-vh-100 p-3">
+        <aside class="col-3 col-md-3 col-lg-2 bg-dark vh-100 overflow-auto p-3 flex-shrink-0">
 
             <div class="text-white mb-4 pt-3 pb-3 border-bottom border-secondary">
                 <h5 class="fw-bold mb-2">
@@ -235,7 +312,7 @@ $menuAdmin = [
         </aside>
 
         <!-- KONTEN EDIT WALI KELAS -->
-        <main class="col-12 col-md-9 col-lg-10 p-3 p-lg-5">
+        <main class="col-9 col-md-9 col-lg-10 vh-100 overflow-auto p-3 p-lg-5">
 
             <div class="d-flex flex-wrap justify-content-between align-items-center gap-3 mb-4 pb-4 border-bottom">
                 <div>

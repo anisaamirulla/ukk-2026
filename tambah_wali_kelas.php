@@ -29,7 +29,16 @@ $form = [
 /* Ambil pilihan dari database */
 $tahun = mysqli_query(
     $koneksi,
-    "SELECT id, nama FROM t_tahun_ajaran ORDER BY id DESC"
+    "SELECT id, nama
+     FROM t_tahun_ajaran
+     WHERE nama IN (
+         '2024/2025',
+         '2025/2026',
+         '2026/2027',
+         '2027/2028',
+         '2028/2029'
+     )
+     ORDER BY id ASC"
 );
 
 $kelas = mysqli_query(
@@ -54,6 +63,10 @@ if ($edit_id > 0) {
                 tanggal_mulai, tanggal_selesai, status_aktif
          FROM t_wali_kelas WHERE id = ?"
     );
+
+    if (!$stmt) {
+        die("Gagal mengambil data: " . mysqli_error($koneksi));
+    }
 
     mysqli_stmt_bind_param($stmt, "i", $edit_id);
     mysqli_stmt_execute($stmt);
@@ -97,13 +110,86 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         $tanggal_selesai === ''
     ) {
         $error = "Semua kolom wajib diisi.";
+
     } elseif ($tanggal_selesai < $tanggal_mulai) {
         $error = "Tanggal selesai tidak boleh sebelum tanggal mulai.";
+
     } elseif (!in_array($status_aktif, [0, 1], true)) {
         $error = "Status tidak valid.";
+
     } else {
 
-        if ($edit_id > 0) {
+        /* CEK DUPLIKASI JIKA STATUS AKTIF */
+        if ($status_aktif === 1) {
+
+            /* Guru tidak boleh memiliki dua penugasan aktif */
+            $cek_guru = mysqli_prepare(
+                $koneksi,
+                "SELECT id FROM t_wali_kelas
+                 WHERE guru_id = ?
+                 AND status_aktif = 1
+                 AND id != ?
+                 LIMIT 1"
+            );
+
+            if (!$cek_guru) {
+                $error = "Gagal memeriksa data guru: " . mysqli_error($koneksi);
+            } else {
+                mysqli_stmt_bind_param(
+                    $cek_guru,
+                    "ii",
+                    $guru_id,
+                    $edit_id
+                );
+
+                mysqli_stmt_execute($cek_guru);
+                $hasil_guru = mysqli_stmt_get_result($cek_guru);
+
+                if (mysqli_num_rows($hasil_guru) > 0) {
+                    $error = "Guru tersebut masih menjadi wali kelas aktif di kelas lain. Silakan pilih guru yang berbeda.";
+                }
+
+                mysqli_stmt_close($cek_guru);
+            }
+
+            /* Satu kelas hanya boleh memiliki satu wali kelas aktif
+               pada tahun ajaran yang sama */
+            if ($error === '') {
+                $cek_kelas = mysqli_prepare(
+                    $koneksi,
+                    "SELECT id FROM t_wali_kelas
+                     WHERE tahun_ajaran_id = ?
+                     AND kelas_id = ?
+                     AND status_aktif = 1
+                     AND id != ?
+                     LIMIT 1"
+                );
+
+                if (!$cek_kelas) {
+                    $error = "Gagal memeriksa data kelas: " . mysqli_error($koneksi);
+                } else {
+                    mysqli_stmt_bind_param(
+                        $cek_kelas,
+                        "iii",
+                        $tahun_ajaran_id,
+                        $kelas_id,
+                        $edit_id
+                    );
+
+                    mysqli_stmt_execute($cek_kelas);
+                    $hasil_kelas = mysqli_stmt_get_result($cek_kelas);
+
+                    if (mysqli_num_rows($hasil_kelas) > 0) {
+                        $error = "Kelas tersebut sudah memiliki wali kelas aktif pada tahun ajaran ini.";
+                    }
+
+                    mysqli_stmt_close($cek_kelas);
+                }
+            }
+        }
+
+        /* UPDATE DATA */
+        if ($error === '' && $edit_id > 0) {
             $stmt = mysqli_prepare(
                 $koneksi,
                 "UPDATE t_wali_kelas
@@ -133,7 +219,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
 
                 if (mysqli_stmt_execute($stmt)) {
                     mysqli_stmt_close($stmt);
-                    header("Location: wali_kelas.php?pesan=berhasil");
+                    header("Location: wali_kelas.php?pesan=edit");
                     exit;
                 }
 
@@ -141,7 +227,8 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                 mysqli_stmt_close($stmt);
             }
 
-        } else {
+        /* TAMBAH DATA */
+        } elseif ($error === '' && $edit_id === 0) {
             $stmt = mysqli_prepare(
                 $koneksi,
                 "INSERT INTO t_wali_kelas
@@ -205,13 +292,13 @@ $menuAdmin = [
     <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.min.css" rel="stylesheet">
 </head>
 
-<body class="bg-light">
+<body class="bg-light overflow-hidden">
 
-<div class="container-fluid">
-    <div class="row">
+<div class="container-fluid vh-100 overflow-hidden">
+    <div class="row h-100 flex-nowrap">
 
         <!-- SIDEBAR -->
-        <aside class="col-12 col-md-3 col-lg-2 bg-dark min-vh-100 p-3">
+        <aside class="col-3 col-md-3 col-lg-2 bg-dark vh-100 overflow-auto p-3 flex-shrink-0">
 
             <div class="text-white mb-4 pt-3 pb-3 border-bottom border-secondary">
                 <h5 class="fw-bold mb-2">
@@ -266,7 +353,7 @@ $menuAdmin = [
         </aside>
 
         <!-- KONTEN WALI KELAS -->
-        <main class="col-12 col-md-9 col-lg-10 p-3 p-lg-5">
+        <main class="col-9 col-md-9 col-lg-10 vh-100 overflow-auto p-3 p-lg-5">
 
             <div class="d-flex flex-wrap justify-content-between align-items-center gap-3 mb-4 pb-4 border-bottom">
                 <div>

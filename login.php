@@ -12,45 +12,105 @@ $error = "";
 
 if ($_SERVER["REQUEST_METHOD"] == "POST") {
 
-    $email = mysqli_real_escape_string(
-        $koneksi,
-        trim($_POST['email'] ?? '')
-    );
-
+    $email = trim($_POST['email'] ?? '');
     $password = $_POST['password'] ?? '';
 
-    $query = mysqli_query(
-        $koneksi,
-        "SELECT * FROM t_user WHERE email='$email'"
-    );
+    if ($email === '' || $password === '') {
 
-    if (!$query) {
-        die("ERROR QUERY: " . mysqli_error($koneksi));
-    }
-
-    $data = mysqli_fetch_assoc($query);
-
-    if ($data) {
-
-        if ($password == $data['password']) {
-
-            $_SESSION['id'] = $data['id'];
-            $_SESSION['name'] = $data['name'];
-            $_SESSION['role'] = $data['role'];
-
-            header("Location: dashboard.php");
-            exit;
-
-        } else {
-
-            $error = "Password salah!";
-
-        }
+        $error = "Email dan password wajib diisi!";
 
     } else {
 
-        $error = "Email tidak ditemukan!";
+        // Mencari akun berdasarkan email
+        $stmt = mysqli_prepare(
+            $koneksi,
+            "SELECT * FROM t_user WHERE email = ? LIMIT 1"
+        );
 
+        if (!$stmt) {
+            die("ERROR DATABASE: " . mysqli_error($koneksi));
+        }
+
+        mysqli_stmt_bind_param($stmt, "s", $email);
+        mysqli_stmt_execute($stmt);
+
+        $query = mysqli_stmt_get_result($stmt);
+        $data = mysqli_fetch_assoc($query);
+
+        mysqli_stmt_close($stmt);
+
+        if ($data) {
+
+            $password_database = $data['password'];
+
+            // Memeriksa password hash
+            $password_benar = password_verify(
+                $password,
+                $password_database
+            );
+
+            // Mendukung akun lama yang password-nya masih teks biasa
+            if (
+                !$password_benar &&
+                hash_equals((string)$password_database, (string)$password)
+            ) {
+
+                $password_benar = true;
+
+                // Memperbarui password lama menjadi hash
+                $password_hash = password_hash(
+                    $password,
+                    PASSWORD_DEFAULT
+                );
+
+                $update = mysqli_prepare(
+                    $koneksi,
+                    "UPDATE t_user SET password = ? WHERE id = ?"
+                );
+
+                if ($update) {
+
+                    mysqli_stmt_bind_param(
+                        $update,
+                        "si",
+                        $password_hash,
+                        $data['id']
+                    );
+
+                    mysqli_stmt_execute($update);
+                    mysqli_stmt_close($update);
+                }
+            }
+
+            if ($password_benar) {
+
+                $role = strtolower(trim($data['role']));
+
+                if ($role === 'admin' || $role === 'guru') {
+
+                    session_regenerate_id(true);
+
+                    $_SESSION['id'] = $data['id'];
+                    $_SESSION['name'] = $data['name'];
+                    $_SESSION['role'] = $role;
+
+                    header("Location: dashboard.php");
+                    exit;
+
+                } else {
+
+                    $error = "Role akun tidak dikenali!";
+                }
+
+            } else {
+
+                $error = "Password salah!";
+            }
+
+        } else {
+
+            $error = "Email tidak ditemukan!";
+        }
     }
 }
 
@@ -121,14 +181,14 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
                             class="alert alert-danger py-2 small text-center"
                             role="alert"
                         >
-                            <?= htmlspecialchars($error); ?>
+                            <?= htmlspecialchars($error, ENT_QUOTES, 'UTF-8'); ?>
                         </div>
 
                     <?php } ?>
 
                     <!-- FORM LOGIN -->
 
-                    <form method="POST">
+                    <form method="POST" action="">
 
                         <div class="mb-3">
 
@@ -145,7 +205,7 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
                                 id="email"
                                 name="email"
                                 placeholder="Masukkan email"
-                                value="<?= htmlspecialchars($_POST['email'] ?? '') ?>"
+                                value="<?= htmlspecialchars($_POST['email'] ?? '', ENT_QUOTES, 'UTF-8'); ?>"
                                 autocomplete="username"
                                 required
                             >
@@ -184,9 +244,7 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
 
                     <div class="text-center mt-4">
 
-                        <small class="text-secondary">
-                            
-                        </small>
+                        <small class="text-secondary"></small>
 
                     </div>
 
