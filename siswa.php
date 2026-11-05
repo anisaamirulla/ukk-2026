@@ -15,6 +15,33 @@ require_once __DIR__ . "/config/koneksi.php";
 
 $pesan = "";
 
+// FUNGSI MEMBACA STATUS SISWA
+function statusSiswaAktif($status)
+{
+    $status = strtolower(trim((string) $status));
+
+    return in_array($status, ['aktif', 'active', '1', 'ya', 'yes'], true);
+}
+
+// PERIKSA TIPE KOLOM STATUS DI DATABASE
+$statusNumerik = false;
+
+$cekKolomStatus = mysqli_query(
+    $koneksi,
+    "SHOW COLUMNS FROM t_siswa LIKE 'status_aktif'"
+);
+
+if ($cekKolomStatus && mysqli_num_rows($cekKolomStatus) > 0) {
+    $kolomStatus = mysqli_fetch_assoc($cekKolomStatus);
+    $tipeKolom = strtolower($kolomStatus['Type']);
+
+    if (
+        preg_match('/^(tinyint|smallint|mediumint|int|bigint|bit|decimal|float|double)/', $tipeKolom)
+    ) {
+        $statusNumerik = true;
+    }
+}
+
 // PROSES HAPUS DATA SISWA
 if (isset($_POST['hapus'])) {
     $id = (int) ($_POST['id'] ?? 0);
@@ -87,35 +114,50 @@ if (isset($_POST['update'])) {
     } elseif (!in_array($status_aktif, ['Aktif', 'Tidak Aktif'], true)) {
         $pesan = "Status siswa tidak valid.";
     } else {
+
+        // SESUAIKAN NILAI DENGAN TIPE KOLOM DATABASE
+        if ($statusNumerik) {
+            $statusSimpan = ($status_aktif === 'Aktif') ? 1 : 0;
+            $tipeBind = "ssssssii";
+        } else {
+            $statusSimpan = $status_aktif;
+            $tipeBind = "sssssssi";
+        }
+
         $stmt = mysqli_prepare(
             $koneksi,
             "UPDATE t_siswa
-             SET nisn = ?, nis = ?, nama = ?,
-                 jenis_kelamin = ?, tanggal_lahir = ?,
-                 alamat = ?, status_aktif = ?
+             SET nisn = ?,
+                 nis = ?,
+                 nama = ?,
+                 jenis_kelamin = ?,
+                 tanggal_lahir = ?,
+                 alamat = ?,
+                 status_aktif = ?
              WHERE id = ?"
         );
 
         if ($stmt) {
             mysqli_stmt_bind_param(
                 $stmt,
-                "sssssssi",
+                $tipeBind,
                 $nisn,
                 $nis,
                 $nama_siswa,
                 $jenis_kelamin,
                 $tanggal_lahir,
                 $alamat,
-                $status_aktif,
+                $statusSimpan,
                 $id
             );
 
             if (mysqli_stmt_execute($stmt)) {
                 mysqli_stmt_close($stmt);
+
                 header("Location: siswa.php?pesan=edit_berhasil");
                 exit;
             } else {
-                $pesan = "Gagal mengubah data siswa. Pastikan NIS dan NISN tidak digunakan siswa lain.";
+                $pesan = "Gagal mengubah data siswa: " . mysqli_stmt_error($stmt);
                 mysqli_stmt_close($stmt);
             }
         } else {
@@ -307,27 +349,32 @@ $nama = htmlspecialchars(
 
             <!-- NOTIFIKASI -->
             <?php if (isset($_GET['pesan'])): ?>
+
                 <?php if ($_GET['pesan'] === 'berhasil'): ?>
                     <div class="alert alert-success alert-dismissible fade show" role="alert">
                         Data siswa berhasil ditambahkan.
                         <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
                     </div>
+
                 <?php elseif ($_GET['pesan'] === 'edit_berhasil'): ?>
                     <div class="alert alert-success alert-dismissible fade show" role="alert">
                         Data siswa berhasil diperbarui.
                         <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
                     </div>
+
                 <?php elseif ($_GET['pesan'] === 'hapus_berhasil'): ?>
                     <div class="alert alert-success alert-dismissible fade show" role="alert">
                         Data siswa berhasil dihapus.
                         <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
                     </div>
+
                 <?php elseif ($_GET['pesan'] === 'gagal_hapus'): ?>
                     <div class="alert alert-danger alert-dismissible fade show" role="alert">
                         Data siswa gagal dihapus. Periksa hubungan data pada tabel terkait.
                         <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
                     </div>
                 <?php endif; ?>
+
             <?php endif; ?>
 
             <?php if ($pesan !== ''): ?>
@@ -463,13 +510,21 @@ $nama = htmlspecialchars(
                                             </label>
 
                                             <select name="status_aktif" id="status_aktif" class="form-select" required>
-                                                <option value="Aktif" <?= ($dataEdit['status_aktif'] ?? '') === 'Aktif' ? 'selected' : ''; ?>>
+
+                                                <option
+                                                    value="Aktif"
+                                                    <?= statusSiswaAktif($dataEdit['status_aktif'] ?? '') ? 'selected' : ''; ?>
+                                                >
                                                     Aktif
                                                 </option>
 
-                                                <option value="Tidak Aktif" <?= ($dataEdit['status_aktif'] ?? '') === 'Tidak Aktif' ? 'selected' : ''; ?>>
+                                                <option
+                                                    value="Tidak Aktif"
+                                                    <?= !statusSiswaAktif($dataEdit['status_aktif'] ?? '') ? 'selected' : ''; ?>
+                                                >
                                                     Tidak Aktif
                                                 </option>
+
                                             </select>
                                         </div>
 
@@ -478,6 +533,7 @@ $nama = htmlspecialchars(
                                     <hr class="my-4">
 
                                     <div class="d-flex justify-content-end gap-2">
+
                                         <a href="siswa.php" class="btn btn-secondary">
                                             Batal
                                         </a>
@@ -485,6 +541,7 @@ $nama = htmlspecialchars(
                                         <button type="submit" name="update" class="btn btn-primary">
                                             Simpan Perubahan
                                         </button>
+
                                     </div>
 
                                     <p class="text-secondary small mt-3 mb-0">
@@ -509,6 +566,7 @@ $nama = htmlspecialchars(
                     <div class="card-body p-3 p-lg-4">
 
                         <div class="table-responsive">
+
                             <table id="tabelSiswa" class="table table-hover align-middle">
 
                                 <thead>
@@ -525,12 +583,16 @@ $nama = htmlspecialchars(
                                 </thead>
 
                                 <tbody>
+
                                     <?php
                                     $no = 1;
 
                                     while ($siswa = mysqli_fetch_assoc($query)):
+                                        $siswaAktif = statusSiswaAktif($siswa['status_aktif'] ?? '');
                                     ?>
+
                                         <tr>
+
                                             <td><?= $no++; ?></td>
 
                                             <td>
@@ -556,14 +618,25 @@ $nama = htmlspecialchars(
                                             </td>
 
                                             <td>
-                                                <?php if (($siswa['status_aktif'] ?? '') === 'Aktif' || (string) ($siswa['status_aktif'] ?? '') === '1'): ?>
-                                                    <span class="badge bg-success">Aktif</span>
+
+                                                <?php if ($siswaAktif): ?>
+
+                                                    <span class="badge bg-success">
+                                                        Aktif
+                                                    </span>
+
                                                 <?php else: ?>
-                                                    <span class="badge bg-secondary">Tidak Aktif</span>
+
+                                                    <span class="badge bg-secondary">
+                                                        Tidak Aktif
+                                                    </span>
+
                                                 <?php endif; ?>
+
                                             </td>
 
                                             <td>
+
                                                 <div class="d-flex gap-1">
 
                                                     <a
@@ -578,6 +651,7 @@ $nama = htmlspecialchars(
                                                         action="siswa.php"
                                                         onsubmit="return confirm('Yakin ingin menghapus data siswa ini beserta riwayat pelanggarannya?');"
                                                     >
+
                                                         <input
                                                             type="hidden"
                                                             name="id"
@@ -591,15 +665,21 @@ $nama = htmlspecialchars(
                                                         >
                                                             Hapus
                                                         </button>
+
                                                     </form>
 
                                                 </div>
+
                                             </td>
+
                                         </tr>
+
                                     <?php endwhile; ?>
+
                                 </tbody>
 
                             </table>
+
                         </div>
 
                     </div>
@@ -623,12 +703,15 @@ $nama = htmlspecialchars(
 
 <script>
 $(document).ready(function () {
+
     if ($('#tabelSiswa').length) {
+
         $('#tabelSiswa').DataTable({
             pageLength: 10,
             lengthMenu: [5, 10, 25, 50, 100],
             ordering: true,
             searching: true,
+
             language: {
                 search: "Cari:",
                 lengthMenu: "Tampilkan _MENU_ data",
@@ -636,6 +719,7 @@ $(document).ready(function () {
                 infoEmpty: "Tidak ada data",
                 zeroRecords: "Data tidak ditemukan",
                 emptyTable: "Belum ada data siswa",
+
                 paginate: {
                     first: "Pertama",
                     last: "Terakhir",
@@ -644,7 +728,9 @@ $(document).ready(function () {
                 }
             }
         });
+
     }
+
 });
 </script>
 

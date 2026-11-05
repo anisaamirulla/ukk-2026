@@ -59,9 +59,13 @@ $query_kelas = mysqli_query(
     "SELECT id, nama FROM t_kelas ORDER BY nama ASC"
 );
 
+/* HANYA MENGAMBIL TAHUN AJARAN YANG AKTIF */
 $query_tahun = mysqli_query(
     $koneksi,
-    "SELECT id, nama FROM t_tahun_ajaran ORDER BY id DESC"
+    "SELECT id, nama
+     FROM t_tahun_ajaran
+     WHERE status_aktif = 1
+     ORDER BY id DESC"
 );
 
 if (!$query_siswa || !$query_kelas || !$query_tahun) {

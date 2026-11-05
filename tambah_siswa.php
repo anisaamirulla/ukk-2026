@@ -39,6 +39,35 @@ if (isset($_POST['simpan'])) {
     } elseif (!in_array($status_aktif, ['Aktif', 'Tidak Aktif'], true)) {
         $pesan = "Status tidak valid.";
     } else {
+
+        // Memeriksa tipe kolom status_aktif
+        $statusNumerik = false;
+
+        $cekKolom = mysqli_query(
+            $koneksi,
+            "SHOW COLUMNS FROM t_siswa LIKE 'status_aktif'"
+        );
+
+        if ($cekKolom && mysqli_num_rows($cekKolom) > 0) {
+            $dataKolom = mysqli_fetch_assoc($cekKolom);
+
+            if (preg_match(
+                '/^(tinyint|smallint|mediumint|int|bigint|bit)/i',
+                $dataKolom['Type']
+            )) {
+                $statusNumerik = true;
+            }
+        }
+
+        // Menyesuaikan status dengan tipe kolom database
+        if ($statusNumerik) {
+            $statusSimpan = ($status_aktif === 'Aktif') ? 1 : 0;
+            $tipeBind = "ssssssi";
+        } else {
+            $statusSimpan = $status_aktif;
+            $tipeBind = "sssssss";
+        }
+
         $stmt = mysqli_prepare(
             $koneksi,
             "INSERT INTO t_siswa
@@ -51,14 +80,14 @@ if (isset($_POST['simpan'])) {
         } else {
             mysqli_stmt_bind_param(
                 $stmt,
-                "sssssss",
+                $tipeBind,
                 $nisn,
                 $nis,
                 $namaSiswa,
                 $jenis_kelamin,
                 $tanggal_lahir,
                 $alamat,
-                $status_aktif
+                $statusSimpan
             );
 
             if (mysqli_stmt_execute($stmt)) {
@@ -105,7 +134,7 @@ $menuAdmin = [
 <div class="container-fluid vh-100 overflow-hidden">
     <div class="row h-100 flex-nowrap">
 
-        <!-- SIDEBAR SAMA DENGAN DASHBOARD -->
+        <!-- SIDEBAR -->
         <aside class="col-12 col-md-3 col-lg-2 bg-dark vh-100 overflow-auto position-sticky top-0 p-3">
 
             <div class="text-white mb-4 pt-3 pb-3 border-bottom border-secondary">
