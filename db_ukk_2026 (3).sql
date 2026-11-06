@@ -1,11 +1,11 @@
 -- phpMyAdmin SQL Dump
--- version 5.2.3
+-- version 5.2.0
 -- https://www.phpmyadmin.net/
 --
 -- Host: 127.0.0.1
--- Waktu pembuatan: 05 Nov 2026 pada 05.23
--- Versi server: 10.11.16-MariaDB
--- Versi PHP: 8.5.12
+-- Waktu pembuatan: 06 Nov 2026 pada 09.01
+-- Versi server: 10.4.25-MariaDB
+-- Versi PHP: 8.0.23
 
 SET SQL_MODE = "NO_AUTO_VALUE_ON_ZERO";
 START TRANSACTION;
@@ -18,7 +18,7 @@ SET time_zone = "+00:00";
 /*!40101 SET NAMES utf8mb4 */;
 
 --
--- Basis data: `db_ukk_2026`
+-- Database: `db_ukk_2026`
 --
 
 -- --------------------------------------------------------
@@ -36,7 +36,7 @@ CREATE TABLE `t_guru` (
   `user_id` int(11) NOT NULL,
   `created_at` timestamp NULL DEFAULT current_timestamp(),
   `updated_at` timestamp NULL DEFAULT current_timestamp()
-) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
 
 --
 -- Dumping data untuk tabel `t_guru`
@@ -98,7 +98,7 @@ INSERT INTO `t_guru` (`id`, `nip`, `nama`, `email`, `status_aktif`, `user_id`, `
 (58, 'NIP00058', 'Riesy Putri Navia, S.Kom', 'guru58@ukk2026.sch.id', 1, 41, '2026-11-04 08:34:33', '2026-11-04 08:34:33'),
 (59, 'NIP00059', 'Rurry Febriani Maryadi, S.Pd', 'guru59@ukk2026.sch.id', 1, 42, '2026-11-04 08:34:33', '2026-11-04 08:34:33'),
 (60, 'NIP00060', 'Irvan Rizal, S.Pd', 'guru60@ukk2026.sch.id', 1, 43, '2026-11-04 08:34:33', '2026-11-04 08:34:33'),
-(62, '031657495226002620', 'Budi Hartono', 'budi@gamil.com', 1, 59, '2026-11-05 02:16:04', '2026-11-05 02:16:04');
+(63, '003161496102542015', 'Raihan Hilal', 'raihan@gmail.com', 1, 60, '2026-11-06 07:53:12', '2026-11-06 07:53:12');
 
 -- --------------------------------------------------------
 
@@ -114,51 +114,51 @@ CREATE TABLE `t_kelas` (
   `status_aktif` tinyint(1) NOT NULL,
   `created_at` timestamp NULL DEFAULT current_timestamp(),
   `updated_at` timestamp NULL DEFAULT current_timestamp()
-) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
 
 --
 -- Dumping data untuk tabel `t_kelas`
 --
 
 INSERT INTO `t_kelas` (`id`, `nama`, `tingkat`, `jurusan`, `status_aktif`, `created_at`, `updated_at`) VALUES
-(2, 'X RPL 2', 'X', 'Rekayasa Perangkat Lunak', 1, '2026-09-23 03:54:49', '2026-09-23 03:54:49'),
-(3, 'X RPL 3', 'X', 'Rekayasa Perangkat Lunak', 1, '2026-09-23 03:54:49', '2026-09-23 03:54:49'),
-(4, 'X TKJ 1', 'X', 'Teknik Komputer dan Jaringan', 1, '2026-09-23 03:54:49', '2026-09-23 03:54:49'),
-(5, 'X TKJ 2', 'X', 'Teknik Komputer dan Jaringan', 1, '2026-09-23 03:54:49', '2026-09-23 03:54:49'),
-(6, 'X AKL 1', 'X', 'Akuntansi', 1, '2026-09-23 03:54:49', '2026-09-23 03:54:49'),
-(7, 'X AKL 2', 'X', 'Akuntansi', 1, '2026-09-23 03:54:49', '2026-09-23 03:54:49'),
-(8, 'X MPLB 1', 'X', 'Manajemen Perkantoran', 1, '2026-09-23 03:54:49', '2026-09-23 03:54:49'),
-(9, 'X MPLB 2', 'X', 'Manajemen Perkantoran', 1, '2026-09-23 03:54:49', '2026-09-23 03:54:49'),
-(10, 'X BDP 1', 'X', 'Bisnis Daring dan Pemasaran', 1, '2026-09-23 03:54:49', '2026-09-23 03:54:49'),
-(11, 'XI RPL 1', 'XI', 'Rekayasa Perangkat Lunak', 1, '2026-09-23 03:54:49', '2026-09-23 03:54:49'),
-(12, 'XI RPL 2', 'XI', 'Rekayasa Perangkat Lunak', 1, '2026-09-23 03:54:49', '2026-09-23 03:54:49'),
-(13, 'XI RPL 3', 'XI', 'Rekayasa Perangkat Lunak', 1, '2026-09-23 03:54:49', '2026-09-23 03:54:49'),
-(14, 'XI TKJ 1', 'XI', 'Teknik Komputer dan Jaringan', 1, '2026-09-23 03:54:49', '2026-09-23 03:54:49'),
-(15, 'XI TKJ 2', 'XI', 'Teknik Komputer dan Jaringan', 1, '2026-09-23 03:54:49', '2026-09-23 03:54:49'),
-(16, 'XI AKL 1', 'XI', 'Akuntansi', 1, '2026-09-23 03:54:49', '2026-09-23 03:54:49'),
-(17, 'XI AKL 2', 'XI', 'Akuntansi', 1, '2026-09-23 03:54:49', '2026-09-23 03:54:49'),
-(18, 'XI MPLB 1', 'XI', 'Manajemen Perkantoran', 1, '2026-09-23 03:54:49', '2026-09-23 03:54:49'),
-(19, 'XI MPLB 2', 'XI', 'Manajemen Perkantoran', 1, '2026-09-23 03:54:49', '2026-09-23 03:54:49'),
-(20, 'XI BDP 1', 'XI', 'Bisnis Daring dan Pemasaran', 1, '2026-09-23 03:54:49', '2026-09-23 03:54:49'),
-(21, 'XII RPL 1', 'XII', 'Rekayasa Perangkat Lunak', 1, '2026-09-23 03:54:49', '2026-09-23 03:54:49'),
-(22, 'XII RPL 2', 'XII', 'Rekayasa Perangkat Lunak', 1, '2026-09-23 03:54:49', '2026-09-23 03:54:49'),
-(23, 'XII RPL 3', 'XII', 'Rekayasa Perangkat Lunak', 1, '2026-09-23 03:54:49', '2026-09-23 03:54:49'),
-(24, 'XII TKJ 1', 'XII', 'Teknik Komputer dan Jaringan', 1, '2026-09-23 03:54:49', '2026-09-23 03:54:49'),
-(25, 'XII TKJ 2', 'XII', 'Teknik Komputer dan Jaringan', 1, '2026-09-23 03:54:49', '2026-09-23 03:54:49'),
-(26, 'XII AKL 1', 'XII', 'Akuntansi', 1, '2026-09-23 03:54:49', '2026-09-23 03:54:49'),
-(27, 'XII AKL 2', 'XII', 'Akuntansi', 1, '2026-09-23 03:54:49', '2026-09-23 03:54:49'),
-(28, 'XII MPLB 1', 'XII', 'Manajemen Perkantoran', 1, '2026-09-23 03:54:49', '2026-09-23 03:54:49'),
-(29, 'XII MPLB 2', 'XII', 'Manajemen Perkantoran', 1, '2026-09-23 03:54:49', '2026-09-23 03:54:49'),
-(30, 'XII BDP 1', 'XII', 'Bisnis Daring dan Pemasaran', 1, '2026-09-23 03:54:49', '2026-09-23 03:54:49'),
-(31, 'X RPL 4', 'X', 'Rekayasa Perangkat Lunak', 1, '2026-09-23 03:54:49', '2026-09-23 03:54:49'),
-(32, 'X RPL 5', 'X', 'Rekayasa Perangkat Lunak', 1, '2026-09-23 03:54:49', '2026-09-23 03:54:49'),
-(33, 'X TKJ 3', 'X', 'Teknik Komputer dan Jaringan', 1, '2026-09-23 03:54:49', '2026-09-23 03:54:49'),
-(34, 'X TKJ 4', 'X', 'Teknik Komputer dan Jaringan', 1, '2026-09-23 03:54:49', '2026-09-23 03:54:49'),
-(35, 'X AKL 3', 'X', 'Akuntansi', 1, '2026-09-23 03:54:49', '2026-09-23 03:54:49'),
-(36, 'X AKL 4', 'X', 'Akuntansi', 1, '2026-09-23 03:54:49', '2026-09-23 03:54:49'),
-(37, 'X MPLB 3', 'X', 'Manajemen Perkantoran', 1, '2026-09-23 03:54:49', '2026-09-23 03:54:49'),
-(38, 'X MPLB 4', 'X', 'Manajemen Perkantoran', 1, '2026-09-23 03:54:49', '2026-09-23 03:54:49'),
-(39, 'X BDP 2', 'X', 'Bisnis Daring dan Pemasaran', 1, '2026-09-23 03:54:49', '2026-09-23 03:54:49'),
+(2, 'XTKJ 1', 'X', 'Teknik Komputer dan Jaringan', 1, '2026-09-23 03:54:49', '2026-09-23 03:54:49'),
+(3, 'XBD', 'X', 'Bisnis Daring dan Pemasaran', 1, '2026-09-23 03:54:49', '2026-09-23 03:54:49'),
+(4, 'XI BD', 'XI', 'Teknik Komputer dan Jaringan', 1, '2026-09-23 03:54:49', '2026-09-23 03:54:49'),
+(5, 'XI RPL 1', 'XI', 'Rekayasa Perangkat Lunak', 1, '2026-09-23 03:54:49', '2026-09-23 03:54:49'),
+(6, 'XRPL 1', 'X', 'Rekayasa Perangkat Lunak', 1, '2026-09-23 03:54:49', '2026-09-23 03:54:49'),
+(7, 'XII RPL 1', 'XII', 'Rekayasa Perangkat Lunak', 1, '2026-09-23 03:54:49', '2026-09-23 03:54:49'),
+(8, 'XII TKJ 4', 'XII', 'Manajemen Perkantoran', 1, '2026-09-23 03:54:49', '2026-09-23 03:54:49'),
+(9, 'XRPL 2', 'X', 'Rekayasa Perangkat Lunak', 1, '2026-09-23 03:54:49', '2026-09-23 03:54:49'),
+(10, 'XTKJ 2', 'X', 'Teknik Komputer dan Jaringan', 1, '2026-09-23 03:54:49', '2026-09-23 03:54:49'),
+(11, 'XII TKJ 1', 'XII', 'Rekayasa Perangkat Lunak', 1, '2026-09-23 03:54:49', '2026-09-23 03:54:49'),
+(12, 'XI TKR 2', 'XI', 'Teknik Kendaraan Ringan', 1, '2026-09-23 03:54:49', '2026-09-23 03:54:49'),
+(13, 'XII TKJ 3', 'XII', 'Rekayasa Perangkat Lunak', 1, '2026-09-23 03:54:49', '2026-09-23 03:54:49'),
+(14, 'XII RPL 2', 'XII', 'Rekayasa Perangkat Lunak', 1, '2026-09-23 03:54:49', '2026-09-23 03:54:49'),
+(15, 'XTKJ 3', 'X', 'Teknik Komputer dan Jaringan', 1, '2026-09-23 03:54:49', '2026-09-23 03:54:49'),
+(16, 'XTKR 3', 'X', 'Akuntansi', 1, '2026-09-23 03:54:49', '2026-09-23 03:54:49'),
+(17, 'XI TKJ 1', 'XI', 'Teknik Komputer dan Jaringan', 1, '2026-09-23 03:54:49', '2026-09-23 03:54:49'),
+(18, 'XTSM 1', 'X', 'Manajemen Perkantoran', 1, '2026-09-23 03:54:49', '2026-09-23 03:54:49'),
+(19, 'XII TKJ 2', 'XII', 'Manajemen Perkantoran', 1, '2026-09-23 03:54:49', '2026-09-23 03:54:49'),
+(20, 'XII BD', 'XI', 'Bisnis Daring dan Pemasaran', 1, '2026-09-23 03:54:49', '2026-09-23 03:54:49'),
+(21, 'XTKR 4', 'X', 'Rekayasa Perangkat Lunak', 1, '2026-09-23 03:54:49', '2026-09-23 03:54:49'),
+(22, 'XII TKR 4', 'XII', 'Rekayasa Perangkat Lunak', 1, '2026-09-23 03:54:49', '2026-09-23 03:54:49'),
+(23, 'XTKR 1', 'X', 'Rekayasa Perangkat Lunak', 1, '2026-09-23 03:54:49', '2026-09-23 03:54:49'),
+(24, 'XTSM 2', 'X', 'Teknik Komputer dan Jaringan', 1, '2026-09-23 03:54:49', '2026-09-23 03:54:49'),
+(25, 'XI TKJ 2', 'XI', 'Teknik Komputer dan Jaringan', 1, '2026-09-23 03:54:49', '2026-09-23 03:54:49'),
+(26, 'XII TKR 5', 'XII', 'Teknik Kendaraan Ringan', 1, '2026-09-23 03:54:49', '2026-09-23 03:54:49'),
+(27, 'XII TSM 1', 'XII', 'Teknik Sepeda Motor', 1, '2026-09-23 03:54:49', '2026-09-23 03:54:49'),
+(28, 'XI TSM 2', 'XI', 'Teknik Sepeda Motor', 1, '2026-09-23 03:54:49', '2026-09-23 03:54:49'),
+(29, 'XTKR 2', 'X', 'Manajemen Perkantoran', 1, '2026-09-23 03:54:49', '2026-09-23 03:54:49'),
+(30, 'XTSM 3', 'X', 'Teknik Sepeda Motor', 1, '2026-09-23 03:54:49', '2026-09-23 03:54:49'),
+(31, 'XII TSM 2', 'XII', 'Teknik Sepeda Motor', 1, '2026-09-23 03:54:49', '2026-09-23 03:54:49'),
+(32, 'XII TSM 3', 'XII', 'Teknik Sepeda Motor', 1, '2026-09-23 03:54:49', '2026-09-23 03:54:49'),
+(33, 'XII TKR 2', 'XII', 'Teknik Kendaraan Ringan', 1, '2026-09-23 03:54:49', '2026-09-23 03:54:49'),
+(34, 'XTKR 5', 'X', 'Teknik Komputer dan Jaringan', 1, '2026-09-23 03:54:49', '2026-09-23 03:54:49'),
+(35, 'XI TKR 1', 'XI', 'Teknik Kendaraan Ringan', 1, '2026-09-23 03:54:49', '2026-09-23 03:54:49'),
+(36, 'XI TKR 1', 'XI', 'Teknik Kendaraan Ringan', 1, '2026-09-23 03:54:49', '2026-09-23 03:54:49'),
+(37, 'XI TKR 3', 'XI', 'Teknik Kendaraan Ringan', 1, '2026-09-23 03:54:49', '2026-09-23 03:54:49'),
+(38, 'XI TKR 3', 'XI', 'Teknik Kendaraan Ringan', 1, '2026-09-23 03:54:49', '2026-09-23 03:54:49'),
+(39, 'XI TSM 1', 'XI', 'Teknik Sepeda Motor', 1, '2026-09-23 03:54:49', '2026-09-23 03:54:49'),
 (40, 'X BDP 3', 'X', 'Bisnis Daring dan Pemasaran', 1, '2026-09-23 03:54:49', '2026-09-23 03:54:49'),
 (41, 'XI RPL 4', 'XI', 'Rekayasa Perangkat Lunak', 1, '2026-09-23 03:54:49', '2026-09-23 03:54:49'),
 (42, 'XI RPL 5', 'XI', 'Rekayasa Perangkat Lunak', 1, '2026-09-23 03:54:49', '2026-09-23 03:54:49'),
@@ -170,7 +170,7 @@ INSERT INTO `t_kelas` (`id`, `nama`, `tingkat`, `jurusan`, `status_aktif`, `crea
 (48, 'XI MPLB 4', 'XI', 'Manajemen Perkantoran', 1, '2026-09-23 03:54:49', '2026-09-23 03:54:49'),
 (49, 'XI BDP 2', 'XI', 'Bisnis Daring dan Pemasaran', 1, '2026-09-23 03:54:49', '2026-09-23 03:54:49'),
 (50, 'XI BDP 3', 'XI', 'Bisnis Daring dan Pemasaran', 1, '2026-09-23 03:54:49', '2026-09-23 03:54:49'),
-(51, 'XI RPL 20', 'XI', 'Rekayasa Perangkat Lunak', 1, '2026-10-23 07:38:58', '2026-10-23 07:38:58');
+(54, 'XII TSM 4', 'XII', 'Teknik Sepedah Motor', 1, '2026-11-06 07:54:38', '2026-11-06 07:54:38');
 
 -- --------------------------------------------------------
 
@@ -188,7 +188,7 @@ CREATE TABLE `t_kelas_siswa` (
   `status_aktif` tinyint(1) NOT NULL,
   `created_at` timestamp NOT NULL DEFAULT current_timestamp(),
   `updated_at` timestamp NOT NULL DEFAULT current_timestamp()
-) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
 
 --
 -- Dumping data untuk tabel `t_kelas_siswa`
@@ -237,7 +237,7 @@ CREATE TABLE `t_pelanggaran` (
   `status_aktif` tinyint(1) NOT NULL,
   `created_at` timestamp NOT NULL DEFAULT current_timestamp(),
   `updated_at` timestamp NOT NULL DEFAULT current_timestamp()
-) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
 
 --
 -- Dumping data untuk tabel `t_pelanggaran`
@@ -307,7 +307,7 @@ CREATE TABLE `t_pelanggaran_kategori` (
   `status_aktif` tinyint(1) NOT NULL,
   `created_at` timestamp NOT NULL DEFAULT current_timestamp(),
   `updated_at` timestamp NOT NULL DEFAULT current_timestamp()
-) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
 
 --
 -- Dumping data untuk tabel `t_pelanggaran_kategori`
@@ -390,7 +390,7 @@ CREATE TABLE `t_pelanggaran_siswa` (
   `status` varchar(30) NOT NULL,
   `created_at` timestamp NOT NULL DEFAULT current_timestamp(),
   `updated_at` timestamp NOT NULL DEFAULT current_timestamp()
-) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
 
 --
 -- Dumping data untuk tabel `t_pelanggaran_siswa`
@@ -442,7 +442,7 @@ CREATE TABLE `t_siswa` (
   `status_aktif` tinyint(1) NOT NULL,
   `created_at` timestamp NULL DEFAULT current_timestamp(),
   `updated_at` timestamp NULL DEFAULT current_timestamp()
-) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
 
 --
 -- Dumping data untuk tabel `t_siswa`
@@ -475,7 +475,7 @@ INSERT INTO `t_siswa` (`id`, `nis`, `nisn`, `nama`, `jenis_kelamin`, `tanggal_la
 (26, 'NIP00026', 'NISN0000000026', 'Sofi Nurjanah', 'P', '2007-02-24', 'Jl. Pendidikan No. 26, Tasikmalaya', 1, '2026-09-23 02:32:16', '2026-09-23 02:32:16'),
 (27, 'NIP00027', 'NISN0000000027', 'Toni Antonio', 'L', '2008-03-27', 'Jl. Pendidikan No. 27, Tasikmalaya', 1, '2026-09-23 02:32:16', '2026-09-23 02:32:16'),
 (56, '0031574974', '7878452122', 'Nisa', 'P', '2023-04-04', 'jln.mkjbig', 1, '2026-11-04 08:22:56', '2026-11-04 08:22:56'),
-(57, '0164597631', '0032362165', 'Raihan Hilal', 'L', '2009-03-05', 'jln.sukapura', 1, '2026-11-05 00:38:16', '2026-11-05 00:38:16');
+(59, '0031265494', '0021574842', 'Azis Pridaus', 'L', '2006-11-04', 'jln.kosipa', 1, '2026-11-06 07:51:23', '2026-11-06 07:51:23');
 
 -- --------------------------------------------------------
 
@@ -491,7 +491,7 @@ CREATE TABLE `t_tahun_ajaran` (
   `status_aktif` tinyint(1) NOT NULL,
   `created_at` timestamp NOT NULL DEFAULT current_timestamp(),
   `updated_at` timestamp NOT NULL DEFAULT current_timestamp()
-) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
 
 --
 -- Dumping data untuk tabel `t_tahun_ajaran`
@@ -567,7 +567,7 @@ CREATE TABLE `t_user` (
   `role` varchar(255) NOT NULL,
   `created_at` timestamp NULL DEFAULT current_timestamp(),
   `updated_at` timestamp NULL DEFAULT current_timestamp()
-) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
 
 --
 -- Dumping data untuk tabel `t_user`
@@ -605,7 +605,7 @@ INSERT INTO `t_user` (`id`, `name`, `email`, `email_verifed_at`, `password`, `re
 (29, 'User 29', 'user29@ukk2026.sch.id', '2026-09-23 02:21:30', '$2y$10$abcdefghijklmnopqrstuuABCDEFGHIJKLMNO1234567890', '', 'guru', '2026-09-23 02:21:30', '2026-09-23 02:21:30'),
 (30, 'User 30', 'user30@ukk2026.sch.id', '2026-09-23 02:21:30', '$2y$10$abcdefghijklmnopqrstuuABCDEFGHIJKLMNO1234567890', '', 'guru', '2026-09-23 02:21:30', '2026-09-23 02:21:30'),
 (31, 'User 31', 'user31@ukk2026.sch.id', '2026-09-23 02:21:30', '$2y$10$abcdefghijklmnopqrstuuABCDEFGHIJKLMNO1234567890', '', 'guru', '2026-09-23 02:21:30', '2026-09-23 02:21:30'),
-(32, 'User 32', 'user32@ukk2026.sch.id', '2026-09-23 02:21:30', '$2y$10$abcdefghijklmnopqrstuuABCDEFGHIJKLMNO1234567890', '', 'guru', '2026-09-23 02:21:30', '2026-09-23 02:21:30'),
+(32, 'User 32', 'user32@ukk2026.sch.id', '2026-09-23 02:21:30', '$2y$10$k1v4Lyo10htmmDXrVfRbBOuBrFbnmeolauLV47WUZ/DsrQL6nXNAa', '', 'guru', '2026-09-23 02:21:30', '2026-09-23 02:21:30'),
 (33, 'User 33', 'user33@ukk2026.sch.id', '2026-09-23 02:21:30', '$2y$10$abcdefghijklmnopqrstuuABCDEFGHIJKLMNO1234567890', '', 'guru', '2026-09-23 02:21:30', '2026-09-23 02:21:30'),
 (34, 'User 34', 'user34@ukk2026.sch.id', '2026-09-23 02:21:30', '$2y$10$abcdefghijklmnopqrstuuABCDEFGHIJKLMNO1234567890', '', 'guru', '2026-09-23 02:21:30', '2026-09-23 02:21:30'),
 (35, 'User 35', 'user35@ukk2026.sch.id', '2026-09-23 02:21:30', '$2y$10$abcdefghijklmnopqrstuuABCDEFGHIJKLMNO1234567890', '', 'guru', '2026-09-23 02:21:30', '2026-09-23 02:21:30'),
@@ -632,7 +632,8 @@ INSERT INTO `t_user` (`id`, `name`, `email`, `email_verifed_at`, `password`, `re
 (56, 'Budi Bareto', 'budibaheula@gmail.com', '2026-11-04 02:20:57', '$2y$10$Ch.REePFXvIe5YlIHQRLzeSMtiAQoahhHQHBG8Ca5Y0L4fhRkJsda', '', 'guru', '2026-11-04 02:20:57', '2026-11-04 02:20:57'),
 (57, 'Asih Raya', 'asihraya@gmail.com', '2026-11-04 02:33:58', '$2y$10$pZsY6TDE5ghyd2NdSAsV.uRy/upaaqqosHK2wT22wwJFcsIVJUBl.', '', 'guru', '2026-11-04 02:33:58', '2026-11-04 02:33:58'),
 (58, 'Adittia Nur Latip', 'adittia@gmail.com', '2026-11-05 00:43:35', '$2y$12$P5toav6j1zVwNaOU2Pw9NeRmpxlDAVxZHlWrv4H6sk8WjI1kbE0r2', '', 'guru', '2026-11-05 00:43:35', '2026-11-05 00:43:35'),
-(59, 'Budi Hartono', 'budi@gamil.com', '2026-11-05 02:16:04', '$2y$12$gBeODoO4LJ0Tr7zUCPYPa.UfWnzpGKqodJdtiCuX5F8paURXNCc/e', '', 'guru', '2026-11-05 02:16:04', '2026-11-05 02:16:04');
+(59, 'Budi Hartono', 'budi@gamil.com', '2026-11-05 02:16:04', '$2y$12$gBeODoO4LJ0Tr7zUCPYPa.UfWnzpGKqodJdtiCuX5F8paURXNCc/e', '', 'guru', '2026-11-05 02:16:04', '2026-11-05 02:16:04'),
+(60, 'Raihan Hilal', 'raihan@gmail.com', '2026-11-06 07:53:12', '$2y$10$KJmntg6x10dYGTJ3q6t3Geyb1jeqqDonC686FaByyB/WdXo.63OoW', '', 'guru', '2026-11-06 07:53:12', '2026-11-06 07:53:12');
 
 -- --------------------------------------------------------
 
@@ -650,14 +651,14 @@ CREATE TABLE `t_wali_kelas` (
   `status_aktif` tinyint(1) NOT NULL,
   `created_at` timestamp NULL DEFAULT current_timestamp(),
   `updated_at` timestamp NULL DEFAULT current_timestamp()
-) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
 
 --
 -- Dumping data untuk tabel `t_wali_kelas`
 --
 
 INSERT INTO `t_wali_kelas` (`id`, `tahun_ajaran_id`, `kelas_id`, `guru_id`, `tanggal_mulai`, `tanggal_selesai`, `status_aktif`, `created_at`, `updated_at`) VALUES
-(2, 2, 2, 2, '2026-07-01', '2027-06-30', 1, '2026-09-23 04:19:18', '2026-09-23 04:19:18'),
+(2, 2, 2, 2, '2026-07-01', '2027-06-30', 0, '2026-09-23 04:19:18', '2026-09-23 04:19:18'),
 (3, 3, 3, 3, '2026-07-01', '2027-06-30', 1, '2026-09-23 04:19:18', '2026-09-23 04:19:18'),
 (4, 4, 4, 4, '2026-07-01', '2027-06-30', 1, '2026-09-23 04:19:18', '2026-09-23 04:19:18'),
 (5, 5, 5, 5, '2026-07-01', '2027-06-30', 1, '2026-09-23 04:19:18', '2026-09-23 04:19:18'),
@@ -672,22 +673,22 @@ INSERT INTO `t_wali_kelas` (`id`, `tahun_ajaran_id`, `kelas_id`, `guru_id`, `tan
 (16, 16, 16, 16, '2026-07-01', '2027-06-30', 1, '2026-09-23 04:19:18', '2026-09-23 04:19:18'),
 (17, 17, 17, 17, '2026-07-01', '2027-06-30', 1, '2026-09-23 04:19:18', '2026-09-23 04:19:18'),
 (18, 18, 18, 18, '2026-07-01', '2027-06-30', 1, '2026-09-23 04:19:18', '2026-09-23 04:19:18'),
-(19, 19, 19, 19, '2026-07-01', '2027-06-30', 1, '2026-09-23 04:19:18', '2026-09-23 04:19:18'),
+(19, 19, 19, 19, '2026-07-01', '2027-06-30', 0, '2026-09-23 04:19:18', '2026-09-23 04:19:18'),
 (20, 20, 20, 20, '2026-07-01', '2027-06-30', 1, '2026-09-23 04:19:18', '2026-09-23 04:19:18'),
 (21, 21, 21, 21, '2026-07-01', '2027-06-30', 1, '2026-09-23 04:19:18', '2026-09-23 04:19:18'),
 (22, 22, 22, 22, '2026-07-01', '2027-06-30', 1, '2026-09-23 04:19:18', '2026-09-23 04:19:18'),
 (23, 23, 23, 23, '2026-07-01', '2027-06-30', 1, '2026-09-23 04:19:18', '2026-09-23 04:19:18'),
 (24, 24, 24, 24, '2026-07-01', '2027-06-30', 1, '2026-09-23 04:19:18', '2026-09-23 04:19:18'),
-(25, 25, 25, 25, '2026-07-01', '2027-06-30', 1, '2026-09-23 04:19:18', '2026-09-23 04:19:18'),
+(25, 25, 25, 25, '2026-07-01', '2027-06-30', 0, '2026-09-23 04:19:18', '2026-09-23 04:19:18'),
 (26, 26, 26, 26, '2026-07-01', '2027-06-30', 1, '2026-09-23 04:19:18', '2026-09-23 04:19:18'),
 (27, 27, 27, 27, '2026-07-01', '2027-06-30', 1, '2026-09-23 04:19:18', '2026-09-23 04:19:18'),
 (28, 28, 28, 28, '2026-07-01', '2027-06-30', 1, '2026-09-23 04:19:18', '2026-09-23 04:19:18'),
-(29, 29, 29, 29, '2026-07-01', '2027-06-30', 1, '2026-09-23 04:19:18', '2026-09-23 04:19:18'),
+(29, 29, 29, 29, '2026-07-01', '2027-06-30', 0, '2026-09-23 04:19:18', '2026-09-23 04:19:18'),
 (30, 30, 30, 30, '2026-07-01', '2027-06-30', 1, '2026-09-23 04:19:18', '2026-09-23 04:19:18'),
 (31, 31, 31, 31, '2026-07-01', '2027-06-30', 1, '2026-09-23 04:19:18', '2026-09-23 04:19:18'),
 (32, 32, 32, 32, '2026-07-01', '2027-06-30', 1, '2026-09-23 04:19:18', '2026-09-23 04:19:18'),
 (34, 34, 34, 34, '2026-07-01', '2027-06-30', 1, '2026-09-23 04:19:18', '2026-09-23 04:19:18'),
-(35, 35, 35, 35, '2026-07-01', '2027-06-30', 1, '2026-09-23 04:19:18', '2026-09-23 04:19:18'),
+(35, 35, 35, 35, '2026-07-01', '2027-06-30', 0, '2026-09-23 04:19:18', '2026-09-23 04:19:18'),
 (36, 36, 36, 36, '2026-07-01', '2027-06-30', 1, '2026-09-23 04:19:18', '2026-09-23 04:19:18'),
 (37, 37, 37, 37, '2026-07-01', '2027-06-30', 1, '2026-09-23 04:19:18', '2026-09-23 04:19:18'),
 (38, 38, 38, 38, '2026-07-01', '2027-06-30', 1, '2026-09-23 04:19:18', '2026-09-23 04:19:18'),
@@ -698,14 +699,48 @@ INSERT INTO `t_wali_kelas` (`id`, `tahun_ajaran_id`, `kelas_id`, `guru_id`, `tan
 (47, 47, 47, 47, '2026-07-01', '2027-06-30', 1, '2026-09-23 04:19:18', '2026-09-23 04:19:18'),
 (48, 48, 48, 48, '2026-07-01', '2027-06-30', 1, '2026-09-23 04:19:18', '2026-09-23 04:19:18'),
 (49, 49, 49, 49, '2026-07-01', '2027-06-30', 1, '2026-09-23 04:19:18', '2026-09-23 04:19:18'),
-(51, 51, 35, 33, '2026-11-04', '2029-11-04', 1, '2026-11-04 01:41:31', '2026-11-04 01:41:31'),
-(52, 51, 2, 52, '2026-11-04', '2027-11-04', 1, '2026-11-04 02:04:50', '2026-11-04 02:04:50'),
-(53, 51, 19, 55, '2026-11-04', '2027-11-04', 1, '2026-11-04 02:10:58', '2026-11-04 02:10:58'),
-(54, 51, 29, 57, '2026-11-05', '2028-11-05', 1, '2026-11-05 01:15:30', '2026-11-05 01:15:30'),
-(55, 51, 25, 7, '2026-11-05', '2028-11-05', 1, '2026-11-05 01:17:10', '2026-11-05 01:17:10');
+(51, 51, 35, 31, '2026-07-01', '2027-06-30', 1, '2026-11-04 01:41:31', '2026-11-04 01:41:31'),
+(52, 51, 2, 21, '2026-07-01', '2027-06-30', 1, '2026-11-04 02:04:50', '2026-11-04 02:04:50'),
+(53, 51, 19, 2, '2026-07-01', '2027-06-30', 1, '2026-11-04 02:10:58', '2026-11-04 02:10:58'),
+(54, 51, 29, 60, '2026-07-01', '2027-06-30', 1, '2026-11-05 01:15:30', '2026-11-05 01:15:30'),
+(55, 51, 25, 26, '2026-07-01', '2027-06-30', 1, '2026-11-05 01:17:10', '2026-11-05 01:17:10'),
+(56, 51, 3, 27, '2026-07-01', '2027-06-30', 1, '2026-11-06 06:35:25', '2026-11-06 06:35:25'),
+(57, 51, 4, 16, '2026-07-01', '2027-06-30', 1, '2026-11-06 06:35:25', '2026-11-06 06:35:25'),
+(58, 51, 5, 58, '2026-07-01', '2027-06-30', 1, '2026-11-06 06:35:25', '2026-11-06 06:35:25'),
+(59, 51, 6, 18, '2026-07-01', '2027-06-30', 1, '2026-11-06 06:35:25', '2026-11-06 06:35:25'),
+(60, 51, 7, 28, '2026-07-01', '2027-06-30', 1, '2026-11-06 06:35:25', '2026-11-06 06:35:25'),
+(61, 51, 8, 44, '2026-07-01', '2027-06-30', 1, '2026-11-06 06:35:25', '2026-11-06 06:35:25'),
+(62, 51, 9, 38, '2026-07-01', '2027-06-30', 1, '2026-11-06 06:35:25', '2026-11-06 06:35:25'),
+(63, 51, 10, 53, '2026-07-01', '2027-06-30', 1, '2026-11-06 06:35:25', '2026-11-06 06:35:25'),
+(64, 51, 11, 40, '2026-07-01', '2027-06-30', 1, '2026-11-06 06:35:25', '2026-11-06 06:35:25'),
+(65, 51, 12, 11, '2026-07-01', '2027-06-30', 1, '2026-11-06 06:35:25', '2026-11-06 06:35:25'),
+(66, 51, 13, 52, '2026-07-01', '2027-06-30', 1, '2026-11-06 06:35:25', '2026-11-06 06:35:25'),
+(67, 51, 14, 32, '2026-07-01', '2027-06-30', 1, '2026-11-06 06:35:25', '2026-11-06 06:35:25'),
+(68, 51, 15, 34, '2026-07-01', '2027-06-30', 1, '2026-11-06 06:35:25', '2026-11-06 06:35:25'),
+(69, 51, 16, 47, '2026-07-01', '2027-06-30', 1, '2026-11-06 06:35:25', '2026-11-06 06:35:25'),
+(70, 51, 17, 39, '2026-07-01', '2027-06-30', 1, '2026-11-06 06:35:25', '2026-11-06 06:35:25'),
+(71, 51, 18, 55, '2026-07-01', '2027-06-30', 1, '2026-11-06 06:35:25', '2026-11-06 06:35:25'),
+(72, 51, 20, 29, '2026-07-01', '2027-06-30', 1, '2026-11-06 06:35:25', '2026-11-06 06:35:25'),
+(73, 51, 21, 24, '2026-07-01', '2027-06-30', 1, '2026-11-06 06:35:25', '2026-11-06 06:35:25'),
+(74, 51, 22, 24, '2026-07-01', '2027-06-30', 1, '2026-11-06 06:35:25', '2026-11-06 06:35:25'),
+(75, 51, 23, 15, '2026-07-01', '2027-06-30', 1, '2026-11-06 06:35:25', '2026-11-06 06:35:25'),
+(76, 51, 24, 35, '2026-07-01', '2027-06-30', 1, '2026-11-06 06:35:25', '2026-11-06 06:35:25'),
+(77, 51, 26, 49, '2026-07-01', '2027-06-30', 1, '2026-11-06 06:35:25', '2026-11-06 06:35:25'),
+(78, 51, 27, 22, '2026-07-01', '2027-06-30', 1, '2026-11-06 06:35:25', '2026-11-06 06:35:25'),
+(79, 51, 28, 54, '2026-07-01', '2027-06-30', 1, '2026-11-06 06:35:25', '2026-11-06 06:35:25'),
+(80, 51, 30, 37, '2026-07-01', '2027-06-30', 1, '2026-11-06 06:35:25', '2026-11-06 06:35:25'),
+(81, 51, 31, 56, '2026-07-01', '2027-06-30', 1, '2026-11-06 06:35:25', '2026-11-06 06:35:25'),
+(82, 51, 32, 57, '2026-07-01', '2027-06-30', 1, '2026-11-06 06:35:25', '2026-11-06 06:35:25'),
+(83, 51, 33, 59, '2026-07-01', '2027-06-30', 1, '2026-11-06 06:35:25', '2026-11-06 06:35:25'),
+(84, 51, 34, 33, '2026-07-01', '2027-06-30', 1, '2026-11-06 06:35:25', '2026-11-06 06:35:25'),
+(85, 51, 36, 36, '2026-07-01', '2027-06-30', 1, '2026-11-06 06:35:25', '2026-11-06 06:35:25'),
+(86, 51, 37, 30, '2026-07-01', '2027-06-30', 1, '2026-11-06 06:35:25', '2026-11-06 06:35:25'),
+(87, 51, 38, 45, '2026-07-01', '2027-06-30', 1, '2026-11-06 06:35:25', '2026-11-06 06:35:25'),
+(88, 51, 39, 23, '2026-07-01', '2027-06-30', 1, '2026-11-06 06:35:25', '2026-11-06 06:35:25'),
+(119, 51, 54, 63, '2026-11-06', '2028-11-06', 1, '2026-11-06 07:57:03', '2026-11-06 07:57:03');
 
 --
--- Indeks untuk tabel yang dibuang
+-- Indexes for dumped tables
 --
 
 --
@@ -790,13 +825,13 @@ ALTER TABLE `t_wali_kelas`
 -- AUTO_INCREMENT untuk tabel `t_guru`
 --
 ALTER TABLE `t_guru`
-  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=63;
+  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=64;
 
 --
 -- AUTO_INCREMENT untuk tabel `t_kelas`
 --
 ALTER TABLE `t_kelas`
-  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=54;
+  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=55;
 
 --
 -- AUTO_INCREMENT untuk tabel `t_kelas_siswa`
@@ -826,7 +861,7 @@ ALTER TABLE `t_pelanggaran_siswa`
 -- AUTO_INCREMENT untuk tabel `t_siswa`
 --
 ALTER TABLE `t_siswa`
-  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=59;
+  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=60;
 
 --
 -- AUTO_INCREMENT untuk tabel `t_tahun_ajaran`
@@ -838,13 +873,13 @@ ALTER TABLE `t_tahun_ajaran`
 -- AUTO_INCREMENT untuk tabel `t_user`
 --
 ALTER TABLE `t_user`
-  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=60;
+  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=61;
 
 --
 -- AUTO_INCREMENT untuk tabel `t_wali_kelas`
 --
 ALTER TABLE `t_wali_kelas`
-  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=56;
+  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=120;
 
 --
 -- Ketidakleluasaan untuk tabel pelimpahan (Dumped Tables)

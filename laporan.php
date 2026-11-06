@@ -36,14 +36,18 @@ $cari = isset($_GET['cari']) ? trim($_GET['cari']) : '';
 $dataLaporan = [];
 
 // MENGAMBIL DATA LAPORAN SISWA
+// NAMA KELAS DIAMBIL DARI TABEL t_kelas BERDASARKAN kelas_id
 if ($cari !== '') {
 
     $stmt = mysqli_prepare(
         $koneksi,
-        "SELECT *
-         FROM t_pelanggaran_siswa
-         WHERE nama_siswa = ?
-         ORDER BY tanggal DESC"
+        "SELECT
+            ps.*,
+            k.nama AS nama_kelas_resmi
+         FROM t_pelanggaran_siswa ps
+         LEFT JOIN t_kelas k ON ps.kelas_id = k.id
+         WHERE ps.nama_siswa = ?
+         ORDER BY ps.tanggal DESC"
     );
 
     if (!$stmt) {
@@ -100,7 +104,7 @@ if (isset($_GET['export']) && $_GET['export'] === 'excel') {
         fputcsv($output, [
             $no_export++,
             $data['nama_siswa'] ?? '',
-            $data['nama_kelas'] ?? '',
+            $data['nama_kelas_resmi'] ?? '-',
             $data['nama_pelanggaran'] ?? '',
             $data['nama_guru'] ?? '',
             $data['tanggal'] ?? '',
@@ -250,7 +254,6 @@ $menuAdmin = [
                 -webkit-filter: none !important;
                 print-color-adjust: exact !important;
                 -webkit-print-color-adjust: exact !important;
-                
             }
 
             .identitas-sekolah {
@@ -675,7 +678,7 @@ $menuAdmin = [
 
                                     <img src="logo.png"
                                          alt="Logo Sekolah"
-                                          width="100"
+                                         width="100"
                                          class="logo-cetak">
 
                                     <div class="identitas-sekolah">
@@ -720,7 +723,7 @@ $menuAdmin = [
                                             <td><strong>Kelas</strong></td>
                                             <td>:</td>
                                             <td>
-                                                <?= htmlspecialchars($dataLaporan[0]['nama_kelas'] ?? '-', ENT_QUOTES, 'UTF-8'); ?>
+                                                <?= htmlspecialchars($dataLaporan[0]['nama_kelas_resmi'] ?? '-', ENT_QUOTES, 'UTF-8'); ?>
                                             </td>
                                         </tr>
 
@@ -776,7 +779,7 @@ $menuAdmin = [
                                                 </td>
 
                                                 <td>
-                                                    <?= htmlspecialchars($data['nama_kelas'] ?? '', ENT_QUOTES, 'UTF-8'); ?>
+                                                    <?= htmlspecialchars($data['nama_kelas_resmi'] ?? '-', ENT_QUOTES, 'UTF-8'); ?>
                                                 </td>
 
                                                 <td>

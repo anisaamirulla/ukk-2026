@@ -1,4 +1,3 @@
-
 <?php
 
 error_reporting(E_ALL);
@@ -93,6 +92,74 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
                     $_SESSION['id'] = $data['id'];
                     $_SESSION['name'] = $data['name'];
                     $_SESSION['role'] = $role;
+
+                    // Memeriksa apakah guru juga merupakan Wali Kelas
+                    unset($_SESSION['status_wali_kelas']);
+
+                    if ($role === 'guru') {
+
+                        $stmtGuru = mysqli_prepare(
+                            $koneksi,
+                            "SELECT id FROM t_guru
+                             WHERE user_id = ?
+                             AND status_aktif = 1
+                             LIMIT 1"
+                        );
+
+                        if ($stmtGuru) {
+
+                            mysqli_stmt_bind_param(
+                                $stmtGuru,
+                                "i",
+                                $data['id']
+                            );
+
+                            mysqli_stmt_execute($stmtGuru);
+
+                            $hasilGuru = mysqli_stmt_get_result($stmtGuru);
+                            $dataGuru = mysqli_fetch_assoc($hasilGuru);
+
+                            mysqli_stmt_close($stmtGuru);
+
+                            if ($dataGuru) {
+
+                                $guruId = (int)$dataGuru['id'];
+
+                                $stmtWali = mysqli_prepare(
+                                    $koneksi,
+                                    "SELECT id
+                                     FROM t_wali_kelas
+                                     WHERE guru_id = ?
+                                     AND status_aktif = 1
+                                     AND tanggal_mulai <= CURDATE()
+                                     AND (
+                                         tanggal_selesai IS NULL
+                                         OR tanggal_selesai >= CURDATE()
+                                     )
+                                     LIMIT 1"
+                                );
+
+                                if ($stmtWali) {
+
+                                    mysqli_stmt_bind_param(
+                                        $stmtWali,
+                                        "i",
+                                        $guruId
+                                    );
+
+                                    mysqli_stmt_execute($stmtWali);
+
+                                    $hasilWali = mysqli_stmt_get_result($stmtWali);
+                                    $dataWali = mysqli_fetch_assoc($hasilWali);
+
+                                    $_SESSION['status_wali_kelas'] =
+                                        $dataWali ? true : false;
+
+                                    mysqli_stmt_close($stmtWali);
+                                }
+                            }
+                        }
+                    }
 
                     header("Location: dashboard.php");
                     exit;
@@ -261,3 +328,4 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
 </body>
 
 </html>
+```

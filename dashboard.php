@@ -1,4 +1,3 @@
-
 <?php
 session_start();
 
@@ -13,54 +12,168 @@ if (!in_array($role, ['admin', 'guru'])) {
     exit("Role pengguna tidak valid. Silakan login kembali.");
 }
 
-$nama = htmlspecialchars($_SESSION['name'] ?? 'Pengguna');
+require_once __DIR__ . "/config/koneksi.php";
 
+// ALAMAT DASAR PROJECT
+$baseUrl = "/ukk-2026/";
+
+// FOLDER WALI KELAS
+$folderWaliKelas = $baseUrl . "walikelas/";
+
+// NAMA PENGGUNA
+$nama = $_SESSION['name'] ?? 'Pengguna';
+
+// PEMERIKSAAN GURU YANG MENJADI WALI KELAS
+$isWaliKelas = false;
+$guru_id = 0;
+
+if ($role === 'guru') {
+
+    $cekGuru = mysqli_prepare(
+        $koneksi,
+        "SELECT id, nama
+         FROM t_guru
+         WHERE user_id = ?
+         LIMIT 1"
+    );
+
+    if ($cekGuru) {
+
+        mysqli_stmt_bind_param($cekGuru, "i", $_SESSION['id']);
+        mysqli_stmt_execute($cekGuru);
+
+        $hasilGuru = mysqli_stmt_get_result($cekGuru);
+        $dataGuru = mysqli_fetch_assoc($hasilGuru);
+
+        if ($dataGuru) {
+
+            $guru_id = (int) $dataGuru['id'];
+            $nama = $dataGuru['nama'];
+
+            $cekWali = mysqli_prepare(
+                $koneksi,
+                "SELECT id
+                 FROM t_wali_kelas
+                 WHERE guru_id = ?
+                 AND status_aktif = 1
+                 AND tanggal_mulai <= CURDATE()
+                 AND (
+                     tanggal_selesai IS NULL
+                     OR tanggal_selesai >= CURDATE()
+                 )
+                 LIMIT 1"
+            );
+
+            if ($cekWali) {
+
+                mysqli_stmt_bind_param($cekWali, "i", $guru_id);
+                mysqli_stmt_execute($cekWali);
+
+                $hasilWali = mysqli_stmt_get_result($cekWali);
+
+                if (mysqli_num_rows($hasilWali) > 0) {
+                    $isWaliKelas = true;
+                }
+
+                mysqli_stmt_close($cekWali);
+            }
+        }
+
+        mysqli_stmt_close($cekGuru);
+    }
+}
+
+// MENGAMANKAN NAMA PENGGUNA
+$nama = htmlspecialchars(
+    $nama,
+    ENT_QUOTES,
+    'UTF-8'
+);
+
+// LABEL ROLE SIDEBAR
+if ($role === 'admin') {
+    $labelRole = 'ADMIN';
+} elseif ($isWaliKelas) {
+    $labelRole = 'WALI KELAS';
+} else {
+    $labelRole = 'GURU';
+}
+
+// MENU ADMIN
 $menuAdmin = [
-    ['Dashboard', 'dashboard.php'],
-    ['Data Siswa', 'siswa.php'],
-    ['Data Guru', 'guru.php'],
-    ['Kelas', 'kelas.php'],
-    ['Tahun Ajaran', 'tahun_ajaran.php'],
-    ['Penempatan Siswa', 'penempatan_siswa.php'],
-    ['Wali Kelas', 'wali_kelas.php'],
-    ['Kategori Pelanggaran', 'kategori_pelanggaran.php'],
-    ['Jenis Pelanggaran', 'jenis_pelanggaran.php'],
-    ['Laporan', 'laporan.php'],
-    ['About Me', 'abautme.php']
+    ['Dashboard', $baseUrl . 'dashboard.php'],
+    ['Data Siswa', $baseUrl . 'siswa.php'],
+    ['Data Guru', $baseUrl . 'guru.php'],
+    ['Kelas', $baseUrl . 'kelas.php'],
+    ['Tahun Ajaran', $baseUrl . 'tahun_ajaran.php'],
+    ['Penempatan Siswa', $baseUrl . 'penempatan_siswa.php'],
+    ['Wali Kelas', $baseUrl . 'wali_kelas.php'],
+    ['Kategori Pelanggaran', $baseUrl . 'kategori_pelanggaran.php'],
+    ['Jenis Pelanggaran', $baseUrl . 'jenis_pelanggaran.php'],
+    ['Laporan', $baseUrl . 'laporan.php'],
+    ['About Me', $baseUrl . 'abautme.php']
 ];
 
+// MENU GURU BIASA
 $menuGuru = [
-    ['Dashboard', 'dashboard.php'],
-    ['Catatan Pelanggaran', 'catatan_pelanggaran.php'],
-    ['Tindakan', 'tindakan.php'],
-    ['Riwayat', 'riwayat.php'],
-    ['Rekap Poin', 'rekap_poin.php'],
-    ['About Me', 'abautme.php']
+    ['Dashboard', $baseUrl . 'dashboard.php'],
+    ['Catatan Pelanggaran', $baseUrl . 'catatan_pelanggaran.php'],
+    ['Tindakan', $baseUrl . 'tindakan.php'],
+    ['Riwayat', $baseUrl . 'riwayat.php'],
+    ['Rekap Poin', $baseUrl . 'rekap_poin.php'],
+    ['About Me', $baseUrl . 'abautme.php']
 ];
 
-$menu = ($role === 'admin') ? $menuAdmin : $menuGuru;
+// MENU KHUSUS WALI KELAS
+$menuWaliKelas = [
+    ['Dashboard', $baseUrl . 'dashboard.php'],
+    ['Data Siswa', $folderWaliKelas . 'data_siswa.php'],
+    ['Rekap Pelanggaran', $folderWaliKelas . 'rekap_pelanggaran.php'],
+    ['Cetak Rekap', $folderWaliKelas . 'cetak_rekap.php'],
+    ['About Me', $baseUrl . 'abautme.php']
+];
 
+// MENENTUKAN MENU BERDASARKAN AKSES
+if ($role === 'admin') {
+    $menu = $menuAdmin;
+} elseif ($isWaliKelas) {
+    $menu = $menuWaliKelas;
+} else {
+    $menu = $menuGuru;
+}
+
+// KARTU DASHBOARD ADMIN
 $kartuAdmin = [
-    ['Dashboard', 'Lihat halaman utama aplikasi.', 'dashboard.php', 'bi-speedometer2'],
-    ['Data Siswa', 'Kelola data siswa.', 'siswa.php', 'bi-people-fill'],
-    ['Data Guru', 'Kelola data guru dan akun guru.', 'guru.php', 'bi-person-badge-fill'],
-    ['Kelas', 'Kelola data kelas.', 'kelas.php', 'bi-building'],
-    ['Tahun Ajaran', 'Kelola tahun ajaran sekolah.', 'tahun_ajaran.php', 'bi-calendar-event'],
-    ['Penempatan Siswa', 'Kelola penempatan siswa di kelas.', 'penempatan_siswa.php', 'bi-person-lines-fill'],
-    ['Wali Kelas', 'Kelola data wali kelas.', 'wali_kelas.php', 'bi-person-workspace'],
-    ['Kategori Pelanggaran', 'Kelola kategori pelanggaran siswa.', 'kategori_pelanggaran.php', 'bi-collection-fill'],
-    ['Jenis Pelanggaran', 'Kelola jenis pelanggaran siswa.', 'jenis_pelanggaran.php', 'bi-clipboard2-check-fill'],
-    ['Laporan', 'Lihat laporan pelanggaran siswa.', 'laporan.php', 'bi-file-earmark-text-fill'],
-    ['About Me', 'Lihat informasi profil pengembang.', 'abautme.php', 'bi-person-circle']
+    ['Dashboard', 'Lihat halaman utama aplikasi.', $baseUrl . 'dashboard.php', 'bi-speedometer2'],
+    ['Data Siswa', 'Kelola data siswa.', $baseUrl . 'siswa.php', 'bi-people-fill'],
+    ['Data Guru', 'Kelola data guru dan akun guru.', $baseUrl . 'guru.php', 'bi-person-badge-fill'],
+    ['Kelas', 'Kelola data kelas.', $baseUrl . 'kelas.php', 'bi-building'],
+    ['Tahun Ajaran', 'Kelola tahun ajaran sekolah.', $baseUrl . 'tahun_ajaran.php', 'bi-calendar-event'],
+    ['Penempatan Siswa', 'Kelola penempatan siswa di kelas.', $baseUrl . 'penempatan_siswa.php', 'bi-person-lines-fill'],
+    ['Wali Kelas', 'Kelola data wali kelas.', $baseUrl . 'wali_kelas.php', 'bi-person-workspace'],
+    ['Kategori Pelanggaran', 'Kelola kategori pelanggaran siswa.', $baseUrl . 'kategori_pelanggaran.php', 'bi-collection-fill'],
+    ['Jenis Pelanggaran', 'Kelola jenis pelanggaran siswa.', $baseUrl . 'jenis_pelanggaran.php', 'bi-clipboard2-check-fill'],
+    ['Laporan', 'Lihat laporan pelanggaran siswa.', $baseUrl . 'laporan.php', 'bi-file-earmark-text-fill'],
+    ['About Me', 'Lihat informasi profil pengembang.', $baseUrl . 'abautme.php', 'bi-person-circle']
 ];
 
+// KARTU DASHBOARD GURU
 $kartuGuru = [
-    ['Dashboard', 'Lihat halaman utama aplikasi.', 'dashboard.php', 'bi-speedometer2'],
-    ['Catatan Pelanggaran', 'Lihat catatan pelanggaran siswa.', 'catatan_pelanggaran.php', 'bi-journal-text'],
-    ['Tindakan', 'Kelola tindakan pelanggaran.', 'tindakan.php', 'bi-clipboard-check-fill'],
-    ['Riwayat', 'Lihat riwayat pelanggaran siswa.', 'riwayat.php', 'bi-clock-history'],
-    ['Rekap Poin', 'Lihat rekap poin pelanggaran siswa.', 'rekap_poin.php', 'bi-bar-chart-fill'],
-    ['About Me', 'Lihat informasi profil pengembang.', 'abautme.php', 'bi-person-circle']
+    ['Dashboard', 'Lihat halaman utama aplikasi.', $baseUrl . 'dashboard.php', 'bi-speedometer2'],
+    ['Catatan Pelanggaran', 'Lihat catatan pelanggaran siswa.', $baseUrl . 'catatan_pelanggaran.php', 'bi-journal-text'],
+    ['Tindakan', 'Kelola tindakan pelanggaran.', $baseUrl . 'tindakan.php', 'bi-clipboard-check-fill'],
+    ['Riwayat', 'Lihat riwayat pelanggaran siswa.', $baseUrl . 'riwayat.php', 'bi-clock-history'],
+    ['Rekap Poin', 'Lihat rekap poin pelanggaran siswa.', $baseUrl . 'rekap_poin.php', 'bi-bar-chart-fill'],
+    ['About Me', 'Lihat informasi profil pengembang.', $baseUrl . 'abautme.php', 'bi-person-circle']
+];
+
+// KARTU DASHBOARD WALI KELAS
+$kartuWaliKelas = [
+    ['Dashboard', 'Lihat halaman utama aplikasi.', $baseUrl . 'dashboard.php', 'bi-speedometer2'],
+    ['Data Siswa', 'Lihat data siswa di kelas yang menjadi tanggung jawab.', $folderWaliKelas . 'data_siswa.php', 'bi-people-fill'],
+    ['Rekap Pelanggaran', 'Lihat rekap data pelanggaran siswa di kelas.', $folderWaliKelas . 'rekap_pelanggaran.php', 'bi-clipboard-data-fill'],
+    ['Cetak Rekap', 'Cetak laporan rekap pelanggaran siswa di kelas.', $folderWaliKelas . 'cetak_rekap.php', 'bi-printer-fill'],
+    ['About Me', 'Lihat informasi profil pengembang.', $baseUrl . 'abautme.php', 'bi-person-circle']
 ];
 
 ?>
@@ -72,15 +185,15 @@ $kartuGuru = [
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1">
 
-    <title>Dashboard <?= ucfirst($role); ?> - Sistem Informasi Pelanggaran Siswa</title>
+    <title>
+        Dashboard <?= ucfirst($role); ?> - Sistem Informasi Pelanggaran Siswa
+    </title>
 
-    <!-- BOOTSTRAP 5.3.3 -->
     <link
         href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css"
         rel="stylesheet"
     >
 
-    <!-- BOOTSTRAP ICONS -->
     <link
         href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.min.css"
         rel="stylesheet"
@@ -90,6 +203,7 @@ $kartuGuru = [
 <body class="bg-light overflow-hidden">
 
 <div class="container-fluid vh-100 overflow-hidden">
+
     <div class="row h-100 flex-nowrap">
 
         <!-- SIDEBAR -->
@@ -104,7 +218,7 @@ $kartuGuru = [
                 </h5>
 
                 <small class="text-secondary">
-                    Panel <?= ucfirst($role); ?>
+                    Panel <?= $isWaliKelas && $role === 'guru' ? 'Wali Kelas' : ucfirst($role); ?>
                 </small>
 
             </div>
@@ -115,7 +229,7 @@ $kartuGuru = [
                 <div class="d-flex align-items-center gap-3">
 
                     <img
-                        src="logo.png"
+                        src="<?= $baseUrl; ?>logo.png"
                         alt="Logo Aplikasi"
                         width="44"
                         height="44"
@@ -128,8 +242,9 @@ $kartuGuru = [
                             <?= $nama; ?>
                         </div>
 
+                        <!-- LABEL ROLE YANG SUDAH DIPERBAIKI -->
                         <small class="text-secondary">
-                            <?= strtoupper($role); ?>
+                            <?= $labelRole; ?>
                         </small>
 
                     </div>
@@ -150,10 +265,10 @@ $kartuGuru = [
                     <li class="nav-item">
 
                         <a
-                            href="<?= htmlspecialchars($item[1]); ?>"
+                            href="<?= htmlspecialchars($item[1], ENT_QUOTES, 'UTF-8'); ?>"
                             class="nav-link <?= $item[0] === 'Dashboard' ? 'active' : 'text-white'; ?> rounded-2 py-2 px-3"
                         >
-                            <?= htmlspecialchars($item[0]); ?>
+                            <?= htmlspecialchars($item[0], ENT_QUOTES, 'UTF-8'); ?>
                         </a>
 
                     </li>
@@ -166,7 +281,7 @@ $kartuGuru = [
 
             <!-- LOGOUT -->
             <a
-                href="logout.php"
+                href="<?= $baseUrl; ?>logout.php"
                 class="nav-link text-danger rounded-2 py-2 px-3"
             >
                 <i class="bi bi-box-arrow-left me-2"></i>
@@ -184,7 +299,7 @@ $kartuGuru = [
                 <div>
 
                     <h2 class="fw-bold mb-2">
-                        Dashboard <?= ucfirst($role); ?>
+                        Dashboard <?= $isWaliKelas && $role === 'guru' ? 'Wali Kelas' : ucfirst($role); ?>
                     </h2>
 
                     <p class="text-secondary mb-0">
@@ -194,7 +309,7 @@ $kartuGuru = [
                 </div>
 
                 <span class="badge text-bg-dark rounded-pill px-3 py-2">
-                    <?= ucfirst($role); ?>
+                    <?= $isWaliKelas && $role === 'guru' ? 'Wali Kelas' : ucfirst($role); ?>
                 </span>
 
             </div>
@@ -215,15 +330,15 @@ $kartuGuru = [
                                 <div class="card-body p-4 d-flex flex-column align-items-start">
 
                                     <h5 class="card-title fw-bold mb-3">
-                                        <?= htmlspecialchars($kartu[0]); ?>
+                                        <?= htmlspecialchars($kartu[0], ENT_QUOTES, 'UTF-8'); ?>
                                     </h5>
 
                                     <p class="card-text text-secondary mb-4">
-                                        <?= htmlspecialchars($kartu[1]); ?>
+                                        <?= htmlspecialchars($kartu[1], ENT_QUOTES, 'UTF-8'); ?>
                                     </p>
 
                                     <a
-                                        href="<?= htmlspecialchars($kartu[2]); ?>"
+                                        href="<?= htmlspecialchars($kartu[2], ENT_QUOTES, 'UTF-8'); ?>"
                                         class="btn btn-primary rounded-2 px-4 mt-auto"
                                     >
                                         Lihat Menu
@@ -239,9 +354,49 @@ $kartuGuru = [
 
                 </div>
 
+            <!-- KARTU MENU WALI KELAS -->
+            <?php elseif ($isWaliKelas): ?>
+
+                <div class="row g-4">
+
+                    <?php foreach ($kartuWaliKelas as $kartu): ?>
+
+                        <?php if ($kartu[0] === 'Dashboard') continue; ?>
+
+                        <div class="col-12 col-md-6 col-xl-4">
+
+                            <div class="card border-0 shadow-sm rounded-3 h-100">
+
+                                <div class="card-body p-4 d-flex flex-column align-items-start">
+
+                                    <h5 class="card-title fw-bold mb-3">
+                                        <?= htmlspecialchars($kartu[0], ENT_QUOTES, 'UTF-8'); ?>
+                                    </h5>
+
+                                    <p class="card-text text-secondary mb-4">
+                                        <?= htmlspecialchars($kartu[1], ENT_QUOTES, 'UTF-8'); ?>
+                                    </p>
+
+                                    <a
+                                        href="<?= htmlspecialchars($kartu[2], ENT_QUOTES, 'UTF-8'); ?>"
+                                        class="btn btn-primary rounded-2 px-4 mt-auto"
+                                    >
+                                        Buka Fitur
+                                    </a>
+
+                                </div>
+
+                            </div>
+
+                        </div>
+
+                    <?php endforeach; ?>
+
+                </div>
+
+            <!-- KARTU MENU GURU -->
             <?php else: ?>
 
-                <!-- KARTU MENU GURU -->
                 <div class="row g-4">
 
                     <?php foreach ($kartuGuru as $kartu): ?>
@@ -255,15 +410,15 @@ $kartuGuru = [
                                 <div class="card-body p-4 d-flex flex-column align-items-start">
 
                                     <h5 class="card-title fw-bold mb-3">
-                                        <?= htmlspecialchars($kartu[0]); ?>
+                                        <?= htmlspecialchars($kartu[0], ENT_QUOTES, 'UTF-8'); ?>
                                     </h5>
 
                                     <p class="card-text text-secondary mb-4">
-                                        <?= htmlspecialchars($kartu[1]); ?>
+                                        <?= htmlspecialchars($kartu[1], ENT_QUOTES, 'UTF-8'); ?>
                                     </p>
 
                                     <a
-                                        href="<?= htmlspecialchars($kartu[2]); ?>"
+                                        href="<?= htmlspecialchars($kartu[2], ENT_QUOTES, 'UTF-8'); ?>"
                                         class="btn btn-primary rounded-2 px-4 mt-auto"
                                     >
                                         Buka Fitur
@@ -289,6 +444,7 @@ $kartuGuru = [
         </main>
 
     </div>
+
 </div>
 
 <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
