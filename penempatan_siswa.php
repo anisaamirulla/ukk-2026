@@ -1,4 +1,3 @@
-
 <?php
 session_start();
 
@@ -17,90 +16,58 @@ function aman($nilai) {
     return htmlspecialchars((string)($nilai ?? ''), ENT_QUOTES, 'UTF-8');
 }
 
-if (!isset($_SESSION['data_penempatan'])) {
-    $_SESSION['data_penempatan'] = [
-        [
-            'id' => 1,
-            'siswa_id' => 1,
-            'nisn' => 'NISN0000000001',
-            'nama_siswa' => 'Alya Putri',
-            'kelas_id' => 39,
-            'nama_kelas' => 'X BDP 2',
-            'tahun_ajaran_id' => 34,
-            'nama_tahun_ajaran' => 'Tahun Ajaran 2011/20',
-            'tanggal_mulai' => '2026-10-20',
-            'tanggal_selesai' => '2026-12-23',
-            'status_aktif' => 1
-        ]
-    ];
-}
-
-$data_penempatan = &$_SESSION['data_penempatan'];
-
 // PROSES HAPUS PENEMPATAN
 if (isset($_GET['hapus'])) {
     $id_hapus = (int) $_GET['hapus'];
 
-    foreach ($data_penempatan as $index => $row) {
-        if ((int)$row['id'] === $id_hapus) {
-            unset($data_penempatan[$index]);
+    $hapus = mysqli_query(
+        $koneksi,
+        "DELETE FROM t_kelas_siswa WHERE id = $id_hapus"
+    );
 
-            $_SESSION['data_penempatan'] = array_values($data_penempatan);
-
-            header("Location: penempatan_siswa.php?pesan=hapus");
-            exit;
-        }
+    if ($hapus && mysqli_affected_rows($koneksi) > 0) {
+        header("Location: penempatan_siswa.php?pesan=hapus");
+        exit;
     }
 
     header("Location: penempatan_siswa.php?pesan=gagal_hapus");
     exit;
 }
 
-// AMBIL DATA REFERENSI
-$query_siswa = mysqli_query(
-    $koneksi,
-    "SELECT id, nisn, nama FROM t_siswa ORDER BY nama ASC"
-);
+// AMBIL DATA PENEMPATAN DARI DATABASE
+$query_penempatan = mysqli_query($koneksi, "
+    SELECT
+        ks.id,
+        ks.siswa_id,
+        s.nisn,
+        s.nama AS nama_siswa,
+        ks.kelas_id,
+        k.nama AS nama_kelas,
+        ks.tahun_ajaran_id,
+        ta.nama AS nama_tahun_ajaran,
+        ks.tanggal_mulai,
+        ks.tanggal_selesai,
+        ks.status_aktif
+    FROM t_kelas_siswa ks
+    LEFT JOIN t_siswa s
+        ON ks.siswa_id = s.id
+    LEFT JOIN t_kelas k
+        ON ks.kelas_id = k.id
+    LEFT JOIN t_tahun_ajaran ta
+        ON ks.tahun_ajaran_id = ta.id
+    ORDER BY ks.id DESC
+");
 
-$query_kelas = mysqli_query(
-    $koneksi,
-    "SELECT id, nama FROM t_kelas ORDER BY nama ASC"
-);
-
-$query_tahun = mysqli_query(
-    $koneksi,
-    "SELECT id, nama FROM t_tahun_ajaran ORDER BY id DESC"
-);
-
-if (!$query_siswa || !$query_kelas || !$query_tahun) {
-    die("Gagal mengambil data referensi: " . mysqli_error($koneksi));
+if (!$query_penempatan) {
+    die("Gagal mengambil data penempatan: " . mysqli_error($koneksi));
 }
 
-// DATA SISWA
-$siswa_map = [];
+// SIMPAN HASIL QUERY
+$data_penempatan = [];
 
-while ($s = mysqli_fetch_assoc($query_siswa)) {
-    $siswa_map[(int)$s['id']] = $s;
+while ($row = mysqli_fetch_assoc($query_penempatan)) {
+    $data_penempatan[] = $row;
 }
-
-// DATA KELAS
-$kelas_map = [];
-
-while ($k = mysqli_fetch_assoc($query_kelas)) {
-    $kelas_map[(int)$k['id']] = $k['nama'];
-}
-
-// DATA TAHUN AJARAN
-$tahun_map = [];
-
-while ($t = mysqli_fetch_assoc($query_tahun)) {
-    $tahun_map[(int)$t['id']] = $t['nama'];
-}
-
-// URUTKAN DATA
-usort($data_penempatan, function ($a, $b) {
-    return (int)$b['id'] <=> (int)$a['id'];
-});
 
 // NOTIFIKASI
 $pesan_url = $_GET['pesan'] ?? '';
@@ -292,14 +259,12 @@ $nama = htmlspecialchars(
                         Kelola data penempatan siswa pada Sistem Informasi Pelanggaran Siswa.
                     </p>
 
-                    <!-- TOMBOL KEMBALI KE DASHBOARD -->
                     <a href="dashboard.php" class="btn btn-secondary btn-sm rounded-1">
                         Kembali ke Dashboard
                     </a>
 
                 </div>
 
-                <!-- TOMBOL TAMBAH -->
                 <a href="tambah_penempatan_siswa.php" class="btn btn-primary rounded-2 px-4">
                     + Tambah Penempatan Siswa
                 </a>
@@ -352,38 +317,32 @@ $nama = htmlspecialchars(
 
                             <tbody>
 
+                                <?php $no = 1; ?>
+
                                 <?php foreach ($data_penempatan as $row): ?>
-
-                                    <?php
-                                    $sid = (int)($row['siswa_id'] ?? 0);
-                                    $kid = (int)($row['kelas_id'] ?? 0);
-                                    $tid = (int)($row['tahun_ajaran_id'] ?? 0);
-
-                                    $s = $siswa_map[$sid] ?? null;
-                                    ?>
 
                                     <tr>
 
                                         <td>
-                                            <?= (int)$row['id']; ?>
+                                            <?= $no++; ?>
                                         </td>
 
                                         <td>
-                                            <?= aman($s['nisn'] ?? $row['nisn'] ?? '-'); ?>
+                                            <?= aman($row['nisn'] ?? '-'); ?>
                                         </td>
 
                                         <td>
                                             <strong>
-                                                <?= aman($s['nama'] ?? $row['nama_siswa'] ?? '-'); ?>
+                                                <?= aman($row['nama_siswa'] ?? '-'); ?>
                                             </strong>
                                         </td>
 
                                         <td>
-                                            <?= aman($kelas_map[$kid] ?? $row['nama_kelas'] ?? '-'); ?>
+                                            <?= aman($row['nama_kelas'] ?? '-'); ?>
                                         </td>
 
                                         <td>
-                                            <?= aman($tahun_map[$tid] ?? $row['nama_tahun_ajaran'] ?? '-'); ?>
+                                            <?= aman($row['nama_tahun_ajaran'] ?? '-'); ?>
                                         </td>
 
                                         <td>
@@ -396,7 +355,7 @@ $nama = htmlspecialchars(
 
                                         <td>
 
-                                            <?php if ((int)($row['status_aktif'] ?? 1) === 1): ?>
+                                            <?php if ((int)($row['status_aktif'] ?? 0) === 1): ?>
 
                                                 <span class="badge bg-success">
                                                     Aktif
