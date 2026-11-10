@@ -1,3 +1,4 @@
+
 <?php
 session_start();
 
@@ -14,11 +15,8 @@ if (!in_array($role, ['admin', 'guru'])) {
 
 require_once __DIR__ . "/config/koneksi.php";
 
-// ALAMAT DASAR PROJECT
-$baseUrl = "/ukk-2026/";
-
 // FOLDER WALI KELAS
-$folderWaliKelas = $baseUrl . "walikelas/";
+$folderWaliKelas = "walikelas/";
 
 // NAMA PENGGUNA
 $nama = $_SESSION['name'] ?? 'Pengguna';
@@ -101,36 +99,36 @@ if ($role === 'admin') {
 
 // MENU ADMIN
 $menuAdmin = [
-    ['Dashboard', $baseUrl . 'dashboard.php'],
-    ['Data Siswa', $baseUrl . 'siswa.php'],
-    ['Data Guru', $baseUrl . 'guru.php'],
-    ['Kelas', $baseUrl . 'kelas.php'],
-    ['Tahun Ajaran', $baseUrl . 'tahun_ajaran.php'],
-    ['Penempatan Siswa', $baseUrl . 'penempatan_siswa.php'],
-    ['Wali Kelas', $baseUrl . 'wali_kelas.php'],
-    ['Kategori Pelanggaran', $baseUrl . 'kategori_pelanggaran.php'],
-    ['Jenis Pelanggaran', $baseUrl . 'jenis_pelanggaran.php'],
-    ['Laporan', $baseUrl . 'laporan.php'],
-    ['About Me', $baseUrl . 'abautme.php']
+    ['Dashboard', 'dashboard.php'],
+    ['Data Siswa', 'siswa.php'],
+    ['Data Guru', 'guru.php'],
+    ['Kelas', 'kelas.php'],
+    ['Tahun Ajaran', 'tahun_ajaran.php'],
+    ['Penempatan Siswa', 'penempatan_siswa.php'],
+    ['Wali Kelas', 'wali_kelas.php'],
+    ['Kategori Pelanggaran', 'kategori_pelanggaran.php'],
+    ['Jenis Pelanggaran', 'jenis_pelanggaran.php'],
+    ['Laporan', 'laporan.php'],
+    ['About Me', 'abautme.php']
 ];
 
 // MENU GURU BIASA
 $menuGuru = [
-    ['Dashboard', $baseUrl . 'dashboard.php'],
-    ['Catatan Pelanggaran', $baseUrl . 'catatan_pelanggaran.php'],
-    ['Tindakan', $baseUrl . 'tindakan.php'],
-    ['Riwayat', $baseUrl . 'riwayat.php'],
-    ['Rekap Poin', $baseUrl . 'rekap_poin.php'],
-    ['About Me', $baseUrl . 'abautme.php']
+    ['Dashboard', 'dashboard.php'],
+    ['Catatan Pelanggaran', 'catatan_pelanggaran.php'],
+    ['Tindakan', 'tindakan.php'],
+    ['Riwayat', 'riwayat.php'],
+    ['Rekap Poin', 'rekap_poin.php'],
+    ['About Me', 'abautme.php']
 ];
 
 // MENU KHUSUS WALI KELAS
 $menuWaliKelas = [
-    ['Dashboard', $baseUrl . 'dashboard.php'],
+    ['Dashboard', 'dashboard.php'],
     ['Data Siswa', $folderWaliKelas . 'data_siswa.php'],
     ['Rekap Pelanggaran', $folderWaliKelas . 'rekap_pelanggaran.php'],
     ['Cetak Rekap', $folderWaliKelas . 'cetak_rekap.php'],
-    ['About Me', $baseUrl . 'abautme.php']
+    ['About Me', 'abautme.php']
 ];
 
 // MENENTUKAN MENU BERDASARKAN AKSES
@@ -144,36 +142,36 @@ if ($role === 'admin') {
 
 // KARTU DASHBOARD ADMIN
 $kartuAdmin = [
-    ['Dashboard', 'Lihat halaman utama aplikasi.', $baseUrl . 'dashboard.php', 'bi-speedometer2'],
-    ['Data Siswa', 'Kelola data siswa.', $baseUrl . 'siswa.php', 'bi-people-fill'],
-    ['Data Guru', 'Kelola data guru dan akun guru.', $baseUrl . 'guru.php', 'bi-person-badge-fill'],
-    ['Kelas', 'Kelola data kelas.', $baseUrl . 'kelas.php', 'bi-building'],
-    ['Tahun Ajaran', 'Kelola tahun ajaran sekolah.', $baseUrl . 'tahun_ajaran.php', 'bi-calendar-event'],
-    ['Penempatan Siswa', 'Kelola penempatan siswa di kelas.', $baseUrl . 'penempatan_siswa.php', 'bi-person-lines-fill'],
-    ['Wali Kelas', 'Kelola data wali kelas.', $baseUrl . 'wali_kelas.php', 'bi-person-workspace'],
-    ['Kategori Pelanggaran', 'Kelola kategori pelanggaran siswa.', $baseUrl . 'kategori_pelanggaran.php', 'bi-collection-fill'],
-    ['Jenis Pelanggaran', 'Kelola jenis pelanggaran siswa.', $baseUrl . 'jenis_pelanggaran.php', 'bi-clipboard2-check-fill'],
-    ['Laporan', 'Lihat laporan pelanggaran siswa.', $baseUrl . 'laporan.php', 'bi-file-earmark-text-fill'],
-    ['About Me', 'Lihat informasi profil pengembang.', $baseUrl . 'abautme.php', 'bi-person-circle']
+    ['Dashboard', 'Lihat halaman utama aplikasi.', 'dashboard.php', 'bi-speedometer2'],
+    ['Data Siswa', 'Kelola data siswa.', 'siswa.php', 'bi-people-fill'],
+    ['Data Guru', 'Kelola data guru dan akun guru.', 'guru.php', 'bi-person-badge-fill'],
+    ['Kelas', 'Kelola data kelas.', 'kelas.php', 'bi-building'],
+    ['Tahun Ajaran', 'Kelola tahun ajaran sekolah.', 'tahun_ajaran.php', 'bi-calendar-event'],
+    ['Penempatan Siswa', 'Kelola penempatan siswa di kelas.', 'penempatan_siswa.php', 'bi-person-lines-fill'],
+    ['Wali Kelas', 'Kelola data wali kelas.', 'wali_kelas.php', 'bi-person-workspace'],
+    ['Kategori Pelanggaran', 'Kelola kategori pelanggaran siswa.', 'kategori_pelanggaran.php', 'bi-collection-fill'],
+    ['Jenis Pelanggaran', 'Kelola jenis pelanggaran siswa.', 'jenis_pelanggaran.php', 'bi-clipboard2-check-fill'],
+    ['Laporan', 'Lihat laporan pelanggaran siswa.', 'laporan.php', 'bi-file-earmark-text-fill'],
+    ['About Me', 'Lihat informasi profil pengembang.', 'abautme.php', 'bi-person-circle']
 ];
 
 // KARTU DASHBOARD GURU
 $kartuGuru = [
-    ['Dashboard', 'Lihat halaman utama aplikasi.', $baseUrl . 'dashboard.php', 'bi-speedometer2'],
-    ['Catatan Pelanggaran', 'Lihat catatan pelanggaran siswa.', $baseUrl . 'catatan_pelanggaran.php', 'bi-journal-text'],
-    ['Tindakan', 'Kelola tindakan pelanggaran.', $baseUrl . 'tindakan.php', 'bi-clipboard-check-fill'],
-    ['Riwayat', 'Lihat riwayat pelanggaran siswa.', $baseUrl . 'riwayat.php', 'bi-clock-history'],
-    ['Rekap Poin', 'Lihat rekap poin pelanggaran siswa.', $baseUrl . 'rekap_poin.php', 'bi-bar-chart-fill'],
-    ['About Me', 'Lihat informasi profil pengembang.', $baseUrl . 'abautme.php', 'bi-person-circle']
+    ['Dashboard', 'Lihat halaman utama aplikasi.', 'dashboard.php', 'bi-speedometer2'],
+    ['Catatan Pelanggaran', 'Lihat catatan pelanggaran siswa.', 'catatan_pelanggaran.php', 'bi-journal-text'],
+    ['Tindakan', 'Kelola tindakan pelanggaran.', 'tindakan.php', 'bi-clipboard-check-fill'],
+    ['Riwayat', 'Lihat riwayat pelanggaran siswa.', 'riwayat.php', 'bi-clock-history'],
+    ['Rekap Poin', 'Lihat rekap poin pelanggaran siswa.', 'rekap_poin.php', 'bi-bar-chart-fill'],
+    ['About Me', 'Lihat informasi profil pengembang.', 'abautme.php', 'bi-person-circle']
 ];
 
 // KARTU DASHBOARD WALI KELAS
 $kartuWaliKelas = [
-    ['Dashboard', 'Lihat halaman utama aplikasi.', $baseUrl . 'dashboard.php', 'bi-speedometer2'],
+    ['Dashboard', 'Lihat halaman utama aplikasi.', 'dashboard.php', 'bi-speedometer2'],
     ['Data Siswa', 'Lihat data siswa di kelas yang menjadi tanggung jawab.', $folderWaliKelas . 'data_siswa.php', 'bi-people-fill'],
     ['Rekap Pelanggaran', 'Lihat rekap data pelanggaran siswa di kelas.', $folderWaliKelas . 'rekap_pelanggaran.php', 'bi-clipboard-data-fill'],
     ['Cetak Rekap', 'Cetak laporan rekap pelanggaran siswa di kelas.', $folderWaliKelas . 'cetak_rekap.php', 'bi-printer-fill'],
-    ['About Me', 'Lihat informasi profil pengembang.', $baseUrl . 'abautme.php', 'bi-person-circle']
+    ['About Me', 'Lihat informasi profil pengembang.', 'abautme.php', 'bi-person-circle']
 ];
 
 ?>
@@ -229,7 +227,7 @@ $kartuWaliKelas = [
                 <div class="d-flex align-items-center gap-3">
 
                     <img
-                        src="<?= $baseUrl; ?>logo.png"
+                        src="logo.png"
                         alt="Logo Aplikasi"
                         width="44"
                         height="44"
@@ -242,7 +240,6 @@ $kartuWaliKelas = [
                             <?= $nama; ?>
                         </div>
 
-                        <!-- LABEL ROLE YANG SUDAH DIPERBAIKI -->
                         <small class="text-secondary">
                             <?= $labelRole; ?>
                         </small>
@@ -281,7 +278,7 @@ $kartuWaliKelas = [
 
             <!-- LOGOUT -->
             <a
-                href="<?= $baseUrl; ?>logout.php"
+                href="logout.php"
                 class="nav-link text-danger rounded-2 py-2 px-3"
             >
                 <i class="bi bi-box-arrow-left me-2"></i>

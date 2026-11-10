@@ -1,3 +1,4 @@
+
 <?php
 
 error_reporting(E_ALL);
@@ -40,23 +41,23 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
 
         if ($data) {
 
-            $password_database = $data['password'];
+            $password_database = (string) $data['password'];
 
-            // Memeriksa password hash
+            // Memeriksa password menggunakan password_verify()
             $password_benar = password_verify(
                 $password,
                 $password_database
             );
 
-            // Mendukung akun lama yang password-nya masih teks biasa
+            // Mendukung password lama yang masih berupa teks biasa
             if (
                 !$password_benar &&
-                hash_equals((string)$password_database, (string)$password)
+                hash_equals($password_database, (string) $password)
             ) {
 
                 $password_benar = true;
 
-                // Memperbarui password lama menjadi hash
+                // Mengubah password lama menjadi hash
                 $password_hash = password_hash(
                     $password,
                     PASSWORD_DEFAULT
@@ -83,7 +84,7 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
 
             if ($password_benar) {
 
-                $role = strtolower(trim($data['role']));
+                $role = strtolower(trim($data['role'] ?? ''));
 
                 if ($role === 'admin' || $role === 'guru') {
 
@@ -93,14 +94,15 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
                     $_SESSION['name'] = $data['name'];
                     $_SESSION['role'] = $role;
 
-                    // Memeriksa apakah guru juga merupakan Wali Kelas
+                    // Memeriksa status Wali Kelas
                     unset($_SESSION['status_wali_kelas']);
 
                     if ($role === 'guru') {
 
                         $stmtGuru = mysqli_prepare(
                             $koneksi,
-                            "SELECT id FROM t_guru
+                            "SELECT id
+                             FROM t_guru
                              WHERE user_id = ?
                              AND status_aktif = 1
                              LIMIT 1"
@@ -123,7 +125,7 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
 
                             if ($dataGuru) {
 
-                                $guruId = (int)$dataGuru['id'];
+                                $guruId = (int) $dataGuru['id'];
 
                                 $stmtWali = mysqli_prepare(
                                     $koneksi,
@@ -156,8 +158,16 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
                                         $dataWali ? true : false;
 
                                     mysqli_stmt_close($stmtWali);
+                                } else {
+                                    $_SESSION['status_wali_kelas'] = false;
                                 }
+
+                            } else {
+                                $_SESSION['status_wali_kelas'] = false;
                             }
+
+                        } else {
+                            $_SESSION['status_wali_kelas'] = false;
                         }
                     }
 
@@ -309,12 +319,6 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
 
                     </form>
 
-                    <div class="text-center mt-4">
-
-                        <small class="text-secondary"></small>
-
-                    </div>
-
                 </div>
 
             </div>
@@ -328,4 +332,3 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
 </body>
 
 </html>
-```
