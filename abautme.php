@@ -1,3 +1,4 @@
+
 <?php
 session_start();
 require_once __DIR__ . "/config/koneksi.php";
@@ -13,36 +14,88 @@ if (!in_array($role, ['admin', 'guru'])) {
     exit("Anda tidak memiliki akses");
 }
 
+$folderWaliKelas = "walikelas/";
+
+// NAMA PENGGUNA
+$nama = $_SESSION['name'] ?? 'Pengguna';
+
+// PEMERIKSAAN GURU YANG MENJADI WALI KELAS
+$isWaliKelas = false;
+$guru_id = 0;
+
+if ($role === 'guru') {
+
+    $cekGuru = mysqli_prepare(
+        $koneksi,
+        "SELECT id, nama
+         FROM t_guru
+         WHERE user_id = ?
+         LIMIT 1"
+    );
+
+    if ($cekGuru) {
+
+        mysqli_stmt_bind_param($cekGuru, "i", $_SESSION['id']);
+        mysqli_stmt_execute($cekGuru);
+
+        $hasilGuru = mysqli_stmt_get_result($cekGuru);
+        $dataGuru = mysqli_fetch_assoc($hasilGuru);
+
+        if ($dataGuru) {
+
+            $guru_id = (int) $dataGuru['id'];
+            $nama = $dataGuru['nama'];
+
+            $cekWali = mysqli_prepare(
+                $koneksi,
+                "SELECT id
+                 FROM t_wali_kelas
+                 WHERE guru_id = ?
+                 AND status_aktif = 1
+                 AND tanggal_mulai <= CURDATE()
+                 AND (
+                     tanggal_selesai IS NULL
+                     OR tanggal_selesai >= CURDATE()
+                 )
+                 LIMIT 1"
+            );
+
+            if ($cekWali) {
+
+                mysqli_stmt_bind_param($cekWali, "i", $guru_id);
+                mysqli_stmt_execute($cekWali);
+
+                $hasilWali = mysqli_stmt_get_result($cekWali);
+
+                if (mysqli_num_rows($hasilWali) > 0) {
+                    $isWaliKelas = true;
+                }
+
+                mysqli_stmt_close($cekWali);
+            }
+        }
+
+        mysqli_stmt_close($cekGuru);
+    }
+}
+
+// MENGAMANKAN NAMA PENGGUNA
 $nama = htmlspecialchars(
-    $_SESSION['name'] ?? 'Pengguna',
+    $nama,
     ENT_QUOTES,
     'UTF-8'
 );
 
-// Ambil nama guru dari tabel t_guru untuk akun wali kelas
-if ($role === 'guru') {
-
-    $stmtGuru = mysqli_prepare(
-        $koneksi,
-        "SELECT nama FROM t_guru WHERE user_id = ? LIMIT 1"
-    );
-
-    mysqli_stmt_bind_param($stmtGuru, "i", $_SESSION['id']);
-    mysqli_stmt_execute($stmtGuru);
-
-    $dataGuru = mysqli_fetch_assoc(mysqli_stmt_get_result($stmtGuru));
-
-    mysqli_stmt_close($stmtGuru);
-
-    if ($dataGuru) {
-        $nama = htmlspecialchars(
-            $dataGuru['nama'],
-            ENT_QUOTES,
-            'UTF-8'
-        );
-    }
+// LABEL ROLE SIDEBAR
+if ($role === 'admin') {
+    $labelRole = 'ADMIN';
+} elseif ($isWaliKelas) {
+    $labelRole = 'WALI KELAS';
+} else {
+    $labelRole = 'GURU';
 }
 
+// MENU ADMIN (TETAP)
 $menuAdmin = [
     ['Dashboard', 'dashboard.php'],
     ['Data Siswa', 'siswa.php'],
@@ -57,15 +110,33 @@ $menuAdmin = [
     ['About Me', 'abautme.php']
 ];
 
+// MENU GURU BIASA
 $menuGuru = [
     ['Dashboard', 'dashboard.php'],
-    ['Data Siswa', 'walikelas/data_siswa.php'],
     ['Rekap Pelanggaran', 'walikelas/rekap_pelanggaran.php'],
     ['Cetak Rekap', 'walikelas/cetak_rekap.php'],
     ['About Me', 'abautme.php']
 ];
 
-$menuTampil = ($role === 'admin') ? $menuAdmin : $menuGuru;
+// MENU KHUSUS WALI KELAS
+$menuWaliKelas = [
+    ['Dashboard', 'dashboard.php'],
+    ['Data Siswa di Kelasnya', $folderWaliKelas . 'data_siswa.php'],
+    ['Catat Pelanggaran', 'catatan_pelanggaran.php'],
+    ['Riwayat Pelanggaran Siswa', 'riwayat.php'],
+    ['Rekap Poin Siswa', 'rekap_poin.php'],
+    ['Laporan Pelanggaran Kelas', $folderWaliKelas . 'rekap_pelanggaran.php'],
+    ['About Me', 'abautme.php']
+];
+
+// MENENTUKAN MENU BERDASARKAN AKSES
+if ($role === 'admin') {
+    $menuTampil = $menuAdmin;
+} elseif ($isWaliKelas) {
+    $menuTampil = $menuWaliKelas;
+} else {
+    $menuTampil = $menuGuru;
+}
 ?>
 
 <!DOCTYPE html>
@@ -78,9 +149,15 @@ $menuTampil = ($role === 'admin') ? $menuAdmin : $menuGuru;
 
     <title>About Me - Sistem Informasi Pelanggaran Siswa</title>
 
-    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link
+        href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css"
+        rel="stylesheet"
+    >
 
-    <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.min.css" rel="stylesheet">
+    <link
+        href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.min.css"
+        rel="stylesheet"
+    >
 
 </head>
 
@@ -91,9 +168,9 @@ $menuTampil = ($role === 'admin') ? $menuAdmin : $menuGuru;
     <div class="row h-100 flex-nowrap">
 
         <!-- SIDEBAR -->
-        <aside class="col-3 col-md-3 col-lg-2 bg-dark vh-100 overflow-y-auto p-3 flex-shrink-0">
+        <aside class="col-12 col-md-3 col-lg-2 bg-dark vh-100 overflow-auto position-sticky top-0 p-3 flex-shrink-0">
 
-            <!-- IDENTITAS APLIKASI -->
+            <!-- JUDUL SIDEBAR -->
             <div class="text-white mb-4 pt-3 pb-3 border-bottom border-secondary">
 
                 <h5 class="fw-bold mb-2">
@@ -102,12 +179,12 @@ $menuTampil = ($role === 'admin') ? $menuAdmin : $menuGuru;
                 </h5>
 
                 <small class="text-secondary">
-                    <?= $role === 'admin' ? 'Panel Admin' : 'Panel Wali Kelas'; ?>
+                    Panel <?= $isWaliKelas && $role === 'guru' ? 'Wali Kelas' : ucfirst($role); ?>
                 </small>
 
             </div>
 
-            <!-- IDENTITAS PENGGUNA -->
+            <!-- PROFIL PENGGUNA -->
             <div class="bg-secondary bg-opacity-25 rounded-3 p-3 mb-4">
 
                 <div class="d-flex align-items-center gap-3">
@@ -127,7 +204,7 @@ $menuTampil = ($role === 'admin') ? $menuAdmin : $menuGuru;
                         </div>
 
                         <small class="text-secondary">
-                            <?= $role === 'admin' ? 'ADMIN' : 'WALI KELAS'; ?>
+                            <?= $labelRole; ?>
                         </small>
 
                     </div>
@@ -136,7 +213,7 @@ $menuTampil = ($role === 'admin') ? $menuAdmin : $menuGuru;
 
             </div>
 
-            <!-- MENU UTAMA -->
+            <!-- MENU SIDEBAR -->
             <div class="text-secondary small fw-semibold mb-3">
                 MENU UTAMA
             </div>
@@ -168,14 +245,13 @@ $menuTampil = ($role === 'admin') ? $menuAdmin : $menuGuru;
                 href="logout.php"
                 class="nav-link text-danger rounded-2 py-2 px-3"
             >
-                <i class="bi bi-box-arrow-left me-2"></i>
                 Logout
             </a>
 
         </aside>
 
         <!-- KONTEN ABOUT ME -->
-        <main class="col-9 col-md-9 col-lg-10 vh-100 overflow-y-auto p-3 p-lg-5">
+        <main class="col-12 col-md-9 col-lg-10 vh-100 overflow-auto p-3 p-lg-5">
 
             <!-- JUDUL HALAMAN -->
             <div class="d-flex flex-wrap justify-content-between align-items-start gap-3 mb-4 pb-4 border-bottom">

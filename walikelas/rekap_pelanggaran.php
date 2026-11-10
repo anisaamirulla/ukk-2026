@@ -1,3 +1,4 @@
+
 <?php
 session_start();
 
@@ -124,10 +125,10 @@ $halamanAktif = basename($_SERVER['PHP_SELF']);
 
     <div class="row h-100 flex-nowrap">
 
-        <!-- SIDEBAR -->
-        <aside class="col-3 col-md-3 col-lg-2 bg-dark vh-100 overflow-y-auto p-3 flex-shrink-0">
+        <!-- SIDEBAR SAMA DENGAN DASHBOARD -->
+        <aside class="col-12 col-md-3 col-lg-2 bg-dark vh-100 overflow-auto position-sticky top-0 p-3">
 
-            <!-- IDENTITAS APLIKASI -->
+            <!-- JUDUL SIDEBAR -->
             <div class="text-white mb-4 pt-3 pb-3 border-bottom border-secondary">
 
                 <h5 class="fw-bold mb-2">
@@ -141,7 +142,7 @@ $halamanAktif = basename($_SERVER['PHP_SELF']);
 
             </div>
 
-            <!-- IDENTITAS PENGGUNA -->
+            <!-- PROFIL PENGGUNA -->
             <div class="bg-secondary bg-opacity-25 rounded-3 p-3 mb-4">
 
                 <div class="d-flex align-items-center gap-3">
@@ -170,7 +171,7 @@ $halamanAktif = basename($_SERVER['PHP_SELF']);
 
             </div>
 
-            <!-- MENU UTAMA -->
+            <!-- MENU SIDEBAR -->
             <div class="text-secondary small fw-semibold mb-3">
                 MENU UTAMA
             </div>
@@ -178,60 +179,67 @@ $halamanAktif = basename($_SERVER['PHP_SELF']);
             <ul class="nav nav-pills flex-column gap-2">
 
                 <li class="nav-item">
-
                     <a
                         href="../dashboard.php"
                         class="nav-link text-white rounded-2 py-2 px-3"
                     >
                         Dashboard
                     </a>
-
                 </li>
 
                 <li class="nav-item">
-
                     <a
                         href="data_siswa.php"
                         class="nav-link text-white rounded-2 py-2 px-3"
                     >
-                        Data Siswa
+                        Data Siswa di Kelasnya
                     </a>
-
                 </li>
 
                 <li class="nav-item">
+                    <a
+                        href="../catatan_pelanggaran.php"
+                        class="nav-link text-white rounded-2 py-2 px-3"
+                    >
+                        Catat Pelanggaran
+                    </a>
+                </li>
 
+                <li class="nav-item">
+                    <a
+                        href="../riwayat.php"
+                        class="nav-link text-white rounded-2 py-2 px-3"
+                    >
+                        Riwayat Pelanggaran Siswa
+                    </a>
+                </li>
+
+                <li class="nav-item">
+                    <a
+                        href="../rekap_poin.php"
+                        class="nav-link text-white rounded-2 py-2 px-3"
+                    >
+                        Rekap Poin Siswa
+                    </a>
+                </li>
+
+                <li class="nav-item">
                     <a
                         href="rekap_pelanggaran.php"
                         class="nav-link active rounded-2 py-2 px-3"
                         aria-current="page"
                     >
-                        Rekap Pelanggaran
+                        Laporan Pelanggaran Kelas
                     </a>
-
                 </li>
 
                 <li class="nav-item">
-
-                    <a
-                        href="cetak_rekap.php"
-                        class="nav-link text-white rounded-2 py-2 px-3"
-                    >
-                        Cetak Rekap
-                    </a>
-
-                </li>
-
-                <!-- ABOUT ME -->
-                <li class="nav-item">
-
                     <a
                         href="../abautme.php"
                         class="nav-link text-white rounded-2 py-2 px-3"
                     >
                         About Me
                     </a>
-
                 </li>
 
             </ul>
@@ -250,7 +258,7 @@ $halamanAktif = basename($_SERVER['PHP_SELF']);
         </aside>
 
         <!-- KONTEN UTAMA -->
-        <main class="col-9 col-md-9 col-lg-10 vh-100 overflow-y-auto p-3 p-lg-5">
+        <main class="col-12 col-md-9 col-lg-10 vh-100 overflow-auto p-3 p-lg-5">
 
             <!-- JUDUL HALAMAN -->
             <div class="d-flex flex-wrap justify-content-between align-items-start gap-3 mb-4 pb-4 border-bottom">

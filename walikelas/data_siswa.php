@@ -1,3 +1,4 @@
+
 <?php
 session_start();
 
@@ -22,6 +23,10 @@ $stmt = mysqli_prepare(
     "SELECT id, nama FROM t_guru WHERE user_id = ? LIMIT 1"
 );
 
+if (!$stmt) {
+    die("Gagal menyiapkan data guru: " . mysqli_error($koneksi));
+}
+
 mysqli_stmt_bind_param($stmt, "i", $_SESSION['id']);
 mysqli_stmt_execute($stmt);
 
@@ -44,9 +49,17 @@ $stmt = mysqli_prepare(
      WHERE wk.guru_id = ?
        AND wk.status_aktif = 1
        AND wk.tanggal_mulai <= CURDATE()
-       AND (wk.tanggal_selesai IS NULL OR wk.tanggal_selesai >= CURDATE())
+       AND (
+           wk.tanggal_selesai IS NULL
+           OR wk.tanggal_selesai >= CURDATE()
+       )
+     ORDER BY wk.id DESC
      LIMIT 1"
 );
+
+if (!$stmt) {
+    die("Gagal menyiapkan data Wali Kelas: " . mysqli_error($koneksi));
+}
 
 mysqli_stmt_bind_param($stmt, "i", $guru['id']);
 mysqli_stmt_execute($stmt);
@@ -61,7 +74,7 @@ if (!$wali) {
 $kelas_id = (int) $wali['kelas_id'];
 $tahun_ajaran_id = (int) $wali['tahun_ajaran_id'];
 
-// Ambil siswa sesuai kelas Wali Kelas
+// Ambil siswa sesuai kelas dan tahun ajaran Wali Kelas yang login
 $stmt = mysqli_prepare(
     $koneksi,
     "SELECT s.id, s.nis, s.nisn, s.nama,
@@ -72,18 +85,30 @@ $stmt = mysqli_prepare(
        AND ks.tahun_ajaran_id = ?
        AND ks.status_aktif = 1
        AND ks.tanggal_mulai <= CURDATE()
-       AND ks.tanggal_selesai >= CURDATE()
+       AND (
+           ks.tanggal_selesai IS NULL
+           OR ks.tanggal_selesai >= CURDATE()
+       )
        AND s.status_aktif = 1
      ORDER BY s.nama ASC"
 );
+
+if (!$stmt) {
+    die("Gagal menyiapkan data siswa: " . mysqli_error($koneksi));
+}
 
 mysqli_stmt_bind_param($stmt, "ii", $kelas_id, $tahun_ajaran_id);
 mysqli_stmt_execute($stmt);
 
 $result = mysqli_stmt_get_result($stmt);
 
+if (!$result) {
+    die("Gagal mengambil data siswa: " . mysqli_error($koneksi));
+}
+
 $jumlahSiswa = mysqli_num_rows($result);
 $nama = $guru['nama'];
+$labelRole = 'WALI KELAS';
 
 ?>
 
@@ -115,9 +140,9 @@ $nama = $guru['nama'];
     <div class="row h-100 flex-nowrap">
 
         <!-- SIDEBAR -->
-        <aside class="col-3 col-md-3 col-lg-2 bg-dark vh-100 overflow-y-auto p-3 flex-shrink-0">
+        <aside class="col-12 col-md-3 col-lg-2 bg-dark vh-100 overflow-auto position-sticky top-0 p-3">
 
-            <!-- IDENTITAS APLIKASI -->
+            <!-- JUDUL SIDEBAR -->
             <div class="text-white mb-4 pt-3 pb-3 border-bottom border-secondary">
 
                 <h5 class="fw-bold mb-2">
@@ -131,7 +156,7 @@ $nama = $guru['nama'];
 
             </div>
 
-            <!-- IDENTITAS PENGGUNA -->
+            <!-- PROFIL PENGGUNA -->
             <div class="bg-secondary bg-opacity-25 rounded-3 p-3 mb-4">
 
                 <div class="d-flex align-items-center gap-3">
@@ -151,7 +176,7 @@ $nama = $guru['nama'];
                         </div>
 
                         <small class="text-secondary">
-                            WALI KELAS
+                            <?= $labelRole; ?>
                         </small>
 
                     </div>
@@ -160,13 +185,14 @@ $nama = $guru['nama'];
 
             </div>
 
-            <!-- MENU UTAMA -->
+            <!-- MENU SIDEBAR TANPA ICON -->
             <div class="text-secondary small fw-semibold mb-3">
                 MENU UTAMA
             </div>
 
             <ul class="nav nav-pills flex-column gap-2">
 
+                <!-- DASHBOARD -->
                 <li class="nav-item">
 
                     <a
@@ -178,6 +204,7 @@ $nama = $guru['nama'];
 
                 </li>
 
+                <!-- DATA SISWA -->
                 <li class="nav-item">
 
                     <a
@@ -185,29 +212,55 @@ $nama = $guru['nama'];
                         class="nav-link active rounded-2 py-2 px-3"
                         aria-current="page"
                     >
-                        Data Siswa
+                        Data Siswa di Kelasnya
                     </a>
 
                 </li>
 
+                <!-- CATAT PELANGGARAN -->
+                <li class="nav-item">
+
+                    <a
+                        href="../catatan_pelanggaran.php"
+                        class="nav-link text-white rounded-2 py-2 px-3"
+                    >
+                        Catat Pelanggaran
+                    </a>
+
+                </li>
+
+                <!-- RIWAYAT PELANGGARAN -->
+                <li class="nav-item">
+
+                    <a
+                        href="../riwayat.php"
+                        class="nav-link text-white rounded-2 py-2 px-3"
+                    >
+                        Riwayat Pelanggaran Siswa
+                    </a>
+
+                </li>
+
+                <!-- REKAP POIN -->
+                <li class="nav-item">
+
+                    <a
+                        href="../rekap_poin.php"
+                        class="nav-link text-white rounded-2 py-2 px-3"
+                    >
+                        Rekap Poin Siswa
+                    </a>
+
+                </li>
+
+                <!-- LAPORAN PELANGGARAN -->
                 <li class="nav-item">
 
                     <a
                         href="rekap_pelanggaran.php"
                         class="nav-link text-white rounded-2 py-2 px-3"
                     >
-                        Rekap Pelanggaran
-                    </a>
-
-                </li>
-
-                <li class="nav-item">
-
-                    <a
-                        href="cetak_rekap.php"
-                        class="nav-link text-white rounded-2 py-2 px-3"
-                    >
-                        Cetak Rekap
+                        Laporan Pelanggaran Kelas
                     </a>
 
                 </li>
@@ -228,89 +281,123 @@ $nama = $guru['nama'];
 
             <hr class="border-secondary my-4">
 
-            <!-- LOGOUT -->
+            <!-- LOGOUT TANPA ICON -->
             <a
                 href="../logout.php"
                 class="nav-link text-danger rounded-2 py-2 px-3"
             >
-                <i class="bi bi-box-arrow-left me-2"></i>
                 Logout
             </a>
 
         </aside>
 
         <!-- KONTEN UTAMA -->
-        <main class="col-9 col-md-9 col-lg-10 vh-100 overflow-y-auto p-3 p-lg-5">
+        <main class="col-12 col-md-9 col-lg-10 vh-100 overflow-auto p-3 p-lg-5">
 
-            <!-- JUDUL HALAMAN -->
-            <div class="d-flex flex-wrap justify-content-between align-items-start gap-3 mb-4 pb-4 border-bottom">
+            <!-- HEADER HALAMAN -->
+            <div class="d-flex flex-wrap justify-content-between align-items-center gap-3 mb-4 pb-4 border-bottom">
 
                 <div>
 
+                    <div class="text-secondary small mb-2">
+                        Dashboard / Data Siswa
+                    </div>
+
+                    <!-- JUDUL TANPA ICON -->
                     <h2 class="fw-bold mb-2">
                         Data Siswa
                     </h2>
 
-                    <p class="text-secondary mb-2">
-                        Data siswa kelas <?= aman($wali['nama_kelas']); ?>.
+                    <p class="text-secondary mb-0">
+                        Informasi dan daftar siswa pada kelas yang menjadi tanggung jawab Anda.
                     </p>
 
-                    <a
-                        href="../dashboard.php"
-                        class="btn btn-secondary btn-sm rounded-2"
-                    >
-                        <i class="bi bi-arrow-left me-1"></i>
-                        Kembali ke Dashboard
-                    </a>
-
                 </div>
-
-                <span class="badge text-bg-dark rounded-pill px-3 py-2">
-                    Wali Kelas
-                </span>
 
             </div>
 
             <!-- INFORMASI KELAS -->
             <div class="card border-0 shadow-sm rounded-3 mb-4">
 
-                <div class="card-body p-3 p-lg-4">
+                <div class="card-body p-4">
 
-                    <div class="row g-4">
+                    <div class="d-flex align-items-center gap-3 mb-4">
 
-                        <div class="col-md-6">
+                        <div class="bg-light rounded-3 p-3">
+                            <i class="bi bi-info-circle fs-3 text-dark"></i>
+                        </div>
 
-                            <div class="text-secondary small mb-1">
-                                Nama Wali Kelas
-                            </div>
+                        <div>
+                            <h5 class="fw-bold mb-1">
+                                Informasi Kelas
+                            </h5>
 
-                            <div class="fw-semibold">
-                                <?= aman($wali['nama_wali_kelas']); ?>
+                            <p class="text-secondary small mb-0">
+                                Informasi penugasan Wali Kelas saat ini.
+                            </p>
+                        </div>
+
+                    </div>
+
+                    <div class="row g-3">
+
+                        <div class="col-12 col-md-6 col-xl-4">
+
+                            <div class="border rounded-3 p-3 h-100">
+
+                                <div class="text-secondary small mb-2">
+                                    Nama Wali Kelas
+                                </div>
+
+                                <div class="fw-semibold">
+                                    <i class="bi bi-person-badge me-2"></i>
+                                    <?= aman($wali['nama_wali_kelas']); ?>
+                                </div>
+
                             </div>
 
                         </div>
 
-                        <div class="col-md-6">
+                        <div class="col-12 col-md-6 col-xl-4">
 
-                            <div class="text-secondary small mb-1">
-                                Kelas
-                            </div>
+                            <div class="border rounded-3 p-3 h-100">
 
-                            <div class="fw-semibold">
-                                <?= aman($wali['nama_kelas']); ?>
+                                <div class="text-secondary small mb-2">
+                                    Kelas
+                                </div>
+
+                                <div class="fw-semibold">
+                                    <i class="bi bi-building me-2"></i>
+                                    <?= aman($wali['nama_kelas']); ?>
+                                </div>
+
                             </div>
 
                         </div>
 
-                        <div class="col-md-6">
+                        <div class="col-12 col-md-6 col-xl-4">
 
-                            <div class="text-secondary small mb-1">
-                                Jumlah Siswa
+                            <div class="border rounded-3 p-3 h-100">
+
+                                <div class="text-secondary small mb-2">
+                                    Jumlah Siswa
+                                </div>
+
+                                <div class="d-flex align-items-center gap-2">
+
+                                    <i class="bi bi-people-fill fs-4"></i>
+
+                                    <h4 class="fw-bold mb-0">
+                                        <?= $jumlahSiswa; ?>
+                                    </h4>
+
+                                    <span class="text-secondary">
+                                        Siswa
+                                    </span>
+
+                                </div>
+
                             </div>
-
-                            <h4 class="fw-bold text-primary mb-0">
-                                <?= $jumlahSiswa; ?> Siswa
-                            </h4>
 
                         </div>
 
@@ -321,24 +408,44 @@ $nama = $guru['nama'];
             </div>
 
             <!-- TABEL DATA SISWA -->
-            <div class="card border-0 shadow-sm rounded-3">
+            <div class="card border-0 shadow-sm rounded-3 mb-4">
 
-                <div class="card-body p-3 p-lg-4">
+                <div class="card-header bg-white border-0 p-4">
 
-                    <h5 class="fw-bold mb-3">
-                        <i class="bi bi-people-fill me-2"></i>
-                        Daftar Siswa
-                    </h5>
+                    <div class="d-flex flex-wrap justify-content-between align-items-center gap-3">
+
+                        <div>
+
+                            <h5 class="fw-bold mb-1">
+                                <i class="bi bi-list-ul me-2"></i>
+                                Daftar Siswa
+                            </h5>
+
+                            <p class="text-secondary small mb-0">
+                                Daftar siswa aktif pada kelas <?= aman($wali['nama_kelas']); ?>.
+                            </p>
+
+                        </div>
+
+                        <span class="badge text-bg-dark rounded-pill px-3 py-2">
+                            <?= $jumlahSiswa; ?> Siswa
+                        </span>
+
+                    </div>
+
+                </div>
+
+                <div class="card-body p-4 pt-2">
 
                     <div class="table-responsive">
 
-                        <table id="tabelSiswa" class="table table-hover align-middle">
+                        <table id="tabelSiswa" class="table table-hover table-bordered align-middle">
 
-                            <thead>
+                            <thead class="table-light">
 
-                                <tr class="table-primary">
+                                <tr>
 
-                                    <th>No</th>
+                                    <th class="text-center">No</th>
                                     <th>NIS</th>
                                     <th>NISN</th>
                                     <th>Nama Siswa</th>
@@ -358,7 +465,7 @@ $nama = $guru['nama'];
 
                                     <tr>
 
-                                        <td>
+                                        <td class="text-center">
                                             <?= $no++; ?>
                                         </td>
 
@@ -396,13 +503,38 @@ $nama = $guru['nama'];
 
                     </div>
 
+                    <div class="border-top pt-3 mt-3">
+
+                        <p class="text-secondary small mb-0">
+                            <i class="bi bi-info-circle me-1"></i>
+                            Data yang ditampilkan merupakan siswa aktif sesuai penugasan kelas Wali Kelas yang sedang login.
+                        </p>
+
+                    </div>
+
                 </div>
 
             </div>
 
+            <!-- KEMBALI KE DASHBOARD -->
+            <div class="d-flex justify-content-start mb-4">
+
+                <a
+                    href="../dashboard.php"
+                    class="btn btn-secondary rounded-2 px-4"
+                >
+                    <i class="bi bi-arrow-left me-2"></i>
+                    Kembali ke Dashboard
+                </a>
+
+            </div>
+
             <!-- FOOTER -->
-            <div class="text-secondary small mt-5 pt-3 border-top">
-                Sistem Informasi Pelanggaran Siswa
+            <div class="text-secondary small mt-4 pt-3 border-top">
+                <div class="d-flex flex-wrap justify-content-between gap-2">
+                    <span>Sistem Informasi Manajemen Pelanggaran Siswa Muhammadiyah</span>
+                    <span>Halaman Data Siswa</span>
+                </div>
             </div>
 
         </main>

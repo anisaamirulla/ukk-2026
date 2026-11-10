@@ -97,7 +97,7 @@ if ($role === 'admin') {
     $labelRole = 'GURU';
 }
 
-// MENU ADMIN
+// MENU ADMIN (TETAP)
 $menuAdmin = [
     ['Dashboard', 'dashboard.php'],
     ['Data Siswa', 'siswa.php'],
@@ -112,7 +112,7 @@ $menuAdmin = [
     ['About Me', 'abautme.php']
 ];
 
-// MENU GURU BIASA
+// MENU GURU BIASA (TETAP)
 $menuGuru = [
     ['Dashboard', 'dashboard.php'],
     ['Catatan Pelanggaran', 'catatan_pelanggaran.php'],
@@ -125,9 +125,11 @@ $menuGuru = [
 // MENU KHUSUS WALI KELAS
 $menuWaliKelas = [
     ['Dashboard', 'dashboard.php'],
-    ['Data Siswa', $folderWaliKelas . 'data_siswa.php'],
-    ['Rekap Pelanggaran', $folderWaliKelas . 'rekap_pelanggaran.php'],
-    ['Cetak Rekap', $folderWaliKelas . 'cetak_rekap.php'],
+    ['Data Siswa di Kelasnya', $folderWaliKelas . 'data_siswa.php'],
+    ['Catat Pelanggaran', 'catatan_pelanggaran.php'],
+    ['Riwayat Pelanggaran Siswa', 'riwayat.php'],
+    ['Rekap Poin Siswa', 'rekap_poin.php'],
+    ['Laporan Pelanggaran Kelas', $folderWaliKelas . 'rekap_pelanggaran.php'],
     ['About Me', 'abautme.php']
 ];
 
@@ -140,7 +142,7 @@ if ($role === 'admin') {
     $menu = $menuGuru;
 }
 
-// KARTU DASHBOARD ADMIN
+// KARTU DASHBOARD ADMIN (TETAP)
 $kartuAdmin = [
     ['Dashboard', 'Lihat halaman utama aplikasi.', 'dashboard.php', 'bi-speedometer2'],
     ['Data Siswa', 'Kelola data siswa.', 'siswa.php', 'bi-people-fill'],
@@ -155,7 +157,7 @@ $kartuAdmin = [
     ['About Me', 'Lihat informasi profil pengembang.', 'abautme.php', 'bi-person-circle']
 ];
 
-// KARTU DASHBOARD GURU
+// KARTU DASHBOARD GURU (TETAP)
 $kartuGuru = [
     ['Dashboard', 'Lihat halaman utama aplikasi.', 'dashboard.php', 'bi-speedometer2'],
     ['Catatan Pelanggaran', 'Lihat catatan pelanggaran siswa.', 'catatan_pelanggaran.php', 'bi-journal-text'],
@@ -168,9 +170,17 @@ $kartuGuru = [
 // KARTU DASHBOARD WALI KELAS
 $kartuWaliKelas = [
     ['Dashboard', 'Lihat halaman utama aplikasi.', 'dashboard.php', 'bi-speedometer2'],
-    ['Data Siswa', 'Lihat data siswa di kelas yang menjadi tanggung jawab.', $folderWaliKelas . 'data_siswa.php', 'bi-people-fill'],
-    ['Rekap Pelanggaran', 'Lihat rekap data pelanggaran siswa di kelas.', $folderWaliKelas . 'rekap_pelanggaran.php', 'bi-clipboard-data-fill'],
-    ['Cetak Rekap', 'Cetak laporan rekap pelanggaran siswa di kelas.', $folderWaliKelas . 'cetak_rekap.php', 'bi-printer-fill'],
+
+    ['Data Siswa di Kelasnya', 'Lihat data siswa di kelas yang menjadi tanggung jawab.', $folderWaliKelas . 'data_siswa.php', 'bi-people-fill'],
+
+    ['Catat Pelanggaran', 'Lihat dan tambahkan catatan pelanggaran siswa.', 'catatan_pelanggaran.php', 'bi-journal-text'],
+
+    ['Riwayat Pelanggaran Siswa', 'Lihat riwayat pelanggaran siswa.', 'riwayat.php', 'bi-clock-history'],
+
+    ['Rekap Poin Siswa', 'Lihat rekap poin pelanggaran siswa.', 'rekap_poin.php', 'bi-bar-chart-fill'],
+
+    ['Laporan Pelanggaran Kelas', 'Lihat laporan pelanggaran siswa di kelas yang menjadi tanggung jawab.', $folderWaliKelas . 'rekap_pelanggaran.php', 'bi-clipboard-data-fill'],
+
     ['About Me', 'Lihat informasi profil pengembang.', 'abautme.php', 'bi-person-circle']
 ];
 

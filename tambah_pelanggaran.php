@@ -16,12 +16,45 @@ if (!in_array($role, ['admin', 'guru'], true)) {
 require_once __DIR__ . "/config/koneksi.php";
 
 $pesan = "";
+
 $kelasTerpilih = (int)($_POST['kelas_id'] ?? 0);
 $siswaTerpilih = (int)($_POST['siswa_id'] ?? 0);
 
-/* =========================================
-   AMBIL DATA KELAS DARI PENEMPATAN SISWA AKTIF
-========================================= */
+/* ==========================================
+   AMBIL DATA GURU YANG SEDANG LOGIN
+========================================== */
+
+$guruLogin = null;
+
+if ($role === 'guru') {
+
+    $user_id = (int)$_SESSION['id'];
+
+    $stmtGuruLogin = mysqli_prepare(
+        $koneksi,
+        "SELECT id, nama
+         FROM t_guru
+         WHERE user_id = ?
+           AND status_aktif = 1
+         LIMIT 1"
+    );
+
+    if (!$stmtGuruLogin) {
+        die("Query guru login gagal: " . mysqli_error($koneksi));
+    }
+
+    mysqli_stmt_bind_param($stmtGuruLogin, "i", $user_id);
+    mysqli_stmt_execute($stmtGuruLogin);
+
+    $hasilGuruLogin = mysqli_stmt_get_result($stmtGuruLogin);
+    $guruLogin = mysqli_fetch_assoc($hasilGuruLogin);
+
+    mysqli_stmt_close($stmtGuruLogin);
+}
+
+/* ==========================================
+   AMBIL DATA KELAS AKTIF
+========================================== */
 
 $dataKelas = [];
 
@@ -44,28 +77,63 @@ while ($kelas = mysqli_fetch_assoc($queryKelas)) {
     $dataKelas[] = $kelas;
 }
 
-/* =========================================
-   AMBIL DATA SISWA BESERTA KELAS AKTIF
-========================================= */
+/* ==========================================
+   AMBIL DATA SISWA DAN PENEMPATANNYA
+========================================== */
 
 $dataSiswa = [];
 
-$querySiswa = mysqli_query(
-    $koneksi,
-    "SELECT
-        ks.siswa_id,
-        s.nama AS nama_siswa,
-        ks.kelas_id,
-        k.nama AS nama_kelas,
-        ks.tahun_ajaran_id,
-        ta.nama AS nama_tahun_ajaran
-     FROM t_kelas_siswa ks
-     INNER JOIN t_siswa s ON s.id = ks.siswa_id
-     INNER JOIN t_kelas k ON k.id = ks.kelas_id
-     INNER JOIN t_tahun_ajaran ta ON ta.id = ks.tahun_ajaran_id
-     WHERE ks.status_aktif = 1
-     ORDER BY s.nama ASC"
-);
+if ($role === 'guru') {
+
+    $sqlSiswa = "
+        SELECT
+            ks.siswa_id,
+            s.nama AS nama_siswa,
+            ks.kelas_id,
+            k.nama AS nama_kelas,
+            ks.tahun_ajaran_id,
+            ta.nama AS nama_tahun_ajaran
+        FROM t_kelas_siswa ks
+        INNER JOIN t_siswa s ON s.id = ks.siswa_id
+        INNER JOIN t_kelas k ON k.id = ks.kelas_id
+        INNER JOIN t_tahun_ajaran ta ON ta.id = ks.tahun_ajaran_id
+        WHERE ks.status_aktif = 1
+          AND ks.id = (
+              SELECT MAX(ks2.id)
+              FROM t_kelas_siswa ks2
+              WHERE ks2.siswa_id = ks.siswa_id
+                AND ks2.kelas_id = ks.kelas_id
+                AND ks2.status_aktif = 1
+          )
+        ORDER BY s.nama ASC
+    ";
+
+} else {
+
+    $sqlSiswa = "
+        SELECT
+            ks.siswa_id,
+            s.nama AS nama_siswa,
+            ks.kelas_id,
+            k.nama AS nama_kelas,
+            ks.tahun_ajaran_id,
+            ta.nama AS nama_tahun_ajaran
+        FROM t_kelas_siswa ks
+        INNER JOIN t_siswa s ON s.id = ks.siswa_id
+        INNER JOIN t_kelas k ON k.id = ks.kelas_id
+        INNER JOIN t_tahun_ajaran ta ON ta.id = ks.tahun_ajaran_id
+        WHERE ks.status_aktif = 1
+          AND ks.id = (
+              SELECT MAX(ks2.id)
+              FROM t_kelas_siswa ks2
+              WHERE ks2.siswa_id = ks.siswa_id
+                AND ks2.status_aktif = 1
+          )
+        ORDER BY s.nama ASC
+    ";
+}
+
+$querySiswa = mysqli_query($koneksi, $sqlSiswa);
 
 if (!$querySiswa) {
     die("Gagal mengambil data siswa: " . mysqli_error($koneksi));
@@ -75,9 +143,9 @@ while ($siswaData = mysqli_fetch_assoc($querySiswa)) {
     $dataSiswa[] = $siswaData;
 }
 
-/* =========================================
+/* ==========================================
    AMBIL DATA JENIS PELANGGARAN
-========================================= */
+========================================== */
 
 $queryPelanggaran = mysqli_query(
     $koneksi,
@@ -91,9 +159,9 @@ if (!$queryPelanggaran) {
     die("Gagal mengambil jenis pelanggaran: " . mysqli_error($koneksi));
 }
 
-/* =========================================
-   AMBIL DATA GURU
-========================================= */
+/* ==========================================
+   AMBIL DATA GURU UNTUK ADMIN
+========================================== */
 
 $queryGuru = mysqli_query(
     $koneksi,
@@ -107,37 +175,51 @@ if (!$queryGuru) {
     die("Gagal mengambil data guru: " . mysqli_error($koneksi));
 }
 
-/* =========================================
+/* ==========================================
    PROSES SIMPAN PELANGGARAN
-========================================= */
+========================================== */
 
 if (isset($_POST['simpan'])) {
 
     $siswa_id = (int)($_POST['siswa_id'] ?? 0);
     $pelanggaran_id = (int)($_POST['pelanggaran_id'] ?? 0);
-    $guru_id = (int)($_POST['guru_id'] ?? 0);
+
+    // Guru otomatis menggunakan akun yang sedang login.
+    // Admin tetap memilih guru secara manual.
+    if ($role === 'guru') {
+        $guru_id = (int)($guruLogin['id'] ?? 0);
+    } else {
+        $guru_id = (int)($_POST['guru_id'] ?? 0);
+    }
+
     $tanggal = trim($_POST['tanggal'] ?? '');
     $keterangan = trim($_POST['keterangan'] ?? '');
     $tindakan = trim($_POST['tindakan'] ?? '');
-    $status = trim($_POST['status'] ?? 'Diproses');
+    $status = trim($_POST['status'] ?? 'Pending');
 
-    if (
+    if ($role === 'guru' && !$guruLogin) {
+
+        $pesan = "Akun guru belum terhubung dengan data guru. Silakan hubungi admin.";
+
+    } elseif (
         $siswa_id <= 0 ||
         $pelanggaran_id <= 0 ||
         $guru_id <= 0 ||
         $tanggal === '' ||
         ($role === 'guru' && $kelasTerpilih <= 0)
     ) {
+
         $pesan = "Semua kolom wajib bertanda bintang harus diisi.";
-    } elseif (!in_array($status, ['Diproses', 'Selesai'], true)) {
+
+    } elseif (!in_array($status, ['Pending', 'Diproses', 'Selesai'], true)) {
+
         $pesan = "Status pelanggaran tidak valid.";
+
     } else {
 
-        /* =====================================
+        /* ======================================
            AMBIL PENEMPATAN SISWA
-           GURU: BERDASARKAN KELAS YANG DIPILIH
-           ADMIN: BERDASARKAN PENEMPATAN AKTIF
-        ===================================== */
+        ====================================== */
 
         if ($role === 'guru') {
 
@@ -199,19 +281,22 @@ if (isset($_POST['simpan'])) {
         }
 
         mysqli_stmt_execute($stmtSiswa);
+
         $hasilSiswa = mysqli_stmt_get_result($stmtSiswa);
         $siswa = mysqli_fetch_assoc($hasilSiswa);
+
         mysqli_stmt_close($stmtSiswa);
 
-        /* =====================================
+        /* ======================================
            AMBIL JENIS PELANGGARAN
-        ===================================== */
+        ====================================== */
 
         $stmtPelanggaran = mysqli_prepare(
             $koneksi,
             "SELECT id, pelanggaran_kategori_id, nama, poin
              FROM t_pelanggaran
-             WHERE id = ? AND status_aktif = 1
+             WHERE id = ?
+               AND status_aktif = 1
              LIMIT 1"
         );
 
@@ -219,7 +304,12 @@ if (isset($_POST['simpan'])) {
             die("Query pelanggaran gagal: " . mysqli_error($koneksi));
         }
 
-        mysqli_stmt_bind_param($stmtPelanggaran, "i", $pelanggaran_id);
+        mysqli_stmt_bind_param(
+            $stmtPelanggaran,
+            "i",
+            $pelanggaran_id
+        );
+
         mysqli_stmt_execute($stmtPelanggaran);
 
         $hasilPelanggaran = mysqli_stmt_get_result($stmtPelanggaran);
@@ -227,15 +317,16 @@ if (isset($_POST['simpan'])) {
 
         mysqli_stmt_close($stmtPelanggaran);
 
-        /* =====================================
+        /* ======================================
            AMBIL GURU
-        ===================================== */
+        ====================================== */
 
         $stmtGuru = mysqli_prepare(
             $koneksi,
             "SELECT id, nama
              FROM t_guru
-             WHERE id = ? AND status_aktif = 1
+             WHERE id = ?
+               AND status_aktif = 1
              LIMIT 1"
         );
 
@@ -243,7 +334,12 @@ if (isset($_POST['simpan'])) {
             die("Query guru gagal: " . mysqli_error($koneksi));
         }
 
-        mysqli_stmt_bind_param($stmtGuru, "i", $guru_id);
+        mysqli_stmt_bind_param(
+            $stmtGuru,
+            "i",
+            $guru_id
+        );
+
         mysqli_stmt_execute($stmtGuru);
 
         $hasilGuru = mysqli_stmt_get_result($stmtGuru);
@@ -251,13 +347,13 @@ if (isset($_POST['simpan'])) {
 
         mysqli_stmt_close($stmtGuru);
 
-        /* =====================================
-           VALIDASI DAN SIMPAN
-        ===================================== */
+        /* ======================================
+           VALIDASI DATA
+        ====================================== */
 
         if (!$siswa) {
 
-            $pesan = "Siswa tidak ditemukan pada kelas yang dipilih atau belum memiliki penempatan kelas aktif.";
+            $pesan = "Siswa tidak ditemukan pada kelas yang dipilih atau belum memiliki penempatan aktif.";
 
         } elseif (!$pelanggaran) {
 
@@ -280,6 +376,10 @@ if (isset($_POST['simpan'])) {
             $poin = (int)$pelanggaran['poin'];
 
             $nama_guru = $guru['nama'];
+
+            /* ======================================
+               SIMPAN KE TABEL PELANGGARAN SISWA
+            ====================================== */
 
             $stmtSimpan = mysqli_prepare(
                 $koneksi,
@@ -334,6 +434,7 @@ if (isset($_POST['simpan'])) {
                 } else {
 
                     $pesan = "Gagal menyimpan catatan: " . mysqli_stmt_error($stmtSimpan);
+
                     mysqli_stmt_close($stmtSimpan);
                 }
 
@@ -344,6 +445,10 @@ if (isset($_POST['simpan'])) {
         }
     }
 }
+
+/* ==========================================
+   NAMA PENGGUNA
+========================================== */
 
 $nama = htmlspecialchars(
     $_SESSION['name'] ?? 'Pengguna',
@@ -356,7 +461,9 @@ $nama = htmlspecialchars(
 <html lang="id">
 
 <head>
+
     <meta charset="UTF-8">
+
     <meta name="viewport" content="width=device-width, initial-scale=1">
 
     <title>Tambah Pelanggaran - Sistem Informasi Pelanggaran Siswa</title>
@@ -364,6 +471,7 @@ $nama = htmlspecialchars(
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet">
 
     <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.min.css" rel="stylesheet">
+
 </head>
 
 <body class="bg-light overflow-hidden">
@@ -586,9 +694,9 @@ $nama = htmlspecialchars(
 
                                 <div class="row g-3">
 
+                                    <!-- PILIH KELAS KHUSUS GURU -->
                                     <?php if ($role === 'guru'): ?>
 
-                                        <!-- PILIH KELAS KHUSUS GURU -->
                                         <div class="col-md-6">
 
                                             <label for="kelas_id" class="form-label">
@@ -623,7 +731,7 @@ $nama = htmlspecialchars(
 
                                     <?php endif; ?>
 
-                                    <!-- PILIH SISWA -->
+                                    <!-- NAMA SISWA -->
                                     <div class="col-md-6">
 
                                         <label for="siswa_id" class="form-label">
@@ -647,15 +755,11 @@ $nama = htmlspecialchars(
                                                 <option
                                                     value="<?= (int)$siswaData['siswa_id']; ?>"
                                                     data-kelas="<?= (int)$siswaData['kelas_id']; ?>"
+                                                    data-tahun="<?= (int)$siswaData['tahun_ajaran_id']; ?>"
+                                                    data-nama-tahun="<?= htmlspecialchars($siswaData['nama_tahun_ajaran'], ENT_QUOTES, 'UTF-8'); ?>"
                                                     <?= $siswaTerpilih === (int)$siswaData['siswa_id'] ? 'selected' : ''; ?>
                                                 >
-
                                                     <?= htmlspecialchars($siswaData['nama_siswa'], ENT_QUOTES, 'UTF-8'); ?>
-
-                                                    - <?= htmlspecialchars($siswaData['nama_kelas'], ENT_QUOTES, 'UTF-8'); ?>
-
-                                                    (<?= htmlspecialchars($siswaData['nama_tahun_ajaran'], ENT_QUOTES, 'UTF-8'); ?>)
-
                                                 </option>
 
                                             <?php endforeach; ?>
@@ -665,10 +769,31 @@ $nama = htmlspecialchars(
                                         <?php if ($role === 'guru'): ?>
 
                                             <small class="text-secondary">
-                                                Pilih kelas terlebih dahulu agar nama siswa muncul.
+                                                Nama siswa otomatis menyesuaikan kelas yang dipilih.
                                             </small>
 
                                         <?php endif; ?>
+
+                                    </div>
+
+                                    <!-- TAHUN AJARAN OTOMATIS -->
+                                    <div class="col-md-6">
+
+                                        <label for="tahun_ajaran" class="form-label">
+                                            Tahun Ajaran
+                                        </label>
+
+                                        <input
+                                            type="text"
+                                            id="tahun_ajaran"
+                                            class="form-control"
+                                            placeholder="Otomatis muncul setelah memilih siswa"
+                                            readonly
+                                        >
+
+                                        <small class="text-secondary">
+                                            Tahun ajaran mengikuti penempatan siswa yang dipilih.
+                                        </small>
 
                                     </div>
 
@@ -693,11 +818,8 @@ $nama = htmlspecialchars(
                                             <?php while ($pelanggaran = mysqli_fetch_assoc($queryPelanggaran)): ?>
 
                                                 <option value="<?= (int)$pelanggaran['id']; ?>">
-
                                                     <?= htmlspecialchars($pelanggaran['nama'], ENT_QUOTES, 'UTF-8'); ?>
-
                                                     - <?= (int)$pelanggaran['poin']; ?> poin
-
                                                 </option>
 
                                             <?php endwhile; ?>
@@ -706,35 +828,51 @@ $nama = htmlspecialchars(
 
                                     </div>
 
-                                    <!-- GURU PENCATAT -->
+                                    <!-- GURU PENCATAT OTOMATIS -->
                                     <div class="col-md-6">
 
                                         <label for="guru_id" class="form-label">
                                             Guru Pencatat <span class="text-danger">*</span>
                                         </label>
 
-                                        <select
-                                            name="guru_id"
-                                            id="guru_id"
-                                            class="form-select"
-                                            required
-                                        >
+                                        <?php if ($role === 'guru'): ?>
 
-                                            <option value="">
-                                                -- Pilih Guru --
-                                            </option>
+                                            <input
+                                                type="text"
+                                                id="guru_id"
+                                                class="form-control"
+                                                value="<?= htmlspecialchars($guruLogin['nama'] ?? 'Data guru tidak ditemukan', ENT_QUOTES, 'UTF-8'); ?>"
+                                                readonly
+                                            >
 
-                                            <?php while ($guru = mysqli_fetch_assoc($queryGuru)): ?>
+                                            <small class="text-secondary">
+                                                Otomatis mengikuti akun guru yang sedang login.
+                                            </small>
 
-                                                <option value="<?= (int)$guru['id']; ?>">
+                                        <?php else: ?>
 
-                                                    <?= htmlspecialchars($guru['nama'], ENT_QUOTES, 'UTF-8'); ?>
+                                            <select
+                                                name="guru_id"
+                                                id="guru_id"
+                                                class="form-select"
+                                                required
+                                            >
 
+                                                <option value="">
+                                                    -- Pilih Guru --
                                                 </option>
 
-                                            <?php endwhile; ?>
+                                                <?php while ($guru = mysqli_fetch_assoc($queryGuru)): ?>
 
-                                        </select>
+                                                    <option value="<?= (int)$guru['id']; ?>">
+                                                        <?= htmlspecialchars($guru['nama'], ENT_QUOTES, 'UTF-8'); ?>
+                                                    </option>
+
+                                                <?php endwhile; ?>
+
+                                            </select>
+
+                                        <?php endif; ?>
 
                                     </div>
 
@@ -804,8 +942,13 @@ $nama = htmlspecialchars(
                                             required
                                         >
 
+                                            <option value="Pending"
+                                                <?= ($_POST['status'] ?? 'Pending') === 'Pending' ? 'selected' : ''; ?>>
+                                                Pending
+                                            </option>
+
                                             <option value="Diproses"
-                                                <?= ($_POST['status'] ?? 'Diproses') === 'Diproses' ? 'selected' : ''; ?>>
+                                                <?= ($_POST['status'] ?? '') === 'Diproses' ? 'selected' : ''; ?>>
                                                 Diproses
                                             </option>
 
@@ -865,76 +1008,98 @@ $nama = htmlspecialchars(
 
 </div>
 
-<!-- JAVASCRIPT FILTER SISWA BERDASARKAN KELAS -->
+<!-- JAVASCRIPT FILTER KELAS, SISWA, DAN TAHUN AJARAN -->
 <script>
 document.addEventListener('DOMContentLoaded', function () {
 
     const pilihKelas = document.getElementById('kelas_id');
     const pilihSiswa = document.getElementById('siswa_id');
+    const tahunAjaran = document.getElementById('tahun_ajaran');
 
-    // Khusus role guru
-    if (pilihKelas && pilihSiswa) {
+    const semuaSiswa = Array.from(pilihSiswa.options).slice(1);
 
-        // Simpan seluruh pilihan siswa
-        const semuaSiswa = Array.from(pilihSiswa.options).slice(1);
+    function tampilkanTahunAjaran() {
 
-        function filterSiswa() {
+        const siswaDipilih = pilihSiswa.options[pilihSiswa.selectedIndex];
 
-            const kelasDipilih = pilihKelas.value;
+        if (
+            siswaDipilih &&
+            siswaDipilih.value !== '' &&
+            siswaDipilih.dataset.namaTahun
+        ) {
 
-            // Kosongkan pilihan siswa
-            pilihSiswa.innerHTML = '';
+            tahunAjaran.value = siswaDipilih.dataset.namaTahun;
 
-            const optionAwal = document.createElement('option');
-            optionAwal.value = '';
-            optionAwal.textContent = kelasDipilih
-                ? '-- Pilih Siswa --'
-                : '-- Pilih Kelas Terlebih Dahulu --';
+        } else {
 
-            pilihSiswa.appendChild(optionAwal);
+            tahunAjaran.value = '';
 
-            if (kelasDipilih === '') {
+        }
+    }
 
-                pilihSiswa.disabled = true;
-                return;
+    function filterSiswa() {
 
-            }
+        if (!pilihKelas) {
+            return;
+        }
 
-            // Tampilkan hanya siswa dari kelas yang dipilih
-            semuaSiswa.forEach(function (option) {
+        const kelasDipilih = pilihKelas.value;
 
-                if (option.dataset.kelas === kelasDipilih) {
+        pilihSiswa.innerHTML = '';
 
-                    pilihSiswa.appendChild(option.cloneNode(true));
+        const optionAwal = document.createElement('option');
 
-                }
+        optionAwal.value = '';
 
-            });
+        optionAwal.textContent = kelasDipilih
+            ? '-- Pilih Siswa --'
+            : '-- Pilih Kelas Terlebih Dahulu --';
 
-            pilihSiswa.disabled = false;
+        pilihSiswa.appendChild(optionAwal);
 
-            // Jika kelas tidak mempunyai siswa
-            if (pilihSiswa.options.length === 1) {
+        tahunAjaran.value = '';
 
-                optionAwal.textContent = '-- Tidak Ada Siswa Di Kelas Ini --';
+        if (kelasDipilih === '') {
 
-                pilihSiswa.disabled = true;
-
-            }
+            pilihSiswa.disabled = true;
+            return;
 
         }
 
-        // Jalankan ketika kelas diganti
+        semuaSiswa.forEach(function (option) {
+
+            if (option.dataset.kelas === kelasDipilih) {
+
+                pilihSiswa.appendChild(option.cloneNode(true));
+
+            }
+
+        });
+
+        if (pilihSiswa.options.length === 1) {
+
+            optionAwal.textContent = '-- Tidak Ada Siswa Di Kelas Ini --';
+
+            pilihSiswa.disabled = true;
+
+            return;
+
+        }
+
+        pilihSiswa.disabled = false;
+
+    }
+
+    if (pilihKelas) {
+
         pilihKelas.addEventListener('change', function () {
 
             filterSiswa();
 
         });
 
-        // Jalankan saat halaman pertama dibuka
         filterSiswa();
 
-        // Pulihkan pilihan siswa jika sebelumnya ada kesalahan validasi
         const siswaSebelumnya = <?= json_encode((string)$siswaTerpilih); ?>;
 
         if (siswaSebelumnya !== '') {
@@ -944,6 +1109,14 @@ document.addEventListener('DOMContentLoaded', function () {
         }
 
     }
+
+    pilihSiswa.addEventListener('change', function () {
+
+        tampilkanTahunAjaran();
+
+    });
+
+    tampilkanTahunAjaran();
 
 });
 </script>

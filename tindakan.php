@@ -1,3 +1,4 @@
+
 <?php
 session_start();
 
@@ -17,16 +18,52 @@ require_once __DIR__ . "/config/koneksi.php";
 $pesan = "";
 $dataEdit = null;
 
-/* PROSES UPDATE TINDAKAN */
-if (isset($_POST['update'])) {
+/* PROSES SELESAIKAN TINDAKAN */
+if (isset($_POST['selesai'])) {
 
-    // Hanya Guru yang boleh memberikan tindakan
     if ($role !== 'guru') {
         http_response_code(403);
         exit("Anda tidak memiliki akses");
     }
 
-    $id = (int) ($_POST['id'] ?? 0);
+    $idSelesai = (int)($_POST['id'] ?? 0);
+
+    if ($idSelesai <= 0) {
+        $pesan = "ID data tidak valid.";
+    } else {
+        $stmtSelesai = mysqli_prepare(
+            $koneksi,
+            "UPDATE t_pelanggaran_siswa
+             SET status = 'Selesai'
+             WHERE id = ? AND status <> 'Selesai'"
+        );
+
+        if ($stmtSelesai) {
+            mysqli_stmt_bind_param($stmtSelesai, "i", $idSelesai);
+
+            if (mysqli_stmt_execute($stmtSelesai)) {
+                mysqli_stmt_close($stmtSelesai);
+                header("Location: tindakan.php?pesan=selesai_berhasil");
+                exit;
+            } else {
+                $pesan = "Gagal menyelesaikan tindakan.";
+                mysqli_stmt_close($stmtSelesai);
+            }
+        } else {
+            $pesan = "Query gagal: " . mysqli_error($koneksi);
+        }
+    }
+}
+
+/* PROSES UPDATE TINDAKAN */
+if (isset($_POST['update'])) {
+
+    if ($role !== 'guru') {
+        http_response_code(403);
+        exit("Anda tidak memiliki akses");
+    }
+
+    $id = (int)($_POST['id'] ?? 0);
     $tindakan = trim($_POST['tindakan'] ?? '');
     $status = trim($_POST['status'] ?? '');
 
@@ -47,7 +84,7 @@ if (isset($_POST['update'])) {
             $koneksi,
             "UPDATE t_pelanggaran_siswa
              SET tindakan = ?, status = ?
-             WHERE id = ?"
+             WHERE id = ? AND status <> 'Selesai'"
         );
 
         if ($stmt) {
@@ -76,11 +113,12 @@ if (isset($_POST['update'])) {
 /* AMBIL DATA EDIT */
 if ($role === 'guru' && isset($_GET['edit']) && is_numeric($_GET['edit'])) {
 
-    $idEdit = (int) $_GET['edit'];
+    $idEdit = (int)$_GET['edit'];
 
     $stmtEdit = mysqli_prepare(
         $koneksi,
-        "SELECT * FROM t_pelanggaran_siswa WHERE id = ?"
+        "SELECT * FROM t_pelanggaran_siswa
+         WHERE id = ? AND status <> 'Selesai'"
     );
 
     if ($stmtEdit) {
@@ -94,7 +132,7 @@ if ($role === 'guru' && isset($_GET['edit']) && is_numeric($_GET['edit'])) {
     }
 
     if (!$dataEdit) {
-        $pesan = "Data tindakan tidak ditemukan.";
+        $pesan = "Data tindakan tidak ditemukan atau sudah selesai.";
     }
 }
 
@@ -105,6 +143,7 @@ $query = mysqli_query(
             nama_pelanggaran, nama_guru,
             tanggal, poin, tindakan, status
      FROM t_pelanggaran_siswa
+     WHERE status IS NULL OR status <> 'Selesai'
      ORDER BY tanggal DESC, id DESC"
 );
 
@@ -145,19 +184,12 @@ $nama = htmlspecialchars(
                     <i class="bi bi-shield-check me-2"></i>
                     Sistem Pelanggaran
                 </h5>
-
                 <small class="text-secondary">Panel <?= strtoupper($role); ?></small>
             </div>
 
             <div class="bg-secondary bg-opacity-25 rounded-3 p-3 mb-4">
                 <div class="d-flex align-items-center gap-3">
-                    <img
-                        src="logo.png"
-                        alt="Logo Aplikasi"
-                        width="44"
-                        height="44"
-                        class="rounded-circle bg-white p-1"
-                    >
+                    <img src="logo.png" alt="Logo Aplikasi" width="44" height="44" class="rounded-circle bg-white p-1">
 
                     <div class="text-white text-break">
                         <div class="fw-semibold"><?= $nama; ?></div>
@@ -173,61 +205,29 @@ $nama = htmlspecialchars(
             <ul class="nav nav-pills flex-column gap-2">
 
                 <li class="nav-item">
-                    <a href="dashboard.php" class="nav-link text-white rounded-2 py-2 px-3">
-                        Dashboard
-                    </a>
+                    <a href="dashboard.php" class="nav-link text-white rounded-2 py-2 px-3">Dashboard</a>
                 </li>
 
                 <?php if ($role === 'admin'): ?>
 
-                    <li class="nav-item">
-                        <a href="siswa.php" class="nav-link text-white rounded-2 py-2 px-3">Data Siswa</a>
-                    </li>
-
-                    <li class="nav-item">
-                        <a href="guru.php" class="nav-link text-white rounded-2 py-2 px-3">Data Guru</a>
-                    </li>
-
-                    <li class="nav-item">
-                        <a href="kelas.php" class="nav-link text-white rounded-2 py-2 px-3">Kelas</a>
-                    </li>
-
-                    <li class="nav-item">
-                        <a href="tahun_ajaran.php" class="nav-link text-white rounded-2 py-2 px-3">Tahun Ajaran</a>
-                    </li>
-
-                    <li class="nav-item">
-                        <a href="penempatan_siswa.php" class="nav-link text-white rounded-2 py-2 px-3">Penempatan Siswa</a>
-                    </li>
-
-                    <li class="nav-item">
-                        <a href="wali_kelas.php" class="nav-link text-white rounded-2 py-2 px-3">Wali Kelas</a>
-                    </li>
-
-                    <li class="nav-item">
-                        <a href="kategori_pelanggaran.php" class="nav-link text-white rounded-2 py-2 px-3">Kategori Pelanggaran</a>
-                    </li>
-
-                    <li class="nav-item">
-                        <a href="jenis_pelanggaran.php" class="nav-link text-white rounded-2 py-2 px-3">Jenis Pelanggaran</a>
-                    </li>
-
-                    <li class="nav-item">
-                        <a href="laporan.php" class="nav-link text-white rounded-2 py-2 px-3">Laporan</a>
-                    </li>
+                    <li class="nav-item"><a href="siswa.php" class="nav-link text-white rounded-2 py-2 px-3">Data Siswa</a></li>
+                    <li class="nav-item"><a href="guru.php" class="nav-link text-white rounded-2 py-2 px-3">Data Guru</a></li>
+                    <li class="nav-item"><a href="kelas.php" class="nav-link text-white rounded-2 py-2 px-3">Kelas</a></li>
+                    <li class="nav-item"><a href="tahun_ajaran.php" class="nav-link text-white rounded-2 py-2 px-3">Tahun Ajaran</a></li>
+                    <li class="nav-item"><a href="penempatan_siswa.php" class="nav-link text-white rounded-2 py-2 px-3">Penempatan Siswa</a></li>
+                    <li class="nav-item"><a href="wali_kelas.php" class="nav-link text-white rounded-2 py-2 px-3">Wali Kelas</a></li>
+                    <li class="nav-item"><a href="kategori_pelanggaran.php" class="nav-link text-white rounded-2 py-2 px-3">Kategori Pelanggaran</a></li>
+                    <li class="nav-item"><a href="jenis_pelanggaran.php" class="nav-link text-white rounded-2 py-2 px-3">Jenis Pelanggaran</a></li>
+                    <li class="nav-item"><a href="laporan.php" class="nav-link text-white rounded-2 py-2 px-3">Laporan</a></li>
 
                 <?php endif; ?>
 
                 <li class="nav-item">
-                    <a href="catatan_pelanggaran.php" class="nav-link text-white rounded-2 py-2 px-3">
-                        Catatan Pelanggaran
-                    </a>
+                    <a href="catatan_pelanggaran.php" class="nav-link text-white rounded-2 py-2 px-3">Catatan Pelanggaran</a>
                 </li>
 
                 <li class="nav-item">
-                    <a href="tindakan.php" class="nav-link active rounded-2 py-2 px-3" aria-current="page">
-                        Tindakan
-                    </a>
+                    <a href="tindakan.php" class="nav-link active rounded-2 py-2 px-3" aria-current="page">Tindakan</a>
                 </li>
 
                 <li class="nav-item">
@@ -271,13 +271,11 @@ $nama = htmlspecialchars(
                     </p>
 
                     <?php if ($dataEdit === null): ?>
-                        <!-- TOMBOL HANYA MUNCUL DI HALAMAN UTAMA -->
                         <a href="dashboard.php" class="btn btn-secondary btn-sm">
                             <i class="bi bi-arrow-left me-1"></i>
                             Kembali ke Dashboard
                         </a>
                     <?php endif; ?>
-
                 </div>
 
             </div>
@@ -286,6 +284,13 @@ $nama = htmlspecialchars(
             <?php if (isset($_GET['pesan']) && $_GET['pesan'] === 'edit_berhasil'): ?>
                 <div class="alert alert-success alert-dismissible fade show" role="alert">
                     Tindakan berhasil diperbarui.
+                    <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+                </div>
+            <?php endif; ?>
+
+            <?php if (isset($_GET['pesan']) && $_GET['pesan'] === 'selesai_berhasil'): ?>
+                <div class="alert alert-success alert-dismissible fade show" role="alert">
+                    Pelanggaran berhasil diselesaikan dan dipindahkan ke Riwayat.
                     <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
                 </div>
             <?php endif; ?>
@@ -314,50 +319,38 @@ $nama = htmlspecialchars(
 
                             <div class="card-body p-4">
 
-                                <form method="POST" action="tindakan.php?edit=<?= (int) $dataEdit['id']; ?>">
+                                <form method="POST" action="tindakan.php?edit=<?= (int)$dataEdit['id']; ?>">
 
-                                    <input type="hidden" name="id" value="<?= (int) $dataEdit['id']; ?>">
+                                    <input type="hidden" name="id" value="<?= (int)$dataEdit['id']; ?>">
 
                                     <div class="row g-3">
 
                                         <div class="col-md-6">
                                             <label class="form-label">Nama Siswa</label>
-                                            <input
-                                                type="text"
-                                                class="form-control"
+                                            <input type="text" class="form-control"
                                                 value="<?= htmlspecialchars($dataEdit['nama_siswa'] ?? '', ENT_QUOTES, 'UTF-8'); ?>"
-                                                readonly
-                                            >
+                                                readonly>
                                         </div>
 
                                         <div class="col-md-6">
                                             <label class="form-label">Kelas</label>
-                                            <input
-                                                type="text"
-                                                class="form-control"
+                                            <input type="text" class="form-control"
                                                 value="<?= htmlspecialchars($dataEdit['nama_kelas'] ?? '', ENT_QUOTES, 'UTF-8'); ?>"
-                                                readonly
-                                            >
+                                                readonly>
                                         </div>
 
                                         <div class="col-md-6">
                                             <label class="form-label">Pelanggaran</label>
-                                            <input
-                                                type="text"
-                                                class="form-control"
+                                            <input type="text" class="form-control"
                                                 value="<?= htmlspecialchars($dataEdit['nama_pelanggaran'] ?? '', ENT_QUOTES, 'UTF-8'); ?>"
-                                                readonly
-                                            >
+                                                readonly>
                                         </div>
 
                                         <div class="col-md-6">
                                             <label class="form-label">Guru</label>
-                                            <input
-                                                type="text"
-                                                class="form-control"
+                                            <input type="text" class="form-control"
                                                 value="<?= htmlspecialchars($dataEdit['nama_guru'] ?? '', ENT_QUOTES, 'UTF-8'); ?>"
-                                                readonly
-                                            >
+                                                readonly>
                                         </div>
 
                                         <div class="col-12">
@@ -365,14 +358,9 @@ $nama = htmlspecialchars(
                                                 Tindakan <span class="text-danger">*</span>
                                             </label>
 
-                                            <textarea
-                                                name="tindakan"
-                                                id="tindakan"
-                                                class="form-control"
-                                                rows="3"
-                                                maxlength="255"
-                                                required
-                                            ><?= htmlspecialchars($dataEdit['tindakan'] ?? '', ENT_QUOTES, 'UTF-8'); ?></textarea>
+                                            <textarea name="tindakan" id="tindakan"
+                                                class="form-control" rows="3"
+                                                maxlength="255" required><?= htmlspecialchars($dataEdit['tindakan'] ?? '', ENT_QUOTES, 'UTF-8'); ?></textarea>
                                         </div>
 
                                         <div class="col-md-6">
@@ -394,8 +382,7 @@ $nama = htmlspecialchars(
                                                 ?>
                                                     <option
                                                         value="<?= htmlspecialchars($opsi, ENT_QUOTES, 'UTF-8'); ?>"
-                                                        <?= ($dataEdit['status'] ?? '') === $opsi ? 'selected' : ''; ?>
-                                                    >
+                                                        <?= ($dataEdit['status'] ?? '') === $opsi ? 'selected' : ''; ?>>
                                                         <?= htmlspecialchars($opsi, ENT_QUOTES, 'UTF-8'); ?>
                                                     </option>
                                                 <?php endforeach; ?>
@@ -416,6 +403,7 @@ $nama = htmlspecialchars(
                                         <button type="submit" name="update" class="btn btn-primary">
                                             Simpan Perubahan
                                         </button>
+
                                     </div>
 
                                     <p class="text-secondary small mt-3 mb-0">
@@ -493,7 +481,7 @@ $nama = htmlspecialchars(
                                             </td>
 
                                             <td>
-                                                <?= (int) ($row['poin'] ?? 0); ?>
+                                                <?= (int)($row['poin'] ?? 0); ?>
                                             </td>
 
                                             <td>
@@ -501,9 +489,7 @@ $nama = htmlspecialchars(
                                             </td>
 
                                             <td>
-                                                <?php if (($row['status'] ?? '') === 'Selesai'): ?>
-                                                    <span class="badge bg-success">Selesai</span>
-                                                <?php elseif (($row['status'] ?? '') === 'Diproses'): ?>
+                                                <?php if (($row['status'] ?? '') === 'Diproses'): ?>
                                                     <span class="badge bg-warning text-dark">Diproses</span>
                                                 <?php else: ?>
                                                     <span class="badge bg-secondary">
@@ -514,12 +500,28 @@ $nama = htmlspecialchars(
 
                                             <?php if ($role === 'guru'): ?>
                                                 <td>
-                                                    <a
-                                                        href="tindakan.php?edit=<?= (int) $row['id']; ?>"
-                                                        class="btn btn-primary btn-sm"
-                                                    >
-                                                        Beri Tindakan
-                                                    </a>
+                                                    <div class="d-flex gap-2">
+
+                                                        <a href="tindakan.php?edit=<?= (int)$row['id']; ?>"
+                                                            class="btn btn-primary btn-sm">
+                                                            Beri Tindakan
+                                                        </a>
+
+                                                        <form method="POST" action="tindakan.php"
+                                                            onsubmit="return confirm('Apakah Anda yakin ingin menyelesaikan pelanggaran ini?');">
+
+                                                            <input type="hidden" name="id"
+                                                                value="<?= (int)$row['id']; ?>">
+
+                                                            <button type="submit" name="selesai"
+                                                                class="btn btn-success btn-sm">
+                                                                <i class="bi bi-check-circle me-1"></i>
+                                                                Selesai
+                                                            </button>
+
+                                                        </form>
+
+                                                    </div>
                                                 </td>
                                             <?php endif; ?>
 
