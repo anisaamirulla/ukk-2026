@@ -1,11 +1,11 @@
 -- phpMyAdmin SQL Dump
--- version 5.2.3
+-- version 5.2.1
 -- https://www.phpmyadmin.net/
 --
 -- Host: 127.0.0.1
--- Waktu pembuatan: 10 Nov 2026 pada 06.27
--- Versi server: 10.11.16-MariaDB
--- Versi PHP: 8.5.12
+-- Waktu pembuatan: 10 Nov 2026 pada 13.07
+-- Versi server: 10.4.32-MariaDB
+-- Versi PHP: 8.2.12
 
 SET SQL_MODE = "NO_AUTO_VALUE_ON_ZERO";
 START TRANSACTION;
@@ -18,7 +18,7 @@ SET time_zone = "+00:00";
 /*!40101 SET NAMES utf8mb4 */;
 
 --
--- Basis data: `db_ukk_2026`
+-- Database: `db_ukk_2026`
 --
 
 -- --------------------------------------------------------
@@ -532,7 +532,9 @@ INSERT INTO `t_pelanggaran_siswa` (`id`, `tahun_ajaran_id`, `siswa_id`, `nama_si
 (255, 51, 186, 'AFGAN ABDUL BARRI', 60, 'X TKR 2', 53, 'Tidak memakai seragam lengkap', 3, 3, 'Maya Permata Endah, S.Pd', '2026-11-09', 'DATA SIMULASI UKK - Bukan catatan pelanggaran nyata', 5, 'Pembinaan simulasi', 'Selesai', '2026-11-09 09:19:44', '2026-11-09 09:19:44'),
 (256, 51, 185, 'ADE RIFQI NURHAKIM', 60, 'X TKR 2', 52, 'Tidak hadir tanpa keterangan', 2, 2, 'Ai Nuryaidah, S.Pd', '2026-11-09', 'DATA SIMULASI UKK - Bukan catatan pelanggaran nyata', 10, 'Pembinaan simulasi', 'Selesai', '2026-11-09 09:19:44', '2026-11-09 09:19:44'),
 (257, 51, 184, 'ABDUL AZIS RAMADAN', 60, 'X TKR 2', 51, 'Terlambat masuk sekolah', 1, 1, 'Wawan Kurniawan, S.Pd.I', '2026-11-09', 'DATA SIMULASI UKK - Bukan catatan pelanggaran nyata', 5, 'Pembinaan simulasi', 'Selesai', '2026-11-09 09:19:44', '2026-11-09 09:19:44'),
-(265, 51, 5, 'Anisa Amirulla', 56, 'XII RPL 2', 64, 'Tidak rapi', 14, 22, 'Ai Wahidah, S.Ag', '2026-11-10', 'menggunakan makeup', 3, 'dgdruth', 'Selesai', '2026-11-10 02:40:12', '2026-11-10 02:40:12');
+(265, 51, 5, 'Anisa Amirulla', 56, 'XII RPL 2', 64, 'Tidak rapi', 14, 22, 'Ai Wahidah, S.Ag', '2026-11-10', 'menggunakan makeup', 3, 'dgdruth', 'Selesai', '2026-11-10 02:40:12', '2026-11-10 02:40:12'),
+(266, 51, 11, 'Muhamad Fahril Fahrurozi', 56, 'XII RPL 2', 90, 'Mengganggu kegiatan sekolah', 40, 2, 'Ai Nurwahidah, S.Pd', '2026-11-10', 'pembulyan', 5, 'poin di potong', 'Pending', '2026-11-10 08:23:18', '2026-11-10 08:23:18'),
+(267, 51, 208, 'RAJIP SETIAWAN', 60, 'X TKR 2', 92, 'Membuat gaduh', 42, 32, 'Aldi Maulana, S.Pd', '2026-11-10', 'AHRT', 5, 'TH4', 'Pending', '2026-11-10 10:29:31', '2026-11-10 10:29:31');
 
 -- --------------------------------------------------------
 
@@ -927,7 +929,7 @@ INSERT INTO `t_wali_kelas` (`id`, `tahun_ajaran_id`, `kelas_id`, `guru_id`, `tan
 (124, 51, 57, 44, '2026-11-09', '2027-07-09', 1, '2026-11-09 07:31:32', '2026-11-09 07:31:32');
 
 --
--- Indeks untuk tabel yang dibuang
+-- Indexes for dumped tables
 --
 
 --
@@ -1042,7 +1044,7 @@ ALTER TABLE `t_pelanggaran_kategori`
 -- AUTO_INCREMENT untuk tabel `t_pelanggaran_siswa`
 --
 ALTER TABLE `t_pelanggaran_siswa`
-  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=266;
+  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=268;
 
 --
 -- AUTO_INCREMENT untuk tabel `t_siswa`
