@@ -1,5 +1,8 @@
 
 <?php
+/* 1. SESSION DAN HAK AKSES
+   Memastikan pengguna sudah login dan memiliki role admin/guru.
+*/
 session_start();
 
 if (!isset($_SESSION['id'])) {
@@ -13,6 +16,9 @@ if (!in_array($role, ['admin', 'guru'], true)) {
     exit("Anda tidak memiliki akses");
 }
 
+/* 2. KONEKSI DATABASE
+   Menghubungkan halaman dengan database aplikasi.
+*/
 require_once __DIR__ . "/config/koneksi.php";
 
 $pesan = "";
@@ -20,11 +26,12 @@ $pesan = "";
 $kelasTerpilih = (int)($_POST['kelas_id'] ?? 0);
 $siswaTerpilih = (int)($_POST['siswa_id'] ?? 0);
 
-/* ==========================================
-   AMBIL DATA GURU YANG SEDANG LOGIN
-========================================== */
+/* 3. DATA GURU LOGIN
+   Mengambil identitas guru yang sedang masuk.
+*/
 
 $guruLogin = null;
+$guru_id = 0;
 
 if ($role === 'guru') {
 
@@ -49,12 +56,53 @@ if ($role === 'guru') {
     $hasilGuruLogin = mysqli_stmt_get_result($stmtGuruLogin);
     $guruLogin = mysqli_fetch_assoc($hasilGuruLogin);
 
+    if ($guruLogin) {
+        $guru_id = (int)$guruLogin['id'];
+    }
+
     mysqli_stmt_close($stmtGuruLogin);
 }
 
-/* ==========================================
-   AMBIL DATA KELAS AKTIF
-========================================== */
+/* 4. PEMERIKSAAN WALI KELAS
+   Menentukan apakah guru yang login juga merupakan wali kelas aktif.
+*/
+
+$isWaliKelas = false;
+
+if ($role === 'guru' && $guru_id > 0) {
+
+    $cekWali = mysqli_prepare(
+        $koneksi,
+        "SELECT id
+         FROM t_wali_kelas
+         WHERE guru_id = ?
+           AND status_aktif = 1
+           AND tanggal_mulai <= CURDATE()
+           AND (
+               tanggal_selesai IS NULL
+               OR tanggal_selesai >= CURDATE()
+           )
+         LIMIT 1"
+    );
+
+    if ($cekWali) {
+
+        mysqli_stmt_bind_param($cekWali, "i", $guru_id);
+        mysqli_stmt_execute($cekWali);
+
+        $hasilWali = mysqli_stmt_get_result($cekWali);
+
+        if (mysqli_num_rows($hasilWali) > 0) {
+            $isWaliKelas = true;
+        }
+
+        mysqli_stmt_close($cekWali);
+    }
+}
+
+/* 5. DATA KELAS
+   Mengambil daftar kelas yang memiliki penempatan siswa aktif.
+*/
 
 $dataKelas = [];
 
@@ -77,9 +125,9 @@ while ($kelas = mysqli_fetch_assoc($queryKelas)) {
     $dataKelas[] = $kelas;
 }
 
-/* ==========================================
-   AMBIL DATA SISWA DAN PENEMPATANNYA
-========================================== */
+/* 6. DATA SISWA
+   Mengambil siswa beserta kelas dan tahun ajarannya.
+*/
 
 $dataSiswa = [];
 
@@ -143,9 +191,9 @@ while ($siswaData = mysqli_fetch_assoc($querySiswa)) {
     $dataSiswa[] = $siswaData;
 }
 
-/* ==========================================
-   AMBIL DATA JENIS PELANGGARAN
-========================================== */
+/* 7. DATA JENIS PELANGGARAN
+   Mengambil jenis pelanggaran aktif beserta poinnya.
+*/
 
 $queryPelanggaran = mysqli_query(
     $koneksi,
@@ -159,9 +207,9 @@ if (!$queryPelanggaran) {
     die("Gagal mengambil jenis pelanggaran: " . mysqli_error($koneksi));
 }
 
-/* ==========================================
-   AMBIL DATA GURU UNTUK ADMIN
-========================================== */
+/* 8. DATA GURU
+   Mengambil daftar guru aktif untuk pilihan admin.
+*/
 
 $queryGuru = mysqli_query(
     $koneksi,
@@ -175,17 +223,15 @@ if (!$queryGuru) {
     die("Gagal mengambil data guru: " . mysqli_error($koneksi));
 }
 
-/* ==========================================
-   PROSES SIMPAN PELANGGARAN
-========================================== */
+/* 9. PROSES SIMPAN PELANGGARAN
+   Memeriksa data, mengambil informasi terkait, lalu menyimpan ke database.
+*/
 
 if (isset($_POST['simpan'])) {
 
     $siswa_id = (int)($_POST['siswa_id'] ?? 0);
     $pelanggaran_id = (int)($_POST['pelanggaran_id'] ?? 0);
 
-    // Guru otomatis menggunakan akun yang sedang login.
-    // Admin tetap memilih guru secara manual.
     if ($role === 'guru') {
         $guru_id = (int)($guruLogin['id'] ?? 0);
     } else {
@@ -195,7 +241,7 @@ if (isset($_POST['simpan'])) {
     $tanggal = trim($_POST['tanggal'] ?? '');
     $keterangan = trim($_POST['keterangan'] ?? '');
     $tindakan = trim($_POST['tindakan'] ?? '');
-    $status = trim($_POST['status'] ?? 'Pending');
+    $status = trim($_POST['status'] ?? '');
 
     if ($role === 'guru' && !$guruLogin) {
 
@@ -206,10 +252,20 @@ if (isset($_POST['simpan'])) {
         $pelanggaran_id <= 0 ||
         $guru_id <= 0 ||
         $tanggal === '' ||
+        $keterangan === '' ||
+        $tindakan === '' ||
+        $status === '' ||
         ($role === 'guru' && $kelasTerpilih <= 0)
     ) {
 
-        $pesan = "Semua kolom wajib bertanda bintang harus diisi.";
+        $pesan = "Formulir belum lengkap. Silakan isi semua kolom terlebih dahulu.";
+
+    } elseif (
+        !DateTime::createFromFormat('Y-m-d', $tanggal) ||
+        DateTime::createFromFormat('Y-m-d', $tanggal)->format('Y-m-d') !== $tanggal
+    ) {
+
+        $pesan = "Tanggal pelanggaran tidak valid.";
 
     } elseif (!in_array($status, ['Pending', 'Diproses', 'Selesai'], true)) {
 
@@ -217,9 +273,9 @@ if (isset($_POST['simpan'])) {
 
     } else {
 
-        /* ======================================
-           AMBIL PENEMPATAN SISWA
-        ====================================== */
+        /* 9A. AMBIL PENEMPATAN SISWA
+           Memastikan siswa memiliki penempatan kelas aktif.
+        */
 
         if ($role === 'guru') {
 
@@ -287,9 +343,9 @@ if (isset($_POST['simpan'])) {
 
         mysqli_stmt_close($stmtSiswa);
 
-        /* ======================================
-           AMBIL JENIS PELANGGARAN
-        ====================================== */
+        /* 9B. AMBIL JENIS PELANGGARAN
+           Mengambil nama kategori pelanggaran dan jumlah poin.
+        */
 
         $stmtPelanggaran = mysqli_prepare(
             $koneksi,
@@ -317,9 +373,9 @@ if (isset($_POST['simpan'])) {
 
         mysqli_stmt_close($stmtPelanggaran);
 
-        /* ======================================
-           AMBIL GURU
-        ====================================== */
+        /* 9C. AMBIL DATA GURU
+           Memastikan guru pencatat terdaftar dan aktif.
+        */
 
         $stmtGuru = mysqli_prepare(
             $koneksi,
@@ -347,9 +403,9 @@ if (isset($_POST['simpan'])) {
 
         mysqli_stmt_close($stmtGuru);
 
-        /* ======================================
-           VALIDASI DATA
-        ====================================== */
+        /* 9D. VALIDASI DATA
+           Memastikan data siswa, pelanggaran, dan guru tersedia.
+        */
 
         if (!$siswa) {
 
@@ -377,9 +433,9 @@ if (isset($_POST['simpan'])) {
 
             $nama_guru = $guru['nama'];
 
-            /* ======================================
-               SIMPAN KE TABEL PELANGGARAN SISWA
-            ====================================== */
+            /* 9E. SIMPAN KE DATABASE
+               Memasukkan catatan pelanggaran ke tabel t_pelanggaran_siswa.
+            */
 
             $stmtSimpan = mysqli_prepare(
                 $koneksi,
@@ -446,15 +502,71 @@ if (isset($_POST['simpan'])) {
     }
 }
 
-/* ==========================================
-   NAMA PENGGUNA
-========================================== */
+/* 10. NAMA PENGGUNA
+   Menampilkan nama pengguna yang sedang login.
+*/
 
 $nama = htmlspecialchars(
     $_SESSION['name'] ?? 'Pengguna',
     ENT_QUOTES,
     'UTF-8'
 );
+
+/* 11. MENU SIDEBAR
+   Menampilkan menu berbeda sesuai role admin, wali kelas, atau guru.
+*/
+
+if ($role === 'admin') {
+
+    $menu = [
+        ['Dashboard', 'dashboard.php'],
+        ['Data Siswa', 'siswa.php'],
+        ['Data Guru', 'guru.php'],
+        ['Kelas', 'kelas.php'],
+        ['Tahun Ajaran', 'tahun_ajaran.php'],
+        ['Penempatan Siswa', 'penempatan_siswa.php'],
+        ['Wali Kelas', 'wali_kelas.php'],
+        ['Kategori Pelanggaran', 'kategori_pelanggaran.php'],
+        ['Jenis Pelanggaran', 'jenis_pelanggaran.php'],
+        ['Laporan', 'laporan.php'],
+        ['Catatan Pelanggaran', 'catatan_pelanggaran.php'],
+        ['Tindakan', 'tindakan.php'],
+        ['Riwayat', 'riwayat.php'],
+        ['Rekap Poin', 'rekap_poin.php'],
+        ['About Me', 'abautme.php']
+    ];
+
+    $labelRole = 'ADMIN';
+    $panelRole = 'Admin';
+
+} elseif ($isWaliKelas) {
+
+    $menu = [
+        ['Dashboard', 'dashboard.php'],
+        ['Data Siswa di Kelasnya', 'walikelas/data_siswa.php'],
+        ['Catat Pelanggaran', 'tambah_pelanggaran.php'],
+        ['Riwayat Pelanggaran Siswa', 'riwayat.php'],
+        ['Rekap Poin Siswa', 'rekap_poin.php'],
+        ['Laporan Pelanggaran Kelas', 'walikelas/rekap_pelanggaran.php'],
+        ['About Me', 'abautme.php']
+    ];
+
+    $labelRole = 'WALI KELAS';
+    $panelRole = 'Wali Kelas';
+
+} else {
+
+    $menu = [
+        ['Dashboard', 'dashboard.php'],
+        ['Catatan Pelanggaran', 'catatan_pelanggaran.php'],
+        ['Riwayat', 'riwayat.php'],
+        ['Rekap Poin', 'rekap_poin.php'],
+        ['About Me', 'abautme.php']
+    ];
+
+    $labelRole = 'GURU';
+    $panelRole = 'Guru';
+}
 ?>
 
 <!DOCTYPE html>
@@ -462,8 +574,11 @@ $nama = htmlspecialchars(
 
 <head>
 
-    <meta charset="UTF-8">
+    <!-- 12. PENGATURAN HALAMAN
+         Mengatur judul, ukuran layar, Bootstrap, dan ikon.
+    -->
 
+    <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1">
 
     <title>Tambah Pelanggaran - Sistem Informasi Pelanggaran Siswa</title>
@@ -476,11 +591,18 @@ $nama = htmlspecialchars(
 
 <body class="bg-light overflow-hidden">
 
+<!-- 13. KERANGKA HALAMAN
+     Membuat area sidebar dan area konten utama.
+-->
+
 <div class="container-fluid vh-100 overflow-hidden">
 
     <div class="row h-100 flex-nowrap">
 
-        <!-- SIDEBAR -->
+        <!-- 14. SIDEBAR
+             Menampilkan identitas pengguna, menu, dan tombol logout.
+        -->
+
         <aside class="col-12 col-md-3 col-lg-2 bg-dark vh-100 overflow-auto position-sticky top-0 p-3">
 
             <div class="text-white mb-4 pt-3 pb-3 border-bottom border-secondary">
@@ -491,10 +613,12 @@ $nama = htmlspecialchars(
                 </h5>
 
                 <small class="text-secondary">
-                    Panel <?= strtoupper($role); ?>
+                    Panel <?= htmlspecialchars($panelRole, ENT_QUOTES, 'UTF-8'); ?>
                 </small>
 
             </div>
+
+            <!-- PROFIL PENGGUNA -->
 
             <div class="bg-secondary bg-opacity-25 rounded-3 p-3 mb-4">
 
@@ -515,7 +639,7 @@ $nama = htmlspecialchars(
                         </div>
 
                         <small class="text-secondary">
-                            <?= strtoupper($role); ?>
+                            <?= $labelRole; ?>
                         </small>
 
                     </div>
@@ -530,99 +654,28 @@ $nama = htmlspecialchars(
 
             <ul class="nav nav-pills flex-column gap-2">
 
-                <li class="nav-item">
-                    <a href="dashboard.php" class="nav-link text-white rounded-2 py-2 px-3">
-                        Dashboard
-                    </a>
-                </li>
+                <?php foreach ($menu as $item): ?>
 
-                <?php if ($role === 'admin'): ?>
-
-                    <li class="nav-item">
-                        <a href="siswa.php" class="nav-link text-white rounded-2 py-2 px-3">
-                            Data Siswa
-                        </a>
-                    </li>
+                    <?php
+                    $aktif = (
+                        $item[0] === 'Catat Pelanggaran'
+                        || $item[0] === 'Catatan Pelanggaran'
+                    );
+                    ?>
 
                     <li class="nav-item">
-                        <a href="guru.php" class="nav-link text-white rounded-2 py-2 px-3">
-                            Data Guru
+
+                        <a
+                            href="<?= htmlspecialchars($item[1], ENT_QUOTES, 'UTF-8'); ?>"
+                            class="nav-link <?= $aktif ? 'active' : 'text-white'; ?> rounded-2 py-2 px-3"
+                            <?= $aktif ? 'aria-current="page"' : ''; ?>
+                        >
+                            <?= htmlspecialchars($item[0], ENT_QUOTES, 'UTF-8'); ?>
                         </a>
+
                     </li>
 
-                    <li class="nav-item">
-                        <a href="kelas.php" class="nav-link text-white rounded-2 py-2 px-3">
-                            Kelas
-                        </a>
-                    </li>
-
-                    <li class="nav-item">
-                        <a href="tahun_ajaran.php" class="nav-link text-white rounded-2 py-2 px-3">
-                            Tahun Ajaran
-                        </a>
-                    </li>
-
-                    <li class="nav-item">
-                        <a href="penempatan_siswa.php" class="nav-link text-white rounded-2 py-2 px-3">
-                            Penempatan Siswa
-                        </a>
-                    </li>
-
-                    <li class="nav-item">
-                        <a href="wali_kelas.php" class="nav-link text-white rounded-2 py-2 px-3">
-                            Wali Kelas
-                        </a>
-                    </li>
-
-                    <li class="nav-item">
-                        <a href="kategori_pelanggaran.php" class="nav-link text-white rounded-2 py-2 px-3">
-                            Kategori Pelanggaran
-                        </a>
-                    </li>
-
-                    <li class="nav-item">
-                        <a href="jenis_pelanggaran.php" class="nav-link text-white rounded-2 py-2 px-3">
-                            Jenis Pelanggaran
-                        </a>
-                    </li>
-
-                    <li class="nav-item">
-                        <a href="laporan.php" class="nav-link text-white rounded-2 py-2 px-3">
-                            Laporan
-                        </a>
-                    </li>
-
-                <?php endif; ?>
-
-                <li class="nav-item">
-                    <a href="catatan_pelanggaran.php" class="nav-link active rounded-2 py-2 px-3">
-                        Catatan Pelanggaran
-                    </a>
-                </li>
-
-                <li class="nav-item">
-                    <a href="tindakan.php" class="nav-link text-white rounded-2 py-2 px-3">
-                        Tindakan
-                    </a>
-                </li>
-
-                <li class="nav-item">
-                    <a href="riwayat.php" class="nav-link text-white rounded-2 py-2 px-3">
-                        Riwayat
-                    </a>
-                </li>
-
-                <li class="nav-item">
-                    <a href="rekap_poin.php" class="nav-link text-white rounded-2 py-2 px-3">
-                        Rekap Poin
-                    </a>
-                </li>
-
-                <li class="nav-item">
-                    <a href="abautme.php" class="nav-link text-white rounded-2 py-2 px-3">
-                        About Me
-                    </a>
-                </li>
+                <?php endforeach; ?>
 
             </ul>
 
@@ -635,24 +688,31 @@ $nama = htmlspecialchars(
 
         </aside>
 
-        <!-- KONTEN FORM -->
+        <!-- 15. KONTEN UTAMA
+             Menampilkan breadcrumb dan formulir catatan pelanggaran.
+        -->
+
         <main class="col-12 col-md-9 col-lg-10 vh-100 overflow-auto p-3 p-lg-5">
 
             <div class="mb-4 pb-4 border-bottom">
 
+                <div class="text-secondary small mb-2">
+                    Dashboard / Catat Pelanggaran
+                </div>
+
                 <h2 class="fw-bold mb-2">
-                    Tambah Pelanggaran Siswa
+                    Catat Pelanggaran Siswa
                 </h2>
 
-                <p class="text-secondary mb-3">
+                <p class="text-secondary mb-0">
                     Masukkan catatan pelanggaran siswa pada formulir berikut.
                 </p>
 
-                <a href="catatan_pelanggaran.php" class="btn btn-secondary btn-sm">
-                    Kembali ke Catatan Pelanggaran
-                </a>
-
             </div>
+
+            <!-- 16. PESAN PHP
+                 Menampilkan pesan jika proses penyimpanan mengalami masalah.
+            -->
 
             <?php if ($pesan !== ''): ?>
 
@@ -669,6 +729,10 @@ $nama = htmlspecialchars(
                 </div>
 
             <?php endif; ?>
+
+            <!-- 17. KARTU FORMULIR
+                 Membungkus seluruh kolom input catatan pelanggaran.
+            -->
 
             <div class="row justify-content-center">
 
@@ -690,11 +754,12 @@ $nama = htmlspecialchars(
 
                         <div class="card-body p-4">
 
-                            <form method="POST">
+                            <form method="POST" id="formPelanggaran" novalidate>
 
                                 <div class="row g-3">
 
                                     <!-- PILIH KELAS KHUSUS GURU -->
+
                                     <?php if ($role === 'guru'): ?>
 
                                         <div class="col-md-6">
@@ -732,6 +797,7 @@ $nama = htmlspecialchars(
                                     <?php endif; ?>
 
                                     <!-- NAMA SISWA -->
+
                                     <div class="col-md-6">
 
                                         <label for="siswa_id" class="form-label">
@@ -776,7 +842,8 @@ $nama = htmlspecialchars(
 
                                     </div>
 
-                                    <!-- TAHUN AJARAN OTOMATIS -->
+                                    <!-- TAHUN AJARAN -->
+
                                     <div class="col-md-6">
 
                                         <label for="tahun_ajaran" class="form-label">
@@ -798,6 +865,7 @@ $nama = htmlspecialchars(
                                     </div>
 
                                     <!-- JENIS PELANGGARAN -->
+
                                     <div class="col-md-6">
 
                                         <label for="pelanggaran_id" class="form-label">
@@ -828,7 +896,8 @@ $nama = htmlspecialchars(
 
                                     </div>
 
-                                    <!-- GURU PENCATAT OTOMATIS -->
+                                    <!-- GURU PENCATAT -->
+
                                     <div class="col-md-6">
 
                                         <label for="guru_id" class="form-label">
@@ -877,6 +946,7 @@ $nama = htmlspecialchars(
                                     </div>
 
                                     <!-- TANGGAL -->
+
                                     <div class="col-md-6">
 
                                         <label for="tanggal" class="form-label">
@@ -895,10 +965,11 @@ $nama = htmlspecialchars(
                                     </div>
 
                                     <!-- KETERANGAN -->
+
                                     <div class="col-12">
 
                                         <label for="keterangan" class="form-label">
-                                            Keterangan
+                                            Keterangan <span class="text-danger">*</span>
                                         </label>
 
                                         <textarea
@@ -907,15 +978,17 @@ $nama = htmlspecialchars(
                                             class="form-control"
                                             rows="3"
                                             placeholder="Masukkan keterangan pelanggaran"
+                                            required
                                         ><?= htmlspecialchars($_POST['keterangan'] ?? '', ENT_QUOTES, 'UTF-8'); ?></textarea>
 
                                     </div>
 
                                     <!-- TINDAKAN -->
+
                                     <div class="col-12">
 
                                         <label for="tindakan" class="form-label">
-                                            Tindakan
+                                            Tindakan <span class="text-danger">*</span>
                                         </label>
 
                                         <textarea
@@ -924,11 +997,13 @@ $nama = htmlspecialchars(
                                             class="form-control"
                                             rows="3"
                                             placeholder="Masukkan tindakan yang diberikan"
+                                            required
                                         ><?= htmlspecialchars($_POST['tindakan'] ?? '', ENT_QUOTES, 'UTF-8'); ?></textarea>
 
                                     </div>
 
                                     <!-- STATUS -->
+
                                     <div class="col-md-6">
 
                                         <label for="status" class="form-label">
@@ -965,6 +1040,8 @@ $nama = htmlspecialchars(
 
                                 <hr class="my-4">
 
+                                <!-- TOMBOL FORMULIR -->
+
                                 <div class="d-flex justify-content-end gap-2">
 
                                     <a href="catatan_pelanggaran.php" class="btn btn-secondary">
@@ -976,16 +1053,15 @@ $nama = htmlspecialchars(
                                         name="simpan"
                                         class="btn btn-primary"
                                     >
+                                        <i class="bi bi-save me-1"></i>
                                         Simpan Pelanggaran
                                     </button>
 
                                 </div>
 
                                 <p class="text-secondary small mt-3 mb-0">
-
                                     <span class="text-danger">*</span>
                                     Kolom bertanda bintang wajib diisi.
-
                                 </p>
 
                             </form>
@@ -1008,7 +1084,10 @@ $nama = htmlspecialchars(
 
 </div>
 
-<!-- JAVASCRIPT FILTER KELAS, SISWA, DAN TAHUN AJARAN -->
+<!-- 18. JAVASCRIPT FILTER SISWA
+     Mengatur pilihan siswa berdasarkan kelas dan menampilkan tahun ajaran.
+-->
+
 <script>
 document.addEventListener('DOMContentLoaded', function () {
 
@@ -1069,9 +1148,7 @@ document.addEventListener('DOMContentLoaded', function () {
         semuaSiswa.forEach(function (option) {
 
             if (option.dataset.kelas === kelasDipilih) {
-
                 pilihSiswa.appendChild(option.cloneNode(true));
-
             }
 
         });
@@ -1093,9 +1170,7 @@ document.addEventListener('DOMContentLoaded', function () {
     if (pilihKelas) {
 
         pilihKelas.addEventListener('change', function () {
-
             filterSiswa();
-
         });
 
         filterSiswa();
@@ -1103,23 +1178,83 @@ document.addEventListener('DOMContentLoaded', function () {
         const siswaSebelumnya = <?= json_encode((string)$siswaTerpilih); ?>;
 
         if (siswaSebelumnya !== '') {
-
             pilihSiswa.value = siswaSebelumnya;
-
         }
 
     }
 
     pilihSiswa.addEventListener('change', function () {
-
         tampilkanTahunAjaran();
-
     });
 
     tampilkanTahunAjaran();
 
+    /* 19. VALIDASI FORMULIR
+       Memberi tanda merah pada kolom yang belum diisi.
+       Tanda merah hilang setelah kolom diisi.
+    */
+
+    const form = document.getElementById('formPelanggaran');
+    const kolomWajib = form.querySelectorAll('[required]');
+
+    form.addEventListener('submit', function (event) {
+
+        let adaYangKosong = false;
+
+        kolomWajib.forEach(function (kolom) {
+
+            // Lewati kolom yang sedang dinonaktifkan.
+            if (kolom.disabled) {
+                return;
+            }
+
+            if (kolom.value.trim() === '') {
+
+                kolom.classList.add('is-invalid');
+                adaYangKosong = true;
+
+            } else {
+
+                kolom.classList.remove('is-invalid');
+
+            }
+
+        });
+
+        // Mencegah formulir disimpan jika masih ada kolom kosong.
+        if (adaYangKosong) {
+            event.preventDefault();
+        }
+
+    });
+
+    // Hilangkan tanda merah ketika kolom mulai diisi.
+    kolomWajib.forEach(function (kolom) {
+
+        kolom.addEventListener('input', function () {
+
+            if (kolom.value.trim() !== '') {
+                kolom.classList.remove('is-invalid');
+            }
+
+        });
+
+        kolom.addEventListener('change', function () {
+
+            if (kolom.value.trim() !== '') {
+                kolom.classList.remove('is-invalid');
+            }
+
+        });
+
+    });
+
 });
 </script>
+
+<!-- 20. BOOTSTRAP JAVASCRIPT
+     Mengaktifkan fungsi komponen Bootstrap seperti tombol tutup pesan.
+-->
 
 <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
 

@@ -1,11 +1,11 @@
 -- phpMyAdmin SQL Dump
--- version 5.2.1
+-- version 5.2.0
 -- https://www.phpmyadmin.net/
 --
 -- Host: 127.0.0.1
--- Waktu pembuatan: 10 Nov 2026 pada 13.07
--- Versi server: 10.4.32-MariaDB
--- Versi PHP: 8.2.12
+-- Waktu pembuatan: 11 Nov 2026 pada 10.01
+-- Versi server: 10.4.25-MariaDB
+-- Versi PHP: 8.0.23
 
 SET SQL_MODE = "NO_AUTO_VALUE_ON_ZERO";
 START TRANSACTION;
@@ -36,7 +36,7 @@ CREATE TABLE `t_guru` (
   `user_id` int(11) NOT NULL,
   `created_at` timestamp NULL DEFAULT current_timestamp(),
   `updated_at` timestamp NULL DEFAULT current_timestamp()
-) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
 
 --
 -- Dumping data untuk tabel `t_guru`
@@ -99,7 +99,7 @@ INSERT INTO `t_guru` (`id`, `nip`, `nama`, `email`, `status_aktif`, `user_id`, `
 (59, 'NIP00059', 'Rurry Febriani Maryadi, S.Pd', 'guru59@ukk2026.sch.id', 1, 42, '2026-11-04 08:34:33', '2026-11-04 08:34:33'),
 (60, 'NIP00060', 'Irvan Rizal, S.Pd', 'guru60@ukk2026.sch.id', 1, 43, '2026-11-04 08:34:33', '2026-11-04 08:34:33'),
 (64, '010321659645625006', 'Sri putri S.P.', 'sri@gmail.com', 1, 61, '2026-11-09 08:03:30', '2026-11-09 08:03:30'),
-(65, '002103146498764132', 'Sifa Latifa S.P', 'sifa@gmail.com', 1, 62, '2026-11-10 00:26:51', '2026-11-10 00:26:51');
+(66, '778745615621020255', 'Raihan Hilall', 'raihan@gmail.com', 1, 63, '2026-11-11 08:25:54', '2026-11-11 08:25:54');
 
 -- --------------------------------------------------------
 
@@ -115,7 +115,7 @@ CREATE TABLE `t_kelas` (
   `status_aktif` tinyint(1) NOT NULL,
   `created_at` timestamp NULL DEFAULT current_timestamp(),
   `updated_at` timestamp NULL DEFAULT current_timestamp()
-) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
 
 --
 -- Dumping data untuk tabel `t_kelas`
@@ -127,7 +127,8 @@ INSERT INTO `t_kelas` (`id`, `nama`, `tingkat`, `jurusan`, `status_aktif`, `crea
 (57, 'XII TKJ 4', 'XII', 'Teknik Komputer Jaringan', 1, '2026-11-09 06:13:44', '2026-11-09 06:13:44'),
 (58, 'XII TSM 3', 'XII', 'Teknik Sepedah Motor', 1, '2026-11-09 06:14:55', '2026-11-09 06:14:55'),
 (59, 'XI TKR 3', 'XI', 'Teknik Kendaraan Ringan', 1, '2026-11-09 06:15:53', '2026-11-09 06:15:53'),
-(60, 'X TKR 2', 'X', 'Teknik Kendaraan Ringan', 1, '2026-11-09 07:13:47', '2026-11-09 07:13:47');
+(60, 'X TKR 2', 'X', 'Teknik Kendaraan Ringan', 1, '2026-11-09 07:13:47', '2026-11-09 07:13:47'),
+(62, 'XII TKR 5', 'XII', 'Teknik Kendaraan Ringan', 1, '2026-11-11 08:26:52', '2026-11-11 08:26:52');
 
 -- --------------------------------------------------------
 
@@ -145,7 +146,7 @@ CREATE TABLE `t_kelas_siswa` (
   `status_aktif` tinyint(1) NOT NULL,
   `created_at` timestamp NOT NULL DEFAULT current_timestamp(),
   `updated_at` timestamp NOT NULL DEFAULT current_timestamp()
-) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
 
 --
 -- Dumping data untuk tabel `t_kelas_siswa`
@@ -298,7 +299,9 @@ INSERT INTO `t_kelas_siswa` (`id`, `siswa_id`, `tahun_ajaran_id`, `kelas_id`, `t
 (334, 271, 51, 59, '2026-11-09', '2027-11-09', 1, '2026-11-09 09:53:33', '2026-11-09 09:53:33'),
 (335, 272, 51, 59, '2026-11-09', '2027-11-09', 1, '2026-11-09 09:53:33', '2026-11-09 09:53:33'),
 (336, 273, 51, 59, '2026-11-09', '2027-11-09', 1, '2026-11-09 09:53:33', '2026-11-09 09:53:33'),
-(337, 274, 51, 59, '2026-11-09', '2027-11-09', 1, '2026-11-09 09:53:33', '2026-11-09 09:53:33');
+(337, 274, 51, 59, '2026-11-09', '2027-11-09', 1, '2026-11-09 09:53:33', '2026-11-09 09:53:33'),
+(365, 341, 55, 56, '2026-11-11', '2027-11-11', 1, '2026-11-11 07:25:32', '2026-11-11 07:25:32'),
+(366, 342, 55, 62, '2026-11-11', '2027-11-11', 1, '2026-11-11 08:27:52', '2026-11-11 08:27:52');
 
 -- --------------------------------------------------------
 
@@ -316,7 +319,7 @@ CREATE TABLE `t_pelanggaran` (
   `status_aktif` tinyint(1) NOT NULL,
   `created_at` timestamp NOT NULL DEFAULT current_timestamp(),
   `updated_at` timestamp NOT NULL DEFAULT current_timestamp()
-) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
 
 --
 -- Dumping data untuk tabel `t_pelanggaran`
@@ -386,7 +389,7 @@ CREATE TABLE `t_pelanggaran_kategori` (
   `status_aktif` tinyint(1) NOT NULL,
   `created_at` timestamp NOT NULL DEFAULT current_timestamp(),
   `updated_at` timestamp NOT NULL DEFAULT current_timestamp()
-) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
 
 --
 -- Dumping data untuk tabel `t_pelanggaran_kategori`
@@ -469,7 +472,7 @@ CREATE TABLE `t_pelanggaran_siswa` (
   `status` varchar(30) NOT NULL,
   `created_at` timestamp NOT NULL DEFAULT current_timestamp(),
   `updated_at` timestamp NOT NULL DEFAULT current_timestamp()
-) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
 
 --
 -- Dumping data untuk tabel `t_pelanggaran_siswa`
@@ -533,8 +536,17 @@ INSERT INTO `t_pelanggaran_siswa` (`id`, `tahun_ajaran_id`, `siswa_id`, `nama_si
 (256, 51, 185, 'ADE RIFQI NURHAKIM', 60, 'X TKR 2', 52, 'Tidak hadir tanpa keterangan', 2, 2, 'Ai Nuryaidah, S.Pd', '2026-11-09', 'DATA SIMULASI UKK - Bukan catatan pelanggaran nyata', 10, 'Pembinaan simulasi', 'Selesai', '2026-11-09 09:19:44', '2026-11-09 09:19:44'),
 (257, 51, 184, 'ABDUL AZIS RAMADAN', 60, 'X TKR 2', 51, 'Terlambat masuk sekolah', 1, 1, 'Wawan Kurniawan, S.Pd.I', '2026-11-09', 'DATA SIMULASI UKK - Bukan catatan pelanggaran nyata', 5, 'Pembinaan simulasi', 'Selesai', '2026-11-09 09:19:44', '2026-11-09 09:19:44'),
 (265, 51, 5, 'Anisa Amirulla', 56, 'XII RPL 2', 64, 'Tidak rapi', 14, 22, 'Ai Wahidah, S.Ag', '2026-11-10', 'menggunakan makeup', 3, 'dgdruth', 'Selesai', '2026-11-10 02:40:12', '2026-11-10 02:40:12'),
-(266, 51, 11, 'Muhamad Fahril Fahrurozi', 56, 'XII RPL 2', 90, 'Mengganggu kegiatan sekolah', 40, 2, 'Ai Nurwahidah, S.Pd', '2026-11-10', 'pembulyan', 5, 'poin di potong', 'Pending', '2026-11-10 08:23:18', '2026-11-10 08:23:18'),
-(267, 51, 208, 'RAJIP SETIAWAN', 60, 'X TKR 2', 92, 'Membuat gaduh', 42, 32, 'Aldi Maulana, S.Pd', '2026-11-10', 'AHRT', 5, 'TH4', 'Pending', '2026-11-10 10:29:31', '2026-11-10 10:29:31');
+(266, 51, 11, 'Muhamad Fahril Fahrurozi', 56, 'XII RPL 2', 90, 'Mengganggu kegiatan sekolah', 40, 2, 'Ai Nurwahidah, S.Pd', '2026-11-10', 'pembulyan', 5, 'poin di potong', 'Selesai', '2026-11-10 08:23:18', '2026-11-10 08:23:18'),
+(267, 51, 208, 'RAJIP SETIAWAN', 60, 'X TKR 2', 92, 'Membuat gaduh', 42, 32, 'Aldi Maulana, S.Pd', '2026-11-10', 'AHRT', 5, 'TH4', 'Selesai', '2026-11-10 10:29:31', '2026-11-10 10:29:31'),
+(268, 51, 260, 'MUHAMMAD REYHAN HILAL ABYU ALI', 59, 'XI TKR 3', 74, 'Menggunakan HP saat belajar', 24, 2, 'Ai Nurwahidah, S.Pd', '2026-11-11', 'menggunakan hp saat belajar', 5, 'membersih kan kls', 'Selesai', '2026-11-11 00:24:19', '2026-11-11 00:24:19'),
+(269, 51, 3, 'Adittia Nur Latip', 56, 'XII RPL 2', 63, 'Atribut tidak lengkap', 13, 2, 'Ai Nurwahidah, S.Pd', '2026-11-11', 'tidak memakai baju', 3, 'kasih baju', 'Selesai', '2026-11-11 02:08:51', '2026-11-11 02:08:51'),
+(270, 51, 3, 'Adittia Nur Latip', 56, 'XII RPL 2', 63, 'Atribut tidak lengkap', 13, 2, 'Ai Nurwahidah, S.Pd', '2026-11-11', '', 3, 'juvh', 'Selesai', '2026-11-11 02:23:15', '2026-11-11 02:23:15'),
+(271, 51, 184, 'ABDUL AZIS RAMADAN', 60, 'X TKR 2', 92, 'Membuat gaduh', 42, 32, 'Aldi Maulana, S.Pd', '2026-11-11', '', 5, '', 'Selesai', '2026-11-11 02:26:15', '2026-11-11 02:26:15'),
+(272, 51, 213, 'SAKTHI FRADJA NAIMAN', 60, 'X TKR 2', 69, 'Meninggalkan sekolah tanpa izin', 19, 32, 'Aldi Maulana, S.Pd', '2026-11-11', 'fu', 10, 'yvgtyhivyg', 'Diproses', '2026-11-11 02:40:22', '2026-11-11 02:40:22'),
+(273, 51, 219, 'AZMIL AMIRA', 55, 'XII RPL 1', 68, 'Keluar kelas tanpa izin', 18, 2, 'Ai Nurwahidah, S.Pd', '2026-11-11', 'dhjg', 5, 'membersihkan wc', 'Selesai', '2026-11-11 05:13:14', '2026-11-11 05:13:14'),
+(274, 51, 302, 'SYAHAL SAID AL FAJR', 58, 'XII TSM 3', 80, 'Makan saat pembelajaran', 30, 2, 'Ai Nurwahidah, S.Pd', '2026-11-11', 'makan di kls', 3, 'bersih bersih', 'Selesai', '2026-11-11 05:49:47', '2026-11-11 05:49:47'),
+(275, 55, 342, 'Egis Bastian', 62, 'XII TKR 5', 95, 'Mengabaikan teguran guru', 45, 2, 'Ai Nurwahidah, S.Pd', '2026-11-11', 'dfgh', 5, 'thsrtf', 'Selesai', '2026-11-11 08:29:57', '2026-11-11 08:29:57'),
+(276, 51, 242, 'ALWAN ADHANI S. NOOR', 59, 'XI TKR 3', 63, 'Atribut tidak lengkap', 13, 2, 'Ai Nurwahidah, S.Pd', '2026-11-11', 'tidak memakai sepatu', 3, 'beliin sepatu gratis', 'Selesai', '2026-11-11 08:39:44', '2026-11-11 08:39:44');
 
 -- --------------------------------------------------------
 
@@ -553,7 +565,7 @@ CREATE TABLE `t_siswa` (
   `status_aktif` tinyint(1) NOT NULL,
   `created_at` timestamp NULL DEFAULT current_timestamp(),
   `updated_at` timestamp NULL DEFAULT current_timestamp()
-) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
 
 --
 -- Dumping data untuk tabel `t_siswa`
@@ -740,7 +752,9 @@ INSERT INTO `t_siswa` (`id`, `nis`, `nisn`, `nama`, `jenis_kelamin`, `tanggal_la
 (336, '102600093', '9990000122', 'SYENI NUR ROFFAH', 'P', '2008-01-01', 'Belum diisi - data sementara', 1, '2026-11-09 06:47:48', '2026-11-09 06:47:48'),
 (337, '102600094', '9990000123', 'VINA RIZKY NOVITASARI', 'P', '2008-01-01', 'Belum diisi - data sementara', 1, '2026-11-09 06:47:48', '2026-11-09 06:47:48'),
 (338, '102600095', '9990000124', 'YANI GUNEBAT', 'P', '2008-01-01', 'Belum diisi - data sementara', 1, '2026-11-09 06:47:48', '2026-11-09 06:47:48'),
-(340, '0020031265', '0002164598', 'Sifa Latifa', 'P', '2009-03-10', 'jln.monreker', 1, '2026-11-10 00:25:13', '2026-11-10 00:25:13');
+(340, '0020031265', '0002164598', 'Sifa Latifa', 'P', '2009-03-10', 'jln.monreker', 1, '2026-11-10 00:25:13', '2026-11-10 00:25:13'),
+(341, '0313125674', '0016149882', 'Suraiya Salsabila Azzahra', 'P', '2008-06-11', 'jln.kota baru', 1, '2026-11-11 06:43:05', '2026-11-11 06:43:05'),
+(342, '0312654989', '1254968952', 'Egis Bastian', 'L', '2008-12-29', 'Jln.siloka', 1, '2026-11-11 08:24:47', '2026-11-11 08:24:47');
 
 -- --------------------------------------------------------
 
@@ -756,7 +770,7 @@ CREATE TABLE `t_tahun_ajaran` (
   `status_aktif` tinyint(1) NOT NULL,
   `created_at` timestamp NOT NULL DEFAULT current_timestamp(),
   `updated_at` timestamp NOT NULL DEFAULT current_timestamp()
-) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
 
 --
 -- Dumping data untuk tabel `t_tahun_ajaran`
@@ -813,7 +827,9 @@ INSERT INTO `t_tahun_ajaran` (`id`, `nama`, `tanggal_mulai`, `tanggal_selesai`, 
 (48, 'Tahun Ajaran 2025/20', '2025-07-01', '2026-06-30', 0, '2026-09-23 02:15:57', '2026-09-23 02:15:57'),
 (49, 'Tahun Ajaran 2026/20', '2026-07-01', '2027-06-30', 0, '2026-09-23 02:15:57', '2026-09-23 02:15:57'),
 (50, 'Tahun Ajaran 2027/20', '2027-07-01', '2028-06-30', 0, '2026-09-23 02:15:57', '2026-09-23 02:15:57'),
-(51, '2026/2027', '2026-11-04', '2027-11-04', 1, '2026-11-04 01:15:43', '2026-11-04 01:15:43');
+(51, '2026/2027', '2026-11-04', '2027-11-04', 0, '2026-11-04 01:15:43', '2026-11-04 01:15:43'),
+(54, '2026/2028', '2026-11-11', '2028-11-11', 0, '2026-11-11 06:54:00', '2026-11-11 06:54:00'),
+(55, '2026/2027', '2026-11-11', '2027-11-11', 1, '2026-11-11 07:01:26', '2026-11-11 07:01:26');
 
 -- --------------------------------------------------------
 
@@ -831,7 +847,7 @@ CREATE TABLE `t_user` (
   `role` varchar(255) NOT NULL,
   `created_at` timestamp NULL DEFAULT current_timestamp(),
   `updated_at` timestamp NULL DEFAULT current_timestamp()
-) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
 
 --
 -- Dumping data untuk tabel `t_user`
@@ -897,7 +913,8 @@ INSERT INTO `t_user` (`id`, `name`, `email`, `email_verifed_at`, `password`, `re
 (58, 'Adittia Nur Latip', 'adittia@gmail.com', '2026-11-05 00:43:35', '$2y$12$EJmVnEUGVAZeNUYkIn94vedGoD3wcYFEAZ7SGSWJYtZOcVcvoCloC', '', 'guru', '2026-11-05 00:43:35', '2026-11-05 00:43:35'),
 (59, 'Budi Hartono', 'budi@gamil.com', '2026-11-05 02:16:04', '$2y$12$EJmVnEUGVAZeNUYkIn94vedGoD3wcYFEAZ7SGSWJYtZOcVcvoCloC', '', 'guru', '2026-11-05 02:16:04', '2026-11-05 02:16:04'),
 (61, 'Sri putri S.P.', 'sri@gmail.com', '2026-11-09 08:03:30', '$2y$12$EJmVnEUGVAZeNUYkIn94vedGoD3wcYFEAZ7SGSWJYtZOcVcvoCloC', '', 'guru', '2026-11-09 08:03:30', '2026-11-09 08:03:30'),
-(62, 'Sifa Latifa S.P', 'sifa@gmail.com', '2026-11-10 00:26:51', '$2y$12$EJmVnEUGVAZeNUYkIn94vedGoD3wcYFEAZ7SGSWJYtZOcVcvoCloC', '', 'guru', '2026-11-10 00:26:51', '2026-11-10 00:26:51');
+(62, 'Sifa Latifa S.P', 'sifa@gmail.com', '2026-11-10 00:26:51', '$2y$12$EJmVnEUGVAZeNUYkIn94vedGoD3wcYFEAZ7SGSWJYtZOcVcvoCloC', '', 'guru', '2026-11-10 00:26:51', '2026-11-10 00:26:51'),
+(63, 'Raihan Hilall', 'raihan@gmail.com', '2026-11-11 08:25:54', '$2y$10$BVywtIhf34bcCxqlm36dR.vR39bPhRDolYQbogd4AebgBxkMe9P.W', '', 'guru', '2026-11-11 08:25:54', '2026-11-11 08:25:54');
 
 -- --------------------------------------------------------
 
@@ -915,7 +932,7 @@ CREATE TABLE `t_wali_kelas` (
   `status_aktif` tinyint(1) NOT NULL,
   `created_at` timestamp NULL DEFAULT current_timestamp(),
   `updated_at` timestamp NULL DEFAULT current_timestamp()
-) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
 
 --
 -- Dumping data untuk tabel `t_wali_kelas`
@@ -926,7 +943,9 @@ INSERT INTO `t_wali_kelas` (`id`, `tahun_ajaran_id`, `kelas_id`, `guru_id`, `tan
 (121, 51, 56, 32, '2026-11-09', '2028-11-09', 1, '2026-11-09 07:17:08', '2026-11-09 07:17:08'),
 (122, 51, 60, 60, '2026-11-09', '2028-11-09', 1, '2026-11-09 07:28:37', '2026-11-09 07:28:37'),
 (123, 51, 59, 30, '2026-11-09', '2027-11-09', 1, '2026-11-09 07:29:18', '2026-11-09 07:29:18'),
-(124, 51, 57, 44, '2026-11-09', '2027-07-09', 1, '2026-11-09 07:31:32', '2026-11-09 07:31:32');
+(124, 51, 57, 44, '2026-11-09', '2027-07-09', 1, '2026-11-09 07:31:32', '2026-11-09 07:31:32'),
+(125, 51, 58, 57, '2026-11-11', '2027-11-11', 1, '2026-11-11 06:46:29', '2026-11-11 06:46:29'),
+(126, 55, 62, 49, '2026-11-11', '2027-11-11', 1, '2026-11-11 08:28:25', '2026-11-11 08:28:25');
 
 --
 -- Indexes for dumped tables
@@ -1014,19 +1033,19 @@ ALTER TABLE `t_wali_kelas`
 -- AUTO_INCREMENT untuk tabel `t_guru`
 --
 ALTER TABLE `t_guru`
-  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=66;
+  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=67;
 
 --
 -- AUTO_INCREMENT untuk tabel `t_kelas`
 --
 ALTER TABLE `t_kelas`
-  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=62;
+  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=63;
 
 --
 -- AUTO_INCREMENT untuk tabel `t_kelas_siswa`
 --
 ALTER TABLE `t_kelas_siswa`
-  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=365;
+  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=367;
 
 --
 -- AUTO_INCREMENT untuk tabel `t_pelanggaran`
@@ -1044,31 +1063,31 @@ ALTER TABLE `t_pelanggaran_kategori`
 -- AUTO_INCREMENT untuk tabel `t_pelanggaran_siswa`
 --
 ALTER TABLE `t_pelanggaran_siswa`
-  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=268;
+  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=277;
 
 --
 -- AUTO_INCREMENT untuk tabel `t_siswa`
 --
 ALTER TABLE `t_siswa`
-  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=341;
+  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=344;
 
 --
 -- AUTO_INCREMENT untuk tabel `t_tahun_ajaran`
 --
 ALTER TABLE `t_tahun_ajaran`
-  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=54;
+  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=56;
 
 --
 -- AUTO_INCREMENT untuk tabel `t_user`
 --
 ALTER TABLE `t_user`
-  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=63;
+  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=64;
 
 --
 -- AUTO_INCREMENT untuk tabel `t_wali_kelas`
 --
 ALTER TABLE `t_wali_kelas`
-  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=125;
+  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=127;
 
 --
 -- Ketidakleluasaan untuk tabel pelimpahan (Dumped Tables)

@@ -21,37 +21,19 @@ function aman($nilai) {
 $nama = aman($_SESSION['name'] ?? 'Pengguna');
 $pesan_error = '';
 
-if (!isset($_SESSION['data_penempatan'])) {
-    $_SESSION['data_penempatan'] = [
-        [
-            'id' => 1,
-            'siswa_id' => 1,
-            'nisn' => 'NISN0000000001',
-            'nama_siswa' => 'Alya Putri',
-            'kelas_id' => 39,
-            'nama_kelas' => 'X BDP 2',
-            'tahun_ajaran_id' => 34,
-            'nama_tahun_ajaran' => 'Tahun Ajaran 2011/2020',
-            'tanggal_mulai' => '2026-10-20',
-            'tanggal_selesai' => '2026-12-23',
-            'status_aktif' => 1
-        ]
-    ];
-}
-
-if (!isset($_SESSION['penempatan_id_berikutnya'])) {
-    $ids = array_column($_SESSION['data_penempatan'], 'id');
-
-    $_SESSION['penempatan_id_berikutnya'] = count($ids) > 0
-        ? max($ids) + 1
-        : 1;
-}
-
 /* AMBIL DATA REFERENSI DARI DATABASE */
 
+/* HANYA MENAMPILKAN SISWA YANG BELUM MEMILIKI PENEMPATAN KELAS */
 $query_siswa = mysqli_query(
     $koneksi,
-    "SELECT id, nisn, nama FROM t_siswa ORDER BY nama ASC"
+    "SELECT s.id, s.nisn, s.nama
+     FROM t_siswa s
+     WHERE NOT EXISTS (
+         SELECT 1
+         FROM t_kelas_siswa ks
+         WHERE ks.siswa_id = s.id
+     )
+     ORDER BY s.nama ASC"
 );
 
 $query_kelas = mysqli_query(
@@ -121,39 +103,87 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         $valid_selesai->format('Y-m-d') === $tanggal_selesai &&
         $tanggal_selesai >= $tanggal_mulai;
 
+    /* CEK ULANG APAKAH SISWA SUDAH MEMILIKI KELAS */
+    $cek_penempatan = mysqli_prepare(
+        $koneksi,
+        "SELECT id FROM t_kelas_siswa WHERE siswa_id = ? LIMIT 1"
+    );
+
+    if (!$cek_penempatan) {
+        die("Gagal memeriksa penempatan: " . mysqli_error($koneksi));
+    }
+
+    mysqli_stmt_bind_param($cek_penempatan, "i", $siswa_id);
+    mysqli_stmt_execute($cek_penempatan);
+
+    $hasil_penempatan = mysqli_stmt_get_result($cek_penempatan);
+    $sudah_punya_kelas = mysqli_num_rows($hasil_penempatan) > 0;
+
+    mysqli_stmt_close($cek_penempatan);
+
     if (
         !isset($siswa_map[$siswa_id]) ||
+        $sudah_punya_kelas ||
         !isset($kelas_map[$kelas_id]) ||
         !isset($tahun_map[$tahun_id]) ||
         !$tanggal_valid ||
         !in_array($status, [0, 1], true)
     ) {
 
-        $pesan_error = "Periksa kembali data dan tanggal yang kamu masukkan.";
+        $pesan_error = $sudah_punya_kelas
+            ? "Siswa tersebut sudah memiliki kelas dan tidak dapat dipilih kembali."
+            : "Periksa kembali data dan tanggal yang kamu masukkan.";
 
     } else {
 
-        $siswa = $siswa_map[$siswa_id];
+        /* SIMPAN LANGSUNG KE TABEL t_kelas_siswa */
+        $query_simpan = mysqli_prepare(
+            $koneksi,
+            "INSERT INTO t_kelas_siswa
+            (
+                siswa_id,
+                tahun_ajaran_id,
+                kelas_id,
+                tanggal_mulai,
+                tanggal_selesai,
+                status_aktif
+            )
+            VALUES (?, ?, ?, ?, ?, ?)"
+        );
 
-        $data_baru = [
-            'id' => $_SESSION['penempatan_id_berikutnya'],
-            'siswa_id' => $siswa_id,
-            'nisn' => $siswa['nisn'],
-            'nama_siswa' => $siswa['nama'],
-            'kelas_id' => $kelas_id,
-            'nama_kelas' => $kelas_map[$kelas_id],
-            'tahun_ajaran_id' => $tahun_id,
-            'nama_tahun_ajaran' => $tahun_map[$tahun_id],
-            'tanggal_mulai' => $tanggal_mulai,
-            'tanggal_selesai' => $tanggal_selesai,
-            'status_aktif' => $status
-        ];
+        if (!$query_simpan) {
 
-        $_SESSION['data_penempatan'][] = $data_baru;
-        $_SESSION['penempatan_id_berikutnya']++;
+            $pesan_error = "Gagal menyiapkan penyimpanan: " .
+                mysqli_error($koneksi);
 
-        header("Location: penempatan_siswa.php?pesan=berhasil");
-        exit;
+        } else {
+
+            mysqli_stmt_bind_param(
+                $query_simpan,
+                "iiissi",
+                $siswa_id,
+                $tahun_id,
+                $kelas_id,
+                $tanggal_mulai,
+                $tanggal_selesai,
+                $status
+            );
+
+            if (mysqli_stmt_execute($query_simpan)) {
+
+                mysqli_stmt_close($query_simpan);
+
+                header("Location: penempatan_siswa.php?pesan=berhasil");
+                exit;
+
+            } else {
+
+                $pesan_error = "Gagal menyimpan penempatan: " .
+                    mysqli_stmt_error($query_simpan);
+
+                mysqli_stmt_close($query_simpan);
+            }
+        }
     }
 }
 
@@ -377,6 +407,14 @@ $menuAdmin = [
 
                                         </select>
 
+                                        <?php if (count($siswa_list) === 0): ?>
+
+                                            <small class="text-secondary">
+                                                Semua siswa sudah memiliki kelas.
+                                            </small>
+
+                                        <?php endif; ?>
+
                                     </div>
 
                                     <!-- KELAS -->
@@ -534,6 +572,7 @@ $menuAdmin = [
                                         type="submit"
                                         name="simpan"
                                         class="btn btn-primary"
+                                        <?= count($siswa_list) === 0 ? 'disabled' : ''; ?>
                                     >
                                         Simpan Data Penempatan
                                     </button>

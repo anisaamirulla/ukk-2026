@@ -10,16 +10,17 @@ if (!isset($_SESSION['id'])) {
 
 $role = strtolower(trim($_SESSION['role'] ?? ''));
 
-if (!in_array($role, ['admin', 'guru'])) {
+if (!in_array($role, ['admin', 'guru'], true)) {
     exit("Anda tidak memiliki akses");
 }
 
+// FOLDER WALI KELAS
 $folderWaliKelas = "walikelas/";
 
 // NAMA PENGGUNA
 $nama = $_SESSION['name'] ?? 'Pengguna';
 
-// PEMERIKSAAN GURU YANG MENJADI WALI KELAS
+// PEMERIKSAAN GURU DAN WALI KELAS
 $isWaliKelas = false;
 $guru_id = 0;
 
@@ -95,7 +96,7 @@ if ($role === 'admin') {
     $labelRole = 'GURU';
 }
 
-// MENU ADMIN (TETAP)
+// MENU ADMIN (SAMA DENGAN DASHBOARD)
 $menuAdmin = [
     ['Dashboard', 'dashboard.php'],
     ['Data Siswa', 'siswa.php'],
@@ -110,15 +111,16 @@ $menuAdmin = [
     ['About Me', 'abautme.php']
 ];
 
-// MENU GURU BIASA
+// MENU GURU BIASA (SAMA PERSIS DENGAN DASHBOARD)
 $menuGuru = [
     ['Dashboard', 'dashboard.php'],
-    ['Rekap Pelanggaran', 'walikelas/rekap_pelanggaran.php'],
-    ['Cetak Rekap', 'walikelas/cetak_rekap.php'],
+    ['Catatan Pelanggaran', 'catatan_pelanggaran.php'],
+    ['Riwayat', 'riwayat.php'],
+    ['Rekap Poin', 'rekap_poin.php'],
     ['About Me', 'abautme.php']
 ];
 
-// MENU KHUSUS WALI KELAS
+// MENU WALI KELAS (SAMA PERSIS DENGAN DASHBOARD)
 $menuWaliKelas = [
     ['Dashboard', 'dashboard.php'],
     ['Data Siswa di Kelasnya', $folderWaliKelas . 'data_siswa.php'],
@@ -129,7 +131,7 @@ $menuWaliKelas = [
     ['About Me', 'abautme.php']
 ];
 
-// MENENTUKAN MENU BERDASARKAN AKSES
+// MENENTUKAN MENU BERDASARKAN ROLE
 if ($role === 'admin') {
     $menuTampil = $menuAdmin;
 } elseif ($isWaliKelas) {
@@ -137,6 +139,7 @@ if ($role === 'admin') {
 } else {
     $menuTampil = $menuGuru;
 }
+
 ?>
 
 <!DOCTYPE html>
@@ -240,13 +243,15 @@ if ($role === 'admin') {
 
             <hr class="border-secondary my-4">
 
-            <!-- LOGOUT -->
-            <a
-                href="logout.php"
-                class="nav-link text-danger rounded-2 py-2 px-3"
-            >
-                Logout
-            </a>
+            
+<!-- LOGOUT -->
+<a
+    href="logout.php"
+    class="nav-link text-danger rounded-2 py-2 px-3"
+>
+    <i class="bi bi-box-arrow-left me-2"></i>
+    Logout
+</a>
 
         </aside>
 

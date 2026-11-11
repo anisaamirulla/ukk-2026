@@ -74,15 +74,22 @@ if (!$wali) {
 $kelas_id = (int) $wali['kelas_id'];
 $tahun_ajaran_id = (int) $wali['tahun_ajaran_id'];
 
-// Ambil siswa sesuai kelas dan tahun ajaran Wali Kelas yang login
+// AMBIL SISWA BERDASARKAN KELAS WALI KELAS
+// Tidak membatasi tahun_ajaran_id agar penempatan aktif
+// pada kelas yang sama tetap dapat ditampilkan.
 $stmt = mysqli_prepare(
     $koneksi,
-    "SELECT s.id, s.nis, s.nisn, s.nama,
-            s.jenis_kelamin, s.tanggal_lahir, s.alamat
+    "SELECT DISTINCT
+            s.id,
+            s.nis,
+            s.nisn,
+            s.nama,
+            s.jenis_kelamin,
+            s.tanggal_lahir,
+            s.alamat
      FROM t_kelas_siswa ks
      JOIN t_siswa s ON s.id = ks.siswa_id
      WHERE ks.kelas_id = ?
-       AND ks.tahun_ajaran_id = ?
        AND ks.status_aktif = 1
        AND ks.tanggal_mulai <= CURDATE()
        AND (
@@ -97,7 +104,7 @@ if (!$stmt) {
     die("Gagal menyiapkan data siswa: " . mysqli_error($koneksi));
 }
 
-mysqli_stmt_bind_param($stmt, "ii", $kelas_id, $tahun_ajaran_id);
+mysqli_stmt_bind_param($stmt, "i", $kelas_id);
 mysqli_stmt_execute($stmt);
 
 $result = mysqli_stmt_get_result($stmt);
@@ -185,7 +192,7 @@ $labelRole = 'WALI KELAS';
 
             </div>
 
-            <!-- MENU SIDEBAR TANPA ICON -->
+            <!-- MENU SIDEBAR -->
             <div class="text-secondary small fw-semibold mb-3">
                 MENU UTAMA
             </div>
@@ -194,19 +201,16 @@ $labelRole = 'WALI KELAS';
 
                 <!-- DASHBOARD -->
                 <li class="nav-item">
-
                     <a
                         href="../dashboard.php"
                         class="nav-link text-white rounded-2 py-2 px-3"
                     >
                         Dashboard
                     </a>
-
                 </li>
 
                 <!-- DATA SISWA -->
                 <li class="nav-item">
-
                     <a
                         href="data_siswa.php"
                         class="nav-link active rounded-2 py-2 px-3"
@@ -214,74 +218,63 @@ $labelRole = 'WALI KELAS';
                     >
                         Data Siswa di Kelasnya
                     </a>
-
                 </li>
 
                 <!-- CATAT PELANGGARAN -->
                 <li class="nav-item">
-
                     <a
                         href="../catatan_pelanggaran.php"
                         class="nav-link text-white rounded-2 py-2 px-3"
                     >
                         Catat Pelanggaran
                     </a>
-
                 </li>
 
                 <!-- RIWAYAT PELANGGARAN -->
                 <li class="nav-item">
-
                     <a
                         href="../riwayat.php"
                         class="nav-link text-white rounded-2 py-2 px-3"
                     >
                         Riwayat Pelanggaran Siswa
                     </a>
-
                 </li>
 
                 <!-- REKAP POIN -->
                 <li class="nav-item">
-
                     <a
                         href="../rekap_poin.php"
                         class="nav-link text-white rounded-2 py-2 px-3"
                     >
                         Rekap Poin Siswa
                     </a>
-
                 </li>
 
                 <!-- LAPORAN PELANGGARAN -->
                 <li class="nav-item">
-
                     <a
                         href="rekap_pelanggaran.php"
                         class="nav-link text-white rounded-2 py-2 px-3"
                     >
                         Laporan Pelanggaran Kelas
                     </a>
-
                 </li>
 
                 <!-- ABOUT ME -->
                 <li class="nav-item">
-
                     <a
                         href="../abautme.php"
                         class="nav-link text-white rounded-2 py-2 px-3"
                     >
                         About Me
                     </a>
-
                 </li>
 
             </ul>
 
             <hr class="border-secondary my-4">
 
-            <!-- LOGOUT TANPA ICON -->
+            <!-- LOGOUT -->
             <a
                 href="../logout.php"
                 class="nav-link text-danger rounded-2 py-2 px-3"
@@ -303,7 +296,6 @@ $labelRole = 'WALI KELAS';
                         Dashboard / Data Siswa
                     </div>
 
-                    <!-- JUDUL TANPA ICON -->
                     <h2 class="fw-bold mb-2">
                         Data Siswa
                     </h2>
@@ -507,7 +499,7 @@ $labelRole = 'WALI KELAS';
 
                         <p class="text-secondary small mb-0">
                             <i class="bi bi-info-circle me-1"></i>
-                            Data yang ditampilkan merupakan siswa aktif sesuai penugasan kelas Wali Kelas yang sedang login.
+                            Data yang ditampilkan merupakan siswa aktif sesuai penempatan kelas Wali Kelas yang sedang login.
                         </p>
 
                     </div>

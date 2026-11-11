@@ -12,32 +12,109 @@ if (!isset($_SESSION['role']) || $_SESSION['role'] != 'admin') {
     exit("Anda tidak memiliki akses");
 }
 
-$nama = htmlspecialchars(
-    $_SESSION['name'] ?? 'Pengguna',
-    ENT_QUOTES,
-    'UTF-8'
-);
+function aman($nilai) {
+    return htmlspecialchars((string)($nilai ?? ''), ENT_QUOTES, 'UTF-8');
+}
 
-// MENGAMBIL DAFTAR NAMA SISWA
-$daftar_nama = mysqli_query(
+$nama = aman($_SESSION['name'] ?? 'Pengguna');
+
+// ======================================
+// AMBIL DAFTAR KELAS
+// ======================================
+
+$daftar_kelas = mysqli_query(
     $koneksi,
-    "SELECT DISTINCT nama AS nama_siswa
-     FROM t_siswa
-     WHERE nama IS NOT NULL AND nama != ''
+    "SELECT id, nama
+     FROM t_kelas
      ORDER BY nama ASC"
 );
 
-if (!$daftar_nama) {
-    die("Gagal mengambil daftar nama siswa: " . mysqli_error($koneksi));
+if (!$daftar_kelas) {
+    die("Gagal mengambil daftar kelas: " . mysqli_error($koneksi));
 }
 
-$cari = isset($_GET['cari']) ? trim($_GET['cari']) : '';
+// ======================================
+// FILTER KELAS DAN SISWA
+// ======================================
 
+$kelas_id = isset($_GET['kelas_id']) ? (int) $_GET['kelas_id'] : 0;
+$siswa_dipilih = isset($_GET['siswa']) ? trim($_GET['siswa']) : '';
+
+$dataNamaSiswa = [];
 $dataLaporan = [];
 
-// MENGAMBIL DATA LAPORAN SISWA
-// NAMA KELAS DIAMBIL DARI TABEL t_kelas BERDASARKAN kelas_id
-if ($cari !== '') {
+// ======================================
+// AMBIL NAMA SISWA BERDASARKAN KELAS
+// ======================================
+
+if ($kelas_id > 0) {
+
+    $stmt = mysqli_prepare(
+        $koneksi,
+        "SELECT DISTINCT s.nama
+         FROM t_kelas_siswa ks
+         JOIN t_siswa s ON s.id = ks.siswa_id
+         WHERE ks.kelas_id = ?
+           AND ks.status_aktif = 1
+           AND ks.tanggal_mulai <= CURDATE()
+           AND (
+               ks.tanggal_selesai IS NULL
+               OR ks.tanggal_selesai >= CURDATE()
+           )
+           AND s.status_aktif = 1
+           AND s.nama IS NOT NULL
+           AND s.nama != ''
+         ORDER BY s.nama ASC"
+    );
+
+    if (!$stmt) {
+        die("Gagal menyiapkan daftar siswa: " . mysqli_error($koneksi));
+    }
+
+    mysqli_stmt_bind_param($stmt, "i", $kelas_id);
+    mysqli_stmt_execute($stmt);
+
+    $hasilNama = mysqli_stmt_get_result($stmt);
+
+    while ($row = mysqli_fetch_assoc($hasilNama)) {
+        $dataNamaSiswa[] = $row['nama'];
+    }
+
+    mysqli_stmt_close($stmt);
+}
+
+// ======================================
+// AMBIL NAMA KELAS YANG DIPILIH
+// ======================================
+
+$namaKelasDipilih = '';
+
+if ($kelas_id > 0) {
+
+    $stmt = mysqli_prepare(
+        $koneksi,
+        "SELECT nama FROM t_kelas WHERE id = ? LIMIT 1"
+    );
+
+    mysqli_stmt_bind_param($stmt, "i", $kelas_id);
+    mysqli_stmt_execute($stmt);
+
+    $hasilKelas = mysqli_stmt_get_result($stmt);
+    $dataKelas = mysqli_fetch_assoc($hasilKelas);
+
+    if ($dataKelas) {
+        $namaKelasDipilih = $dataKelas['nama'];
+    }
+
+    mysqli_stmt_close($stmt);
+}
+
+// ======================================
+// AMBIL DATA LAPORAN BERDASARKAN KELAS
+// DAN NAMA SISWA
+// ======================================
+
+if ($kelas_id > 0 && $siswa_dipilih !== '') {
 
     $stmt = mysqli_prepare(
         $koneksi,
@@ -46,7 +123,8 @@ if ($cari !== '') {
             k.nama AS nama_kelas_resmi
          FROM t_pelanggaran_siswa ps
          LEFT JOIN t_kelas k ON ps.kelas_id = k.id
-         WHERE ps.nama_siswa = ?
+         WHERE ps.kelas_id = ?
+           AND ps.nama_siswa = ?
          ORDER BY ps.tanggal DESC"
     );
 
@@ -54,7 +132,12 @@ if ($cari !== '') {
         die("Gagal menyiapkan pencarian: " . mysqli_error($koneksi));
     }
 
-    mysqli_stmt_bind_param($stmt, "s", $cari);
+    mysqli_stmt_bind_param(
+        $stmt,
+        "is",
+        $kelas_id,
+        $siswa_dipilih
+    );
 
     if (!mysqli_stmt_execute($stmt)) {
         die("Gagal mengambil laporan: " . mysqli_stmt_error($stmt));
@@ -73,11 +156,18 @@ if ($cari !== '') {
     mysqli_stmt_close($stmt);
 }
 
-// EXPORT KE EXCEL
+// ======================================
+// EXPORT EXCEL
+// ======================================
+
 if (isset($_GET['export']) && $_GET['export'] === 'excel') {
 
-    if ($cari === '') {
-        exit("Silakan pilih nama siswa terlebih dahulu.");
+    if ($kelas_id <= 0 || $siswa_dipilih === '') {
+        exit("Silakan pilih kelas dan nama siswa terlebih dahulu.");
+    }
+
+    if (!in_array($siswa_dipilih, $dataNamaSiswa, true)) {
+        exit("Nama siswa tidak sesuai dengan kelas yang dipilih.");
     }
 
     header("Content-Type: text/csv; charset=UTF-8");
@@ -101,6 +191,7 @@ if (isset($_GET['export']) && $_GET['export'] === 'excel') {
     $no_export = 1;
 
     foreach ($dataLaporan as $data) {
+
         fputcsv($output, [
             $no_export++,
             $data['nama_siswa'] ?? '',
@@ -111,13 +202,17 @@ if (isset($_GET['export']) && $_GET['export'] === 'excel') {
             $data['poin'] ?? '',
             $data['status'] ?? ''
         ], ";");
+
     }
 
     fclose($output);
     exit;
 }
 
+// ======================================
 // MENU ADMIN
+// ======================================
+
 $menuAdmin = [
     ['Dashboard', 'dashboard.php'],
     ['Data Siswa', 'siswa.php'],
@@ -131,12 +226,24 @@ $menuAdmin = [
     ['Laporan', 'laporan.php'],
     ['About Me', 'abautme.php']
 ];
+
+// ======================================
+// HITUNG TOTAL POIN
+// ======================================
+
+$totalPoinCetak = 0;
+
+foreach ($dataLaporan as $itemPoin) {
+    $totalPoinCetak += (int)($itemPoin['poin'] ?? 0);
+}
+
 ?>
 
 <!DOCTYPE html>
 <html lang="id">
 
 <head>
+
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1">
 
@@ -149,10 +256,6 @@ $menuAdmin = [
     <link href="https://cdn.datatables.net/2.3.4/css/dataTables.bootstrap5.min.css" rel="stylesheet">
 
     <style>
-
-        /* =====================================
-           TAMPILAN KHUSUS CETAK LAPORAN
-        ===================================== */
 
         @media print {
 
@@ -174,16 +277,13 @@ $menuAdmin = [
                 overflow: visible !important;
             }
 
-            /* SIDEBAR TIDAK IKUT DICETAK */
             aside {
                 display: none !important;
             }
 
-            /* AREA KONTEN */
             body .container-fluid {
                 width: 100% !important;
                 height: auto !important;
-                min-height: 0 !important;
                 margin: 0 !important;
                 padding: 0 !important;
                 overflow: visible !important;
@@ -195,7 +295,6 @@ $menuAdmin = [
                 height: auto !important;
                 margin: 0 !important;
                 padding: 0 !important;
-                overflow: visible !important;
             }
 
             main {
@@ -205,7 +304,6 @@ $menuAdmin = [
                 height: auto !important;
                 margin: 0 !important;
                 padding: 0 !important;
-                flex: none !important;
                 overflow: visible !important;
             }
 
@@ -216,7 +314,6 @@ $menuAdmin = [
             .card,
             .card-body {
                 width: 100% !important;
-                max-width: 100% !important;
                 height: auto !important;
                 margin: 0 !important;
                 padding: 0 !important;
@@ -224,8 +321,6 @@ $menuAdmin = [
                 box-shadow: none !important;
                 overflow: visible !important;
             }
-
-            /* KOP SURAT */
 
             .judul-cetak {
                 display: block !important;
@@ -250,10 +345,6 @@ $menuAdmin = [
                 width: 85px !important;
                 height: 85px !important;
                 object-fit: contain !important;
-                filter: none !important;
-                -webkit-filter: none !important;
-                print-color-adjust: exact !important;
-                -webkit-print-color-adjust: exact !important;
             }
 
             .identitas-sekolah {
@@ -275,8 +366,6 @@ $menuAdmin = [
                 color: black !important;
             }
 
-            /* JUDUL LAPORAN TANPA KOTAK */
-
             .judul-laporan-cetak {
                 text-align: center !important;
                 margin: 15px 0 12px 0 !important;
@@ -288,10 +377,7 @@ $menuAdmin = [
                 margin: 0 !important;
                 color: black !important;
                 text-decoration: underline !important;
-                text-underline-offset: 5px !important;
             }
-
-            /* IDENTITAS SISWA TANPA KOTAK */
 
             .identitas-siswa-cetak {
                 width: 100% !important;
@@ -313,8 +399,6 @@ $menuAdmin = [
                 text-align: left !important;
                 background: white !important;
             }
-
-            /* TABEL LAPORAN */
 
             .table-responsive,
             #tabelLaporan_wrapper {
@@ -343,16 +427,11 @@ $menuAdmin = [
             #tabelLaporan th {
                 text-align: center !important;
                 font-weight: bold !important;
-                background: #e5e5e5 !important;
-                -webkit-print-color-adjust: exact !important;
-                print-color-adjust: exact !important;
             }
 
             #tabelLaporan td:nth-child(4) {
                 text-align: left !important;
             }
-
-            /* NAMA DAN KELAS SUDAH ADA DI IDENTITAS SISWA */
 
             #tabelLaporan th:nth-child(2),
             #tabelLaporan td:nth-child(2),
@@ -370,8 +449,6 @@ $menuAdmin = [
                 break-inside: avoid !important;
             }
 
-            /* RINGKASAN PELANGGARAN */
-
             .ringkasan-cetak {
                 display: flex !important;
                 justify-content: space-around !important;
@@ -383,18 +460,13 @@ $menuAdmin = [
                 border-bottom: 2px solid black !important;
                 font-size: 14px !important;
                 font-weight: bold !important;
-                color: black !important;
             }
-
-            /* BAGIAN TANDA TANGAN */
 
             .bagian-pengesahan {
                 display: block !important;
                 width: 100% !important;
                 margin-top: 15px !important;
                 page-break-inside: avoid !important;
-                break-inside: avoid !important;
-                color: black !important;
             }
 
             .tanggal-cetak {
@@ -428,30 +500,17 @@ $menuAdmin = [
             .ttd-nama {
                 font-weight: bold !important;
                 text-decoration: underline !important;
-                margin-bottom: 3px !important;
             }
-
-            .ttd-nip {
-                font-size: 11px !important;
-            }
-
-            /* DATATABLES TIDAK IKUT DICETAK */
 
             .dt-layout-row,
             .dt-search,
             .dt-length,
             .dt-info,
-            .dt-paging,
-            .dataTables_info,
-            .dataTables_paginate,
-            .dataTables_filter,
-            .dataTables_length {
+            .dt-paging {
                 display: none !important;
             }
 
         }
-
-        /* TAMPILAN LAYAR NORMAL */
 
         @media screen {
 
@@ -464,41 +523,58 @@ $menuAdmin = [
         }
 
     </style>
+
 </head>
 
 <body class="bg-light overflow-hidden">
 
 <div class="container-fluid vh-100 overflow-hidden">
+
     <div class="row h-100 flex-nowrap">
 
         <!-- SIDEBAR -->
         <aside class="col-3 col-md-3 col-lg-2 bg-dark vh-100 overflow-auto p-3 flex-shrink-0">
 
             <div class="text-white mb-4 pt-3 pb-3 border-bottom border-secondary">
+
                 <h5 class="fw-bold mb-2">
                     <i class="bi bi-shield-check me-2"></i>
                     Sistem Pelanggaran
                 </h5>
 
-                <small class="text-secondary">Panel Admin</small>
+                <small class="text-secondary">
+                    Panel Admin
+                </small>
+
             </div>
 
             <!-- PROFIL ADMIN -->
             <div class="bg-secondary bg-opacity-25 rounded-3 p-3 mb-4">
+
                 <div class="d-flex align-items-center gap-3">
 
-                    <img src="logo.png"
-                         alt="Logo Aplikasi"
-                         width="44"
-                         height="44"
-                         class="rounded-circle bg-white p-1">
+                    <img
+                        src="logo.png"
+                        alt="Logo Aplikasi"
+                        width="44"
+                        height="44"
+                        class="rounded-circle bg-white p-1"
+                    >
 
                     <div class="text-white text-break">
-                        <div class="fw-semibold"><?= $nama; ?></div>
-                        <small class="text-secondary">ADMIN</small>
+
+                        <div class="fw-semibold">
+                            <?= $nama; ?>
+                        </div>
+
+                        <small class="text-secondary">
+                            ADMIN
+                        </small>
+
                     </div>
 
                 </div>
+
             </div>
 
             <div class="text-secondary small fw-semibold mb-3">
@@ -508,16 +584,18 @@ $menuAdmin = [
             <ul class="nav nav-pills flex-column gap-2">
 
                 <?php foreach ($menuAdmin as $item): ?>
+
                     <li class="nav-item">
 
                         <a
-                            href="<?= htmlspecialchars($item[1], ENT_QUOTES, 'UTF-8'); ?>"
+                            href="<?= aman($item[1]); ?>"
                             class="nav-link <?= $item[0] === 'Laporan' ? 'active' : 'text-white'; ?> rounded-2 py-2 px-3"
                         >
-                            <?= htmlspecialchars($item[0], ENT_QUOTES, 'UTF-8'); ?>
+                            <?= aman($item[0]); ?>
                         </a>
 
                     </li>
+
                 <?php endforeach; ?>
 
             </ul>
@@ -538,17 +616,19 @@ $menuAdmin = [
             <div class="d-flex flex-wrap justify-content-between align-items-start gap-3 mb-4 pb-4 border-bottom tidak-cetak">
 
                 <div>
+
                     <h2 class="fw-bold mb-2">
                         Laporan Pelanggaran Siswa
                     </h2>
 
                     <p class="text-secondary mb-2">
-                        Lihat dan cetak laporan pelanggaran berdasarkan nama siswa.
+                        Lihat dan cetak laporan pelanggaran berdasarkan kelas dan nama siswa.
                     </p>
 
                     <a href="dashboard.php" class="btn btn-secondary btn-sm rounded-2">
                         Kembali ke Dashboard
                     </a>
+
                 </div>
 
             </div>
@@ -558,31 +638,37 @@ $menuAdmin = [
 
                 <div class="card-body p-3 p-lg-4">
 
-                    <!-- FORM PENCARIAN -->
+                    <!-- FORM PENCARIAN BERTAHAP -->
                     <form method="GET" action="laporan.php" class="mb-4 tidak-cetak">
 
-                        <label for="cari" class="form-label fw-semibold">
-                            Pilih Nama Siswa
-                        </label>
+                        <div class="row g-3">
 
-                        <div class="row g-2">
+                            <!-- PILIH KELAS -->
+                            <div class="col-12 col-md-5">
 
-                            <div class="col-md-8">
+                                <label for="kelas_id" class="form-label fw-semibold">
+                                    1. Pilih Kelas
+                                </label>
 
-                                <select name="cari"
-                                        id="cari"
-                                        class="form-select"
-                                        required>
+                                <select
+                                    name="kelas_id"
+                                    id="kelas_id"
+                                    class="form-select"
+                                    required
+                                    onchange="document.getElementById('formLaporan').submit()"
+                                >
 
-                                    <option value="">-- Pilih Nama Siswa --</option>
+                                    <option value="">
+                                        -- Pilih Kelas Terlebih Dahulu --
+                                    </option>
 
-                                    <?php while ($siswa = mysqli_fetch_assoc($daftar_nama)): ?>
+                                    <?php while ($kelas = mysqli_fetch_assoc($daftar_kelas)): ?>
 
                                         <option
-                                            value="<?= htmlspecialchars($siswa['nama_siswa'], ENT_QUOTES, 'UTF-8'); ?>"
-                                            <?= $cari === $siswa['nama_siswa'] ? 'selected' : ''; ?>
+                                            value="<?= (int)$kelas['id']; ?>"
+                                            <?= $kelas_id === (int)$kelas['id'] ? 'selected' : ''; ?>
                                         >
-                                            <?= htmlspecialchars($siswa['nama_siswa'], ENT_QUOTES, 'UTF-8'); ?>
+                                            <?= aman($kelas['nama']); ?>
                                         </option>
 
                                     <?php endwhile; ?>
@@ -591,11 +677,52 @@ $menuAdmin = [
 
                             </div>
 
-                            <div class="col-auto">
+                            <!-- PILIH NAMA SISWA -->
+                            <div class="col-12 col-md-5">
 
-                                <button type="submit" class="btn btn-primary rounded-2">
+                                <label for="siswa" class="form-label fw-semibold">
+                                    2. Pilih Nama Siswa
+                                </label>
+
+                                <select
+                                    name="siswa"
+                                    id="siswa"
+                                    class="form-select"
+                                    <?= $kelas_id <= 0 ? 'disabled' : ''; ?>
+                                    required
+                                >
+
+                                    <option value="">
+                                        <?= $kelas_id > 0
+                                            ? '-- Pilih Nama Siswa --'
+                                            : '-- Pilih Kelas Terlebih Dahulu --'; ?>
+                                    </option>
+
+                                    <?php foreach ($dataNamaSiswa as $namaSiswa): ?>
+
+                                        <option
+                                            value="<?= aman($namaSiswa); ?>"
+                                            <?= $siswa_dipilih === $namaSiswa ? 'selected' : ''; ?>
+                                        >
+                                            <?= aman($namaSiswa); ?>
+                                        </option>
+
+                                    <?php endforeach; ?>
+
+                                </select>
+
+                            </div>
+
+                            <!-- TOMBOL CARI -->
+                            <div class="col-12 col-md-2 d-flex align-items-end">
+
+                                <button
+                                    type="submit"
+                                    class="btn btn-primary w-100 rounded-2"
+                                    <?= $kelas_id <= 0 ? 'disabled' : ''; ?>
+                                >
                                     <i class="bi bi-search me-1"></i>
-                                    Cari Laporan
+                                    Cari
                                 </button>
 
                             </div>
@@ -605,19 +732,24 @@ $menuAdmin = [
                     </form>
 
                     <!-- HASIL LAPORAN -->
-                    <?php if ($cari !== ''): ?>
+                    <?php if ($kelas_id > 0 && $siswa_dipilih !== ''): ?>
 
                         <div class="d-flex flex-wrap justify-content-between align-items-center gap-3 mb-3 tidak-cetak">
 
                             <div>
+
                                 <h5 class="fw-bold mb-1">
                                     Hasil Laporan Siswa
                                 </h5>
 
                                 <p class="text-secondary mb-0">
-                                    Nama siswa:
-                                    <strong><?= htmlspecialchars($cari, ENT_QUOTES, 'UTF-8'); ?></strong>
+                                    Kelas:
+                                    <strong><?= aman($namaKelasDipilih); ?></strong>
+                                    |
+                                    Nama:
+                                    <strong><?= aman($siswa_dipilih); ?></strong>
                                 </p>
+
                             </div>
 
                             <?php if (count($dataLaporan) > 0): ?>
@@ -634,7 +766,7 @@ $menuAdmin = [
                                     </button>
 
                                     <a
-                                        href="laporan.php?cari=<?= urlencode($cari); ?>&export=excel"
+                                        href="laporan.php?kelas_id=<?= $kelas_id; ?>&siswa=<?= urlencode($siswa_dipilih); ?>&export=excel"
                                         class="btn btn-primary rounded-2"
                                     >
                                         <i class="bi bi-file-earmark-excel me-1"></i>
@@ -650,36 +782,30 @@ $menuAdmin = [
                         <!-- JIKA DATA TIDAK DITEMUKAN -->
                         <?php if (count($dataLaporan) === 0): ?>
 
-                            <div class="alert alert-warning alert-dismissible fade show mt-3 tidak-cetak" role="alert">
+                            <div class="alert alert-warning tidak-cetak" role="alert">
 
                                 <i class="bi bi-exclamation-triangle-fill me-2"></i>
 
-                                <strong>Perhatian!</strong>
-
-                                Data laporan pelanggaran untuk siswa
-                                <strong><?= htmlspecialchars($cari, ENT_QUOTES, 'UTF-8'); ?></strong>
+                                Data laporan pelanggaran untuk
+                                <strong><?= aman($siswa_dipilih); ?></strong>
+                                pada kelas
+                                <strong><?= aman($namaKelasDipilih); ?></strong>
                                 tidak ditemukan.
-
-                                <button type="button"
-                                        class="btn-close"
-                                        data-bs-dismiss="alert"
-                                        aria-label="Tutup">
-                                </button>
 
                             </div>
 
                         <?php else: ?>
 
-                            <!-- JUDUL DAN IDENTITAS KHUSUS CETAK -->
+                            <!-- KOP DAN IDENTITAS CETAK -->
                             <div class="judul-cetak">
 
-                                <!-- KOP SURAT -->
                                 <div class="kop-cetak">
 
-                                    <img src="logo.png"
-                                         alt="Logo Sekolah"
-                                         width="100"
-                                         class="logo-cetak">
+                                    <img
+                                        src="logo.png"
+                                        alt="Logo Sekolah"
+                                        class="logo-cetak"
+                                    >
 
                                     <div class="identitas-sekolah">
 
@@ -697,7 +823,6 @@ $menuAdmin = [
 
                                 </div>
 
-                                <!-- JUDUL LAPORAN -->
                                 <div class="judul-laporan-cetak">
 
                                     <h3>
@@ -706,7 +831,6 @@ $menuAdmin = [
 
                                 </div>
 
-                                <!-- IDENTITAS SISWA -->
                                 <div class="identitas-siswa-cetak">
 
                                     <table>
@@ -714,29 +838,23 @@ $menuAdmin = [
                                         <tr>
                                             <td><strong>Nama Siswa</strong></td>
                                             <td>:</td>
-                                            <td>
-                                                <?= htmlspecialchars($cari, ENT_QUOTES, 'UTF-8'); ?>
-                                            </td>
+                                            <td><?= aman($siswa_dipilih); ?></td>
                                         </tr>
 
                                         <tr>
                                             <td><strong>Kelas</strong></td>
                                             <td>:</td>
-                                            <td>
-                                                <?= htmlspecialchars($dataLaporan[0]['nama_kelas_resmi'] ?? '-', ENT_QUOTES, 'UTF-8'); ?>
-                                            </td>
+                                            <td><?= aman($namaKelasDipilih); ?></td>
                                         </tr>
 
                                         <tr>
                                             <td><strong>Tahun Ajaran</strong></td>
                                             <td>:</td>
                                             <td>
-                                                <?= htmlspecialchars(
+                                                <?= aman(
                                                     $dataLaporan[0]['nama_tahun_ajaran']
                                                     ?? $dataLaporan[0]['tahun_ajaran']
-                                                    ?? '-',
-                                                    ENT_QUOTES,
-                                                    'UTF-8'
+                                                    ?? '-'
                                                 ); ?>
                                             </td>
                                         </tr>
@@ -772,35 +890,37 @@ $menuAdmin = [
                                         <?php foreach ($dataLaporan as $data): ?>
 
                                             <tr>
+
                                                 <td><?= $no++; ?></td>
 
                                                 <td class="fw-semibold">
-                                                    <?= htmlspecialchars($data['nama_siswa'] ?? '', ENT_QUOTES, 'UTF-8'); ?>
+                                                    <?= aman($data['nama_siswa'] ?? ''); ?>
                                                 </td>
 
                                                 <td>
-                                                    <?= htmlspecialchars($data['nama_kelas_resmi'] ?? '-', ENT_QUOTES, 'UTF-8'); ?>
+                                                    <?= aman($data['nama_kelas_resmi'] ?? '-'); ?>
                                                 </td>
 
                                                 <td>
-                                                    <?= htmlspecialchars($data['nama_pelanggaran'] ?? '', ENT_QUOTES, 'UTF-8'); ?>
+                                                    <?= aman($data['nama_pelanggaran'] ?? ''); ?>
                                                 </td>
 
                                                 <td>
-                                                    <?= htmlspecialchars($data['nama_guru'] ?? '', ENT_QUOTES, 'UTF-8'); ?>
+                                                    <?= aman($data['nama_guru'] ?? ''); ?>
                                                 </td>
 
                                                 <td>
-                                                    <?= htmlspecialchars($data['tanggal'] ?? '', ENT_QUOTES, 'UTF-8'); ?>
+                                                    <?= aman($data['tanggal'] ?? ''); ?>
                                                 </td>
 
                                                 <td>
-                                                    <?= htmlspecialchars($data['poin'] ?? '', ENT_QUOTES, 'UTF-8'); ?>
+                                                    <?= aman($data['poin'] ?? ''); ?>
                                                 </td>
 
                                                 <td>
-                                                    <?= htmlspecialchars($data['status'] ?? '', ENT_QUOTES, 'UTF-8'); ?>
+                                                    <?= aman($data['status'] ?? ''); ?>
                                                 </td>
+
                                             </tr>
 
                                         <?php endforeach; ?>
@@ -811,25 +931,16 @@ $menuAdmin = [
 
                             </div>
 
-                            <!-- HITUNG TOTAL POIN -->
-                            <?php
-                            $totalPoinCetak = 0;
-
-                            foreach ($dataLaporan as $itemPoin) {
-                                $totalPoinCetak += (int)($itemPoin['poin'] ?? 0);
-                            }
-                            ?>
-
                             <!-- RINGKASAN CETAK -->
                             <div class="ringkasan-cetak">
 
                                 <div>
-                                    Total Pelanggaran :
+                                    Total Pelanggaran:
                                     <?= count($dataLaporan); ?> Kali
                                 </div>
 
                                 <div>
-                                    Total Poin :
+                                    Total Poin:
                                     <?= $totalPoinCetak; ?> Poin
                                 </div>
 
@@ -844,7 +955,6 @@ $menuAdmin = [
 
                                 <div class="kolom-ttd">
 
-                                    <!-- KEPALA SEKOLAH -->
                                     <div class="ttd-item">
 
                                         <div class="ttd-jabatan">
@@ -860,7 +970,6 @@ $menuAdmin = [
 
                                     </div>
 
-                                    <!-- GURU BP -->
                                     <div class="ttd-item">
 
                                         <div class="ttd-jabatan">
@@ -875,7 +984,6 @@ $menuAdmin = [
 
                                     </div>
 
-                                    <!-- ORANG TUA / WALI -->
                                     <div class="ttd-item">
 
                                         <div class="ttd-jabatan">
@@ -899,6 +1007,7 @@ $menuAdmin = [
                     <?php endif; ?>
 
                 </div>
+
             </div>
 
             <!-- FOOTER -->
@@ -909,8 +1018,10 @@ $menuAdmin = [
         </main>
 
     </div>
+
 </div>
 
+<!-- JAVASCRIPT -->
 <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
 
 <script src="https://code.jquery.com/jquery-3.7.1.min.js"></script>
@@ -920,6 +1031,36 @@ $menuAdmin = [
 <script src="https://cdn.datatables.net/2.3.4/js/dataTables.bootstrap5.min.js"></script>
 
 <script>
+
+// FORM PENCARIAN
+document.addEventListener('DOMContentLoaded', function () {
+
+    const form = document.querySelector('form[action="laporan.php"]');
+
+    const pilihanKelas = document.getElementById('kelas_id');
+
+    if (form && pilihanKelas) {
+
+        form.id = 'formLaporan';
+
+        pilihanKelas.addEventListener('change', function () {
+
+            // Ganti kelas, nama siswa harus dipilih ulang
+            const pilihanSiswa = document.getElementById('siswa');
+
+            if (pilihanSiswa) {
+                pilihanSiswa.value = '';
+            }
+
+            form.submit();
+
+        });
+
+    }
+
+});
+
+// DATATABLES
 let tabelLaporan = null;
 
 $(document).ready(function () {
@@ -927,18 +1068,29 @@ $(document).ready(function () {
     if ($('#tabelLaporan').length) {
 
         tabelLaporan = $('#tabelLaporan').DataTable({
+
             pageLength: 10,
+
             lengthMenu: [5, 10, 25, 50, 100],
+
             ordering: true,
+
             searching: true,
 
             language: {
+
                 search: "Cari:",
+
                 lengthMenu: "Tampilkan _MENU_ data",
+
                 info: "Menampilkan _START_ sampai _END_ dari _TOTAL_ data laporan",
+
                 infoEmpty: "Tidak ada data laporan",
+
                 infoFiltered: "(disaring dari _MAX_ total data)",
+
                 zeroRecords: "Data laporan tidak ditemukan",
+
                 emptyTable: "Belum ada laporan",
 
                 paginate: {
@@ -947,6 +1099,7 @@ $(document).ready(function () {
                     next: "Berikutnya",
                     previous: "Sebelumnya"
                 }
+
             },
 
             columnDefs: [
@@ -955,6 +1108,7 @@ $(document).ready(function () {
                     orderable: false
                 }
             ]
+
         });
 
     }
@@ -968,10 +1122,12 @@ function cetakLaporan() {
     let jumlahData = 10;
 
     if (tabelLaporan !== null) {
+
         halamanAwal = tabelLaporan.page();
         jumlahData = tabelLaporan.page.len();
 
         tabelLaporan.page.len(-1).draw();
+
     }
 
     setTimeout(function () {
@@ -979,12 +1135,17 @@ function cetakLaporan() {
         window.print();
 
         if (tabelLaporan !== null) {
+
             tabelLaporan.page.len(jumlahData).draw();
+
             tabelLaporan.page(halamanAwal).draw('page');
+
         }
 
     }, 300);
+
 }
+
 </script>
 
 </body>

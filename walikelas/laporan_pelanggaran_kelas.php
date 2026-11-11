@@ -166,6 +166,184 @@ $jenisTerbanyak = !empty($dataJenis)
     <!-- DATATABLES -->
     <link href="https://cdn.datatables.net/2.3.4/css/dataTables.bootstrap5.min.css" rel="stylesheet">
 
+    <style>
+
+        /* =====================================
+           TAMPILAN KHUSUS CETAK
+        ===================================== */
+
+        @media print {
+
+            @page {
+                size: A4 landscape;
+                margin: 12mm;
+            }
+
+            html,
+            body {
+                width: 100% !important;
+                height: auto !important;
+                min-height: 0 !important;
+                margin: 0 !important;
+                padding: 0 !important;
+                overflow: visible !important;
+                background: white !important;
+                color: black !important;
+                font-family: "Times New Roman", serif !important;
+                font-size: 12px !important;
+            }
+
+            body > .container-fluid {
+                display: block !important;
+                width: 100% !important;
+                height: auto !important;
+                min-height: 0 !important;
+                margin: 0 !important;
+                padding: 0 !important;
+                overflow: visible !important;
+            }
+
+            body > .container-fluid > .row {
+                display: block !important;
+                width: 100% !important;
+                height: auto !important;
+                min-height: 0 !important;
+                margin: 0 !important;
+                padding: 0 !important;
+                overflow: visible !important;
+            }
+
+            /* SIDEBAR TIDAK DICETAK */
+            body > .container-fluid > .row > aside {
+                display: none !important;
+            }
+
+            /* KONTEN UTAMA */
+            body > .container-fluid > .row > main {
+                display: block !important;
+                width: 100% !important;
+                max-width: 100% !important;
+                height: auto !important;
+                min-height: 0 !important;
+                margin: 0 !important;
+                padding: 0 !important;
+                flex: none !important;
+                overflow: visible !important;
+            }
+
+            /* SEMBUNYIKAN BAGIAN YANG TIDAK DICETAK */
+            .tidak-cetak,
+            .dt-layout-row,
+            .dt-search,
+            .dt-length,
+            .dt-info,
+            .dt-paging,
+            .dataTables_info,
+            .dataTables_paginate,
+            .dataTables_filter,
+            .dataTables_length {
+                display: none !important;
+            }
+
+            /* CARD */
+            .card,
+            .card-body {
+                width: 100% !important;
+                max-width: 100% !important;
+                height: auto !important;
+                min-height: 0 !important;
+                margin: 0 0 15px 0 !important;
+                padding: 10px !important;
+                border: none !important;
+                border-radius: 0 !important;
+                box-shadow: none !important;
+                overflow: visible !important;
+                background: white !important;
+            }
+
+            /* WARNA TEKS */
+            h2,
+            h3,
+            h5,
+            p,
+            small,
+            div,
+            span,
+            td,
+            th {
+                color: black !important;
+            }
+
+            /* TABEL */
+            .table-responsive,
+            #tabelLaporan_wrapper,
+            #tabelLaporan_wrapper .dt-layout-table {
+                display: block !important;
+                width: 100% !important;
+                max-width: 100% !important;
+                height: auto !important;
+                overflow: visible !important;
+            }
+
+            table {
+                width: 100% !important;
+                max-width: 100% !important;
+                border-collapse: collapse !important;
+                margin-bottom: 15px !important;
+                font-family: "Times New Roman", serif !important;
+                font-size: 11px !important;
+            }
+
+            table th,
+            table td {
+                border: 1px solid black !important;
+                padding: 7px !important;
+                color: black !important;
+                background: white !important;
+                vertical-align: middle !important;
+            }
+
+            table thead {
+                display: table-header-group !important;
+            }
+
+            table tbody {
+                display: table-row-group !important;
+            }
+
+            table tbody tr {
+                display: table-row !important;
+                page-break-inside: avoid !important;
+                break-inside: avoid !important;
+            }
+
+            table th {
+                text-align: center !important;
+                font-weight: bold !important;
+            }
+
+            /* HILANGKAN WARNA BADGE */
+            .badge {
+                color: black !important;
+                background: white !important;
+                border: 1px solid black !important;
+                font-weight: normal !important;
+            }
+
+            /* HILANGKAN BAYANGAN */
+            .shadow-sm {
+                box-shadow: none !important;
+            }
+
+            /* FOOTER */
+            main > .border-top {
+                display: none !important;
+            }
+
+        }
+
+    </style>
+
 </head>
 
 <body class="bg-light overflow-hidden">
@@ -324,7 +502,7 @@ $jenisTerbanyak = !empty($dataJenis)
                     </p>
 
                     <a href="../dashboard.php"
-                       class="btn btn-secondary btn-sm rounded-2">
+                       class="btn btn-secondary btn-sm rounded-2 tidak-cetak">
 
                         <i class="bi bi-arrow-left me-1"></i>
                         Kembali ke Dashboard
@@ -333,9 +511,22 @@ $jenisTerbanyak = !empty($dataJenis)
 
                 </div>
 
-                <span class="badge text-bg-dark rounded-pill px-3 py-2">
-                    Wali Kelas
-                </span>
+                <div class="d-flex flex-wrap align-items-center gap-2 tidak-cetak">
+
+                    <span class="badge text-bg-dark rounded-pill px-3 py-2">
+                        Wali Kelas
+                    </span>
+
+                    <button type="button"
+                            onclick="cetakLaporan()"
+                            class="btn btn-primary rounded-2">
+
+                        <i class="bi bi-printer me-1"></i>
+                        Cetak Laporan
+
+                    </button>
+
+                </div>
 
             </div>
 
@@ -604,7 +795,7 @@ $jenisTerbanyak = !empty($dataJenis)
             </div>
 
             <!-- FOOTER -->
-            <div class="text-secondary small mt-5 pt-3 border-top">
+            <div class="text-secondary small mt-5 pt-3 border-top tidak-cetak">
                 Sistem Informasi Pelanggaran Siswa
             </div>
 
@@ -624,58 +815,144 @@ $jenisTerbanyak = !empty($dataJenis)
 <script src="https://cdn.datatables.net/2.3.4/js/dataTables.bootstrap5.min.js"></script>
 
 <script>
+
+let tabelLaporan = null;
+let halamanAwal = 0;
+let jumlahDataAwal = 10;
+let sedangMencetak = false;
+
+/* =================================
+   DATATABLES
+   INISIALISASI HANYA SATU KALI
+================================= */
+
 $(document).ready(function () {
 
-    $('#tabelLaporan').DataTable({
+    if ($('#tabelLaporan').length) {
 
-        pageLength: 10,
+        tabelLaporan = $('#tabelLaporan').DataTable({
 
-        lengthMenu: [5, 10, 25, 50, 100],
+            pageLength: 10,
 
-        ordering: true,
+            lengthMenu: [5, 10, 25, 50, 100],
 
-        searching: true,
+            ordering: true,
 
-        language: {
+            searching: true,
 
-            search: "Cari:",
+            language: {
 
-            lengthMenu: "Tampilkan _MENU_ data",
+                search: "Cari:",
 
-            info: "Menampilkan _START_ sampai _END_ dari _TOTAL_ data",
+                lengthMenu: "Tampilkan _MENU_ data",
 
-            infoEmpty: "Tidak ada data",
+                info: "Menampilkan _START_ sampai _END_ dari _TOTAL_ data",
 
-            infoFiltered: "(disaring dari _MAX_ total data)",
+                infoEmpty: "Tidak ada data",
 
-            zeroRecords: "Data tidak ditemukan",
+                infoFiltered: "(disaring dari _MAX_ total data)",
 
-            emptyTable: "Belum ada data",
+                zeroRecords: "Data tidak ditemukan",
 
-            paginate: {
+                emptyTable: "Belum ada data",
 
-                first: "Pertama",
+                paginate: {
 
-                last: "Terakhir",
+                    first: "Pertama",
 
-                next: "Berikutnya",
+                    last: "Terakhir",
 
-                previous: "Sebelumnya"
+                    next: "Berikutnya",
 
-            }
+                    previous: "Sebelumnya"
 
-        },
+                }
 
-        columnDefs: [
-            {
-                targets: 0,
-                orderable: false
-            }
-        ]
+            },
 
-    });
+            columnDefs: [
+                {
+                    targets: 0,
+                    orderable: false
+                }
+            ]
+
+        });
+
+    }
 
 });
+
+/* =================================
+   CETAK LAPORAN
+================================= */
+
+function cetakLaporan() {
+
+    if (sedangMencetak) {
+        return;
+    }
+
+    sedangMencetak = true;
+
+    if (tabelLaporan !== null) {
+
+        halamanAwal = tabelLaporan.page();
+        jumlahDataAwal = tabelLaporan.page.len();
+
+        // Jika sudah menampilkan semua data,
+        // langsung jalankan proses cetak.
+        if (jumlahDataAwal === -1) {
+
+            window.print();
+            return;
+
+        }
+
+        // Tunggu satu kali proses redraw selesai.
+        tabelLaporan.one('draw', function () {
+
+            setTimeout(function () {
+                window.print();
+            }, 150);
+
+        });
+
+        // Tampilkan seluruh data untuk dicetak.
+        tabelLaporan.page.len(-1).draw(false);
+
+    } else {
+
+        window.print();
+
+    }
+
+}
+
+/* =================================
+   KEMBALIKAN TAMPILAN SETELAH CETAK
+================================= */
+
+window.addEventListener('afterprint', function () {
+
+    if (tabelLaporan !== null && sedangMencetak) {
+
+        // Kembalikan jumlah data seperti semula.
+        tabelLaporan.page.len(jumlahDataAwal).draw(false);
+
+        // Kembalikan halaman sebelumnya setelah redraw.
+        tabelLaporan.one('draw', function () {
+
+            tabelLaporan.page(halamanAwal).draw('page');
+
+        });
+
+    }
+
+    sedangMencetak = false;
+
+});
+
 </script>
 
 </body>

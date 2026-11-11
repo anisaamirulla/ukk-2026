@@ -253,14 +253,12 @@ $pesan_gagal = [
                         Kelola data wali kelas pada Sistem Informasi Pelanggaran Siswa.
                     </p>
 
-                    <!-- TOMBOL KEMBALI KE DASHBOARD -->
                     <a href="dashboard.php" class="btn btn-secondary btn-sm">
                         Kembali ke Dashboard
                     </a>
 
                 </div>
 
-                <!-- TOMBOL TAMBAH -->
                 <a href="tambah_wali_kelas.php" class="btn btn-primary rounded-2 px-4">
                     + Tambah Wali Kelas
                 </a>
@@ -343,9 +341,7 @@ $pesan_gagal = [
 
                                     <tr>
 
-                                        <td>
-                                            <?= $no++; ?>
-                                        </td>
+                                        <td><?= $no++; ?></td>
 
                                         <td>
                                             <?= aman($row['tahun_ajaran'] ?? '-'); ?>
@@ -391,7 +387,6 @@ $pesan_gagal = [
 
                                         </td>
 
-                                        <!-- TOMBOL AKSI -->
                                         <td>
 
                                             <div class="d-flex gap-1">
@@ -442,13 +437,10 @@ $pesan_gagal = [
     </div>
 </div>
 
-<!-- JAVASCRIPT BOOTSTRAP -->
 <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
 
-<!-- JQUERY -->
 <script src="https://code.jquery.com/jquery-3.7.1.min.js"></script>
 
-<!-- DATATABLES -->
 <script src="https://cdn.datatables.net/2.3.4/js/dataTables.min.js"></script>
 
 <script src="https://cdn.datatables.net/2.3.4/js/dataTables.bootstrap5.min.js"></script>

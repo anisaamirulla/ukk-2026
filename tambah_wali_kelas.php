@@ -1,3 +1,4 @@
+
 <?php
 session_start();
 require_once __DIR__ . "/config/koneksi.php";
@@ -26,36 +27,7 @@ $form = [
     'status_aktif' => 1
 ];
 
-/* Ambil pilihan dari database */
-$tahun = mysqli_query(
-    $koneksi,
-    "SELECT id, nama
-     FROM t_tahun_ajaran
-     WHERE nama IN (
-         '2024/2025',
-         '2025/2026',
-         '2026/2027',
-         '2027/2028',
-         '2028/2029'
-     )
-     ORDER BY id ASC"
-);
-
-$kelas = mysqli_query(
-    $koneksi,
-    "SELECT id, nama FROM t_kelas ORDER BY nama ASC"
-);
-
-$guru = mysqli_query(
-    $koneksi,
-    "SELECT id, nip, nama FROM t_guru ORDER BY nama ASC"
-);
-
-if (!$tahun || !$kelas || !$guru) {
-    die("Gagal mengambil data pilihan: " . mysqli_error($koneksi));
-}
-
-/* Ambil data jika mode edit */
+/* AMBIL DATA JIKA MODE EDIT */
 if ($edit_id > 0) {
     $stmt = mysqli_prepare(
         $koneksi,
@@ -82,7 +54,107 @@ if ($edit_id > 0) {
     $form = $row_edit;
 }
 
-/* Simpan data */
+/* AMBIL TAHUN AJARAN YANG AKTIF */
+$tahun = mysqli_query(
+    $koneksi,
+    "SELECT id, nama
+     FROM t_tahun_ajaran
+     WHERE status_aktif = 1
+     ORDER BY id DESC"
+);
+
+if (!$tahun) {
+    die("Gagal mengambil tahun ajaran: " . mysqli_error($koneksi));
+}
+
+$tahun_list = [];
+$tahun_map = [];
+
+while ($row = mysqli_fetch_assoc($tahun)) {
+    $tahun_list[] = $row;
+    $tahun_map[(int)$row['id']] = $row['nama'];
+}
+
+/* TAHUN AJARAN YANG DIGUNAKAN UNTUK FILTER KELAS DAN GURU */
+$tahun_filter_id = (int)($form['tahun_ajaran_id'] ?: 0);
+
+if ($_SERVER['REQUEST_METHOD'] === 'POST') {
+    $tahun_filter_id = (int)($_POST['tahun_ajaran_id'] ?? 0);
+}
+
+if ($tahun_filter_id <= 0 && count($tahun_list) > 0) {
+    $tahun_filter_id = (int)$tahun_list[0]['id'];
+}
+
+/* AMBIL KELAS YANG BELUM MEMILIKI WALI KELAS AKTIF */
+$kelas = mysqli_prepare(
+    $koneksi,
+    "SELECT k.id, k.nama
+     FROM t_kelas k
+     WHERE NOT EXISTS (
+         SELECT 1
+         FROM t_wali_kelas wk
+         WHERE wk.kelas_id = k.id
+         AND wk.tahun_ajaran_id = ?
+         AND wk.status_aktif = 1
+         AND wk.id != ?
+     )
+     ORDER BY k.nama ASC"
+);
+
+if (!$kelas) {
+    die("Gagal mengambil data kelas: " . mysqli_error($koneksi));
+}
+
+mysqli_stmt_bind_param($kelas, "ii", $tahun_filter_id, $edit_id);
+mysqli_stmt_execute($kelas);
+$hasil_kelas = mysqli_stmt_get_result($kelas);
+
+$kelas_list = [];
+$kelas_map = [];
+
+while ($row = mysqli_fetch_assoc($hasil_kelas)) {
+    $kelas_list[] = $row;
+    $kelas_map[(int)$row['id']] = $row['nama'];
+}
+
+mysqli_stmt_close($kelas);
+
+/* AMBIL GURU YANG BELUM MENJADI WALI KELAS AKTIF */
+$guru = mysqli_prepare(
+    $koneksi,
+    "SELECT g.id, g.nip, g.nama
+     FROM t_guru g
+     WHERE NOT EXISTS (
+         SELECT 1
+         FROM t_wali_kelas wk
+         WHERE wk.guru_id = g.id
+         AND wk.tahun_ajaran_id = ?
+         AND wk.status_aktif = 1
+         AND wk.id != ?
+     )
+     ORDER BY g.nama ASC"
+);
+
+if (!$guru) {
+    die("Gagal mengambil data guru: " . mysqli_error($koneksi));
+}
+
+mysqli_stmt_bind_param($guru, "ii", $tahun_filter_id, $edit_id);
+mysqli_stmt_execute($guru);
+$hasil_guru = mysqli_stmt_get_result($guru);
+
+$guru_list = [];
+$guru_map = [];
+
+while ($row = mysqli_fetch_assoc($hasil_guru)) {
+    $guru_list[] = $row;
+    $guru_map[(int)$row['id']] = $row['nama'];
+}
+
+mysqli_stmt_close($guru);
+
+/* PROSES SIMPAN DATA */
 if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     $edit_id = (int)($_POST['id'] ?? 0);
 
@@ -111,6 +183,15 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     ) {
         $error = "Semua kolom wajib diisi.";
 
+    } elseif (!isset($tahun_map[$tahun_ajaran_id])) {
+        $error = "Tahun ajaran yang dipilih tidak aktif.";
+
+    } elseif (!isset($kelas_map[$kelas_id])) {
+        $error = "Kelas tersebut sudah memiliki wali kelas aktif atau tidak tersedia.";
+
+    } elseif (!isset($guru_map[$guru_id])) {
+        $error = "Guru tersebut sudah menjadi wali kelas aktif atau tidak tersedia.";
+
     } elseif ($tanggal_selesai < $tanggal_mulai) {
         $error = "Tanggal selesai tidak boleh sebelum tanggal mulai.";
 
@@ -119,14 +200,15 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
 
     } else {
 
-        /* CEK DUPLIKASI JIKA STATUS AKTIF */
+        /* CEK GURU PADA TAHUN AJARAN YANG DIPILIH */
         if ($status_aktif === 1) {
 
-            /* Guru tidak boleh memiliki dua penugasan aktif */
             $cek_guru = mysqli_prepare(
                 $koneksi,
-                "SELECT id FROM t_wali_kelas
+                "SELECT id
+                 FROM t_wali_kelas
                  WHERE guru_id = ?
+                 AND tahun_ajaran_id = ?
                  AND status_aktif = 1
                  AND id != ?
                  LIMIT 1"
@@ -137,27 +219,28 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             } else {
                 mysqli_stmt_bind_param(
                     $cek_guru,
-                    "ii",
+                    "iii",
                     $guru_id,
+                    $tahun_ajaran_id,
                     $edit_id
                 );
 
                 mysqli_stmt_execute($cek_guru);
-                $hasil_guru = mysqli_stmt_get_result($cek_guru);
+                $hasil_guru_cek = mysqli_stmt_get_result($cek_guru);
 
-                if (mysqli_num_rows($hasil_guru) > 0) {
-                    $error = "Guru tersebut masih menjadi wali kelas aktif di kelas lain. Silakan pilih guru yang berbeda.";
+                if (mysqli_num_rows($hasil_guru_cek) > 0) {
+                    $error = "Guru tersebut sudah menjadi wali kelas aktif pada tahun ajaran ini.";
                 }
 
                 mysqli_stmt_close($cek_guru);
             }
 
-            /* Satu kelas hanya boleh memiliki satu wali kelas aktif
-               pada tahun ajaran yang sama */
+            /* CEK KELAS PADA TAHUN AJARAN YANG DIPILIH */
             if ($error === '') {
                 $cek_kelas = mysqli_prepare(
                     $koneksi,
-                    "SELECT id FROM t_wali_kelas
+                    "SELECT id
+                     FROM t_wali_kelas
                      WHERE tahun_ajaran_id = ?
                      AND kelas_id = ?
                      AND status_aktif = 1
@@ -177,9 +260,9 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                     );
 
                     mysqli_stmt_execute($cek_kelas);
-                    $hasil_kelas = mysqli_stmt_get_result($cek_kelas);
+                    $hasil_kelas_cek = mysqli_stmt_get_result($cek_kelas);
 
-                    if (mysqli_num_rows($hasil_kelas) > 0) {
+                    if (mysqli_num_rows($hasil_kelas_cek) > 0) {
                         $error = "Kelas tersebut sudah memiliki wali kelas aktif pada tahun ajaran ini.";
                     }
 
@@ -264,7 +347,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     }
 }
 
-/* Menu Admin */
+/* MENU ADMIN */
 $menuAdmin = [
     ['Dashboard', 'dashboard.php'],
     ['Data Siswa', 'siswa.php'],
@@ -411,14 +494,14 @@ $menuAdmin = [
 
                                             <option value="">-- Pilih Tahun Ajaran --</option>
 
-                                            <?php while ($row = mysqli_fetch_assoc($tahun)): ?>
+                                            <?php foreach ($tahun_list as $row): ?>
                                                 <option
                                                     value="<?= (int)$row['id']; ?>"
                                                     <?= (int)$form['tahun_ajaran_id'] === (int)$row['id'] ? 'selected' : ''; ?>
                                                 >
                                                     <?= htmlspecialchars($row['nama'], ENT_QUOTES, 'UTF-8'); ?>
                                                 </option>
-                                            <?php endwhile; ?>
+                                            <?php endforeach; ?>
 
                                         </select>
                                     </div>
@@ -435,16 +518,22 @@ $menuAdmin = [
 
                                             <option value="">-- Pilih Kelas --</option>
 
-                                            <?php while ($row = mysqli_fetch_assoc($kelas)): ?>
+                                            <?php foreach ($kelas_list as $row): ?>
                                                 <option
                                                     value="<?= (int)$row['id']; ?>"
                                                     <?= (int)$form['kelas_id'] === (int)$row['id'] ? 'selected' : ''; ?>
                                                 >
                                                     <?= htmlspecialchars($row['nama'], ENT_QUOTES, 'UTF-8'); ?>
                                                 </option>
-                                            <?php endwhile; ?>
+                                            <?php endforeach; ?>
 
                                         </select>
+
+                                        <?php if (count($kelas_list) === 0): ?>
+                                            <small class="text-secondary">
+                                                Semua kelas sudah memiliki wali kelas aktif pada tahun ajaran ini.
+                                            </small>
+                                        <?php endif; ?>
                                     </div>
 
                                     <div class="col-12">
@@ -459,7 +548,7 @@ $menuAdmin = [
 
                                             <option value="">-- Pilih Guru --</option>
 
-                                            <?php while ($row = mysqli_fetch_assoc($guru)): ?>
+                                            <?php foreach ($guru_list as $row): ?>
                                                 <option
                                                     value="<?= (int)$row['id']; ?>"
                                                     <?= (int)$form['guru_id'] === (int)$row['id'] ? 'selected' : ''; ?>
@@ -467,9 +556,15 @@ $menuAdmin = [
                                                     <?= htmlspecialchars($row['nip'], ENT_QUOTES, 'UTF-8'); ?> -
                                                     <?= htmlspecialchars($row['nama'], ENT_QUOTES, 'UTF-8'); ?>
                                                 </option>
-                                            <?php endwhile; ?>
+                                            <?php endforeach; ?>
 
                                         </select>
+
+                                        <?php if (count($guru_list) === 0): ?>
+                                            <small class="text-secondary">
+                                                Semua guru sudah menjadi wali kelas aktif pada tahun ajaran ini.
+                                            </small>
+                                        <?php endif; ?>
                                     </div>
 
                                     <div class="col-12">
@@ -534,7 +629,11 @@ $menuAdmin = [
                                         Batal
                                     </a>
 
-                                    <button type="submit" class="btn btn-primary">
+                                    <button
+                                        type="submit"
+                                        class="btn btn-primary"
+                                        <?= count($tahun_list) === 0 || count($kelas_list) === 0 || count($guru_list) === 0 ? 'disabled' : ''; ?>
+                                    >
                                         <?= $edit_id > 0 ? 'Simpan Perubahan' : 'Simpan Wali Kelas'; ?>
                                     </button>
                                 </div>

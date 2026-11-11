@@ -15,41 +15,32 @@ if (!in_array($role, ['admin', 'guru'], true)) {
 
 require_once __DIR__ . "/config/koneksi.php";
 
-/* AMBIL DATA YANG SUDAH SELESAI */
-$data = mysqli_query(
-    $koneksi,
-    "SELECT id, nama_siswa, nama_kelas,
-            nama_pelanggaran, nama_guru,
-            tanggal, keterangan, poin, tindakan, status
-     FROM t_pelanggaran_siswa
-     WHERE status = 'Selesai'
-     ORDER BY tanggal DESC, id DESC"
-);
+/* NAMA PENGGUNA */
+$nama = $_SESSION['name'] ?? 'Pengguna';
 
-if (!$data) {
-    die("Gagal mengambil data riwayat: " . mysqli_error($koneksi));
-}
-
-$totalRiwayat = mysqli_num_rows($data);
-
-$nama = htmlspecialchars(
-    $_SESSION['name'] ?? 'Pengguna',
-    ENT_QUOTES,
-    'UTF-8'
-);
-
-/* PEMERIKSAAN WALI KELAS UNTUK MENU SIDEBAR */
+/* IDENTITAS GURU LOGIN */
+$guru_id = 0;
+$namaGuruLogin = '';
 $isWaliKelas = false;
 
 if ($role === 'guru') {
 
     $cekGuru = mysqli_prepare(
         $koneksi,
-        "SELECT id FROM t_guru WHERE user_id = ? LIMIT 1"
+        "SELECT id, nama
+         FROM t_guru
+         WHERE user_id = ?
+         LIMIT 1"
     );
 
     if ($cekGuru) {
-        mysqli_stmt_bind_param($cekGuru, "i", $_SESSION['id']);
+
+        mysqli_stmt_bind_param(
+            $cekGuru,
+            "i",
+            $_SESSION['id']
+        );
+
         mysqli_stmt_execute($cekGuru);
 
         $hasilGuru = mysqli_stmt_get_result($cekGuru);
@@ -58,6 +49,12 @@ if ($role === 'guru') {
         mysqli_stmt_close($cekGuru);
 
         if ($guru) {
+
+            $guru_id = (int) $guru['id'];
+            $namaGuruLogin = $guru['nama'];
+            $nama = $guru['nama'];
+
+            /* PEMERIKSAAN WALI KELAS UNTUK MENU SIDEBAR */
             $cekWali = mysqli_prepare(
                 $koneksi,
                 "SELECT id
@@ -73,10 +70,17 @@ if ($role === 'guru') {
             );
 
             if ($cekWali) {
-                mysqli_stmt_bind_param($cekWali, "i", $guru['id']);
+
+                mysqli_stmt_bind_param(
+                    $cekWali,
+                    "i",
+                    $guru_id
+                );
+
                 mysqli_stmt_execute($cekWali);
 
                 $hasilWali = mysqli_stmt_get_result($cekWali);
+
                 $isWaliKelas = mysqli_num_rows($hasilWali) > 0;
 
                 mysqli_stmt_close($cekWali);
@@ -84,6 +88,13 @@ if ($role === 'guru') {
         }
     }
 }
+
+/* MENGAMANKAN NAMA */
+$nama = htmlspecialchars(
+    $nama,
+    ENT_QUOTES,
+    'UTF-8'
+);
 
 /* LABEL ROLE */
 if ($role === 'admin') {
@@ -93,6 +104,64 @@ if ($role === 'admin') {
 } else {
     $labelRole = 'GURU';
 }
+
+/* AMBIL DATA RIWAYAT */
+
+/*
+   ADMIN:
+   Menampilkan seluruh riwayat yang sudah selesai.
+
+   GURU DAN WALI KELAS:
+   Hanya menampilkan riwayat pelanggaran
+   yang dicatat oleh guru yang sedang login.
+*/
+
+if ($role === 'admin') {
+
+    $data = mysqli_query(
+        $koneksi,
+        "SELECT id, nama_siswa, nama_kelas,
+                nama_pelanggaran, nama_guru,
+                tanggal, keterangan, poin, tindakan, status
+         FROM t_pelanggaran_siswa
+         WHERE status = 'Selesai'
+         ORDER BY tanggal DESC, id DESC"
+    );
+
+} else {
+
+    $data = mysqli_prepare(
+        $koneksi,
+        "SELECT id, nama_siswa, nama_kelas,
+                nama_pelanggaran, nama_guru,
+                tanggal, keterangan, poin, tindakan, status
+         FROM t_pelanggaran_siswa
+         WHERE status = 'Selesai'
+           AND LOWER(TRIM(nama_guru)) = LOWER(TRIM(?))
+         ORDER BY tanggal DESC, id DESC"
+    );
+
+    if ($data) {
+
+        mysqli_stmt_bind_param(
+            $data,
+            "s",
+            $namaGuruLogin
+        );
+
+        mysqli_stmt_execute($data);
+
+        $data = mysqli_stmt_get_result($data);
+    }
+}
+
+/* PEMERIKSAAN DATA */
+if (!$data) {
+    die("Gagal mengambil data riwayat: " . mysqli_error($koneksi));
+}
+
+/* TOTAL RIWAYAT */
+$totalRiwayat = mysqli_num_rows($data);
 
 /* MENU SIDEBAR ADMIN */
 $menuAdmin = [
@@ -117,7 +186,6 @@ $menuAdmin = [
 $menuGuru = [
     ['Dashboard', 'dashboard.php'],
     ['Catatan Pelanggaran', 'catatan_pelanggaran.php'],
-    ['Tindakan', 'tindakan.php'],
     ['Riwayat', 'riwayat.php'],
     ['Rekap Poin', 'rekap_poin.php'],
     ['About Me', 'abautme.php']
@@ -142,6 +210,7 @@ if ($role === 'admin') {
 } else {
     $menu = $menuGuru;
 }
+
 ?>
 
 <!DOCTYPE html>
